@@ -38,7 +38,7 @@ class CoverExtractor(
                             logger.debug("Cover extraction previously failed for book {}, skipping retry", bookId)
                             return null
                         }
-                        CoverExtractionStatus.PENDING -> {}
+                        CoverExtractionStatus.PENDING, null -> {}
                     }
                 }
             }
@@ -88,14 +88,19 @@ class CoverExtractor(
 
         try {
             val book = bookRepository.findById(bookId).orElse(null) ?: return
+            println("DEBUG: Updating book $bookId with status=$status, coverPath=$coverPath")
             val updated = book.copy(
                 coverExtractionStatus = status,
                 coverPath = coverPath ?: book.coverPath,
                 updatedAt = java.time.LocalDateTime.now()
             )
-            bookRepository.save(updated)
+            println("DEBUG: Updated object - status=${updated.coverExtractionStatus}, coverPath=${updated.coverPath}")
+            val saved = bookRepository.save(updated)
+            println("DEBUG: Saved book - id=${saved.id}, status=${saved.coverExtractionStatus}")
             logger.debug("Updated extraction status for book {} to {}", bookId, status)
         } catch (e: Exception) {
+            println("DEBUG: Error updating book $bookId: ${e.message}")
+            e.printStackTrace()
             logger.warn("Failed to update extraction status for book {}: {}", bookId, e.message)
         }
     }

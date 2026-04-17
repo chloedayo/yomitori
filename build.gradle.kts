@@ -21,6 +21,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-quartz")
+    implementation("org.flywaydb:flyway-core")
 
     implementation("org.xerial:sqlite-jdbc:3.44.0.0")
     implementation("org.hibernate.orm:hibernate-community-dialects:6.3.1.Final")

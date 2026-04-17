@@ -23,6 +23,7 @@ class BookService(
         page: Int = 0,
         pageSize: Int = 20
     ): Page<Book> {
+        println("DEBUG: searchBooks called with title=$title")
         val pageable: Pageable = PageRequest.of(page, pageSize)
         val results = if (genre != null || type != null) {
             repository.searchByTitleGenreType(title, genre, type, pageable)
@@ -30,12 +31,15 @@ class BookService(
             repository.searchByTitle(title, pageable)
         }
 
+        println("DEBUG: Search returned ${results.content.size} results")
         logger.info("Search returned {} results, checking for covers to extract", results.content.size)
 
         val pendingBooks = results.content
-            .filter { it.coverExtractionStatus == CoverExtractionStatus.PENDING }
+            .filter { it.coverExtractionStatus == CoverExtractionStatus.PENDING || it.coverExtractionStatus == null }
 
+        println("DEBUG: Found ${pendingBooks.size} pending books out of ${results.content.size}")
         if (pendingBooks.isNotEmpty()) {
+            println("DEBUG: Triggering async extraction for ${pendingBooks.size} books")
             logger.info("Found {} books with PENDING cover extraction, triggering async extraction", pendingBooks.size)
             pendingBooks.forEach {
                 logger.debug("Async extracting cover for: {} ({})", it.title, it.id)

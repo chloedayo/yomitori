@@ -56,11 +56,12 @@ class CrawlerServiceTest {
     @Test
     fun `should mark deleted files as soft-deleted`() {
         val book = Book(
-            id = 1,
+            id = "1",
             filepath = "/books/deleted.pdf",
             filename = "deleted.pdf",
             title = "Deleted Book",
             type = "novel",
+            coverExtractionStatus = com.yomitori.model.CoverExtractionStatus.PENDING,
             fileFormat = "pdf"
         )
 
