@@ -7,7 +7,8 @@ import java.time.LocalDateTime
 @Table(name = "books")
 data class Book(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "book_id_gen")
+    @TableGenerator(name = "book_id_gen", table = "id_gen", pkColumnName = "id_key", valueColumnName = "id_val", pkColumnValue = "book_id")
     val id: Long = 0,
 
     @Column(unique = true, nullable = false)

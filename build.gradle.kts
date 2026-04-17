@@ -3,6 +3,7 @@ plugins {
     kotlin("plugin.spring") version "1.9.21"
     id("org.springframework.boot") version "3.2.0"
     id("io.spring.dependency-management") version "1.1.4"
+    kotlin("plugin.jpa") version "1.9.21"
 }
 
 group = "com.yomitori"
@@ -32,6 +33,8 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    testImplementation("org.mockito:mockito-core:5.5.0")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
