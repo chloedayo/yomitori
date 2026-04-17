@@ -1,87 +1,100 @@
 package com.yomitori.service
 
+import com.yomitori.model.CoverExtractionStatus
+import com.yomitori.repository.BookRepository
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.awt.image.BufferedImage
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import javax.imageio.ImageIO
-import kotlin.math.min
 
 @Service
 class CoverExtractor(
     @Value("\${yomitori.crawler.covers-path}")
-    private val coversPath: String
+    private val coversPath: String,
+    private val fileTypeRouter: FileTypeRouter,
+    private val coverImageSaver: CoverImageSaver,
+    private val bookRepository: BookRepository?
 ) {
+    private val logger = LoggerFactory.getLogger(CoverExtractor::class.java)
+
     init {
         Files.createDirectories(Paths.get(coversPath))
+        coverImageSaver.setCoversPath(coversPath)
     }
 
-    fun extractCover(filepath: String, bookId: Long?): String? {
+    fun extractCover(filepath: String, bookId: String?): String? {
         return try {
-            when {
-                filepath.endsWith(".pdf", ignoreCase = true) -> null
-                filepath.endsWith(".epub", ignoreCase = true) -> null
-                filepath.endsWith(".cbr", ignoreCase = true) -> null
-                filepath.endsWith(".cbz", ignoreCase = true) -> extractCbzCover(filepath, bookId)
-                else -> null
+            if (bookId != null) {
+                val book = bookRepository?.findById(bookId)
+                if (book != null) {
+                    when (book.coverExtractionStatus) {
+                        CoverExtractionStatus.FOUND -> {
+                            logger.debug("Cover already found for book {}, skipping extraction", bookId)
+                            return book.coverPath
+                        }
+                        CoverExtractionStatus.NOT_FOUND -> {
+                            logger.debug("Cover extraction previously failed for book {}, skipping retry", bookId)
+                            return null
+                        }
+                        CoverExtractionStatus.PENDING -> {}
+                    }
+                }
             }
-        } catch (e: Exception) {
-            println("Failed to extract cover from $filepath: ${e.message}")
-            null
-        }
-    }
 
-    private fun extractCbzCover(filepath: String, bookId: Long?): String? {
-        return try {
-            val zipFile = java.util.zip.ZipFile(File(filepath))
-            val entries = zipFile.entries()
-            val firstImage = entries.asSequence()
-                .filter { it.name.endsWith(".jpg", ignoreCase = true) || it.name.endsWith(".png", ignoreCase = true) }
-                .sortedBy { it.name }
-                .firstOrNull()
-
-            if (firstImage == null) {
-                zipFile.close()
+            val strategies = fileTypeRouter.route(filepath)
+            if (strategies.isEmpty()) {
+                logger.debug("No extraction strategies available for {}", filepath)
+                markExtractionAttempted(bookId, CoverExtractionStatus.NOT_FOUND)
                 return null
             }
 
-            zipFile.getInputStream(firstImage).use { inputStream ->
-                val image = ImageIO.read(inputStream)
-                zipFile.close()
-                saveCoverImage(image, "cbz_${bookId ?: System.nanoTime()}.jpg")
+            for (strategy in strategies) {
+                try {
+                    val image = strategy.extract(filepath) ?: continue
+
+                    val filename = generateFilename(filepath, bookId)
+                    val savedPath = coverImageSaver.save(image, filename)
+
+                    logger.info("Cover extracted and saved for {}: {}", filepath, savedPath)
+                    markExtractionAttempted(bookId, CoverExtractionStatus.FOUND, savedPath)
+
+                    return savedPath
+                } catch (e: Exception) {
+                    logger.debug("Strategy {} failed for {}: {}", strategy.javaClass.simpleName, filepath, e.message)
+                    continue
+                }
             }
+
+            logger.warn("All extraction strategies failed for {}", filepath)
+            markExtractionAttempted(bookId, CoverExtractionStatus.NOT_FOUND)
+            null
         } catch (e: Exception) {
+            logger.error("Cover extraction failed for {}: {}", filepath, e.message)
+            markExtractionAttempted(bookId, CoverExtractionStatus.NOT_FOUND)
             null
         }
     }
 
-    private fun saveCoverImage(image: BufferedImage, filename: String): String {
-        val targetSize = 300
-        val scaled = scaleImage(image, targetSize)
-
-        val coverFile = Paths.get(coversPath, filename).toFile()
-        ImageIO.write(scaled, "jpg", coverFile)
-
-        return coverFile.absolutePath
+    private fun generateFilename(filepath: String, bookId: String?): String {
+        val baseFilename = filepath.substringAfterLast('/').substringBeforeLast('.')
+        val id = bookId ?: System.nanoTime()
+        return "${baseFilename}_${id}.jpg"
     }
 
-    private fun scaleImage(image: BufferedImage, maxDim: Int): BufferedImage {
-        val width = image.width
-        val height = image.height
-        val scaleFactor = min(maxDim / width.toFloat(), maxDim / height.toFloat())
+    private fun markExtractionAttempted(bookId: String?, status: CoverExtractionStatus, coverPath: String? = null) {
+        if (bookId == null || bookRepository == null) return
 
-        if (scaleFactor >= 1.0f) return image
-
-        val newWidth = (width * scaleFactor).toInt()
-        val newHeight = (height * scaleFactor).toInt()
-
-        val scaled = BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB)
-        val g2d = scaled.createGraphics()
-        g2d.drawImage(image, 0, 0, newWidth, newHeight, null)
-        g2d.dispose()
-
-        return scaled
+        try {
+            val book = bookRepository.findById(bookId).orElse(null) ?: return
+            book.coverExtractionStatus = status
+            if (coverPath != null) {
+                book.coverPath = coverPath
+            }
+            bookRepository.save(book)
+            logger.debug("Updated extraction status for book {} to {}", bookId, status)
+        } catch (e: Exception) {
+            logger.warn("Failed to update extraction status for book {}: {}", bookId, e.message)
+        }
     }
 }
