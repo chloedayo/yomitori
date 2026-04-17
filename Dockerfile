@@ -4,17 +4,12 @@ WORKDIR /app
 COPY build.gradle.kts settings.gradle.kts ./
 COPY src/ src/
 
-RUN gradle build -x test --info
+RUN gradle build -x test
 
 FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
-# Copy jar from builder, using find to handle any naming
 COPY --from=builder /app/build/libs/ /app/
 
-# List what we have for debugging
-RUN ls -la /app/
-
-# Run the jar (find it dynamically)
-ENTRYPOINT ["sh", "-c", "java -jar /app/*.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar /app/yomitori-*.jar | grep -v plain || java -jar /app/yomitori-*.jar"]
