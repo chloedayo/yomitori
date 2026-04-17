@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - YOMITORI_CRAWLER_ENABLED=true
+      - YOMITORI_CRAWLER_SCHEDULE=0 */1 * * * ?
+      - YOMITORI_CRAWLER_BOOKS_PATH=/run/media/stella/stella-drive/books
+      - YOMITORI_CRAWLER_COVERS_PATH=/app/covers
+    volumes:
+      - /run/media/stella/stella-drive/books:/run/media/stella/stella-drive/books:ro
+      - ./covers:/app/covers
+      - ./yomitori.db:/app/yomitori.db
+    networks:
+      - yomitori-network
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - yomitori-network
+
+networks:
+  yomitori-network:
+    driver: bridge
