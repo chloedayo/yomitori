@@ -1,6 +1,7 @@
 package com.yomitori.service
 
 import com.yomitori.model.Book
+import com.yomitori.model.CoverExtractionStatus
 import com.yomitori.repository.BookRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -10,7 +11,8 @@ import java.time.LocalDateTime
 
 @Service
 class BookService(
-    private val repository: BookRepository
+    private val repository: BookRepository,
+    private val coverExtractor: CoverExtractor
 ) {
     fun searchBooks(
         title: String = "",
@@ -20,11 +22,17 @@ class BookService(
         pageSize: Int = 20
     ): Page<Book> {
         val pageable: Pageable = PageRequest.of(page, pageSize)
-        return if (genre != null || type != null) {
+        val results = if (genre != null || type != null) {
             repository.searchByTitleGenreType(title, genre, type, pageable)
         } else {
             repository.searchByTitle(title, pageable)
         }
+
+        results.content
+            .filter { it.coverExtractionStatus == CoverExtractionStatus.PENDING }
+            .forEach { coverExtractor.extractCoverAsync(it.filepath, it.id) }
+
+        return results
     }
 
     fun getBookById(id: String): Book? {

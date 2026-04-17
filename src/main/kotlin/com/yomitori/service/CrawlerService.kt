@@ -62,7 +62,6 @@ class CrawlerService(
     private fun indexNewFile(filepath: String) {
         try {
             val metadata = metadataExtractor.extract(filepath)
-            val coverPath = coverExtractor.extractCover(filepath, null)
 
             val book = Book(
                 filepath = filepath,
@@ -70,12 +69,12 @@ class CrawlerService(
                 title = metadata.title,
                 genre = metadata.genre,
                 type = metadata.type,
-                coverPath = coverPath,
                 fileFormat = metadata.fileFormat,
                 lastIndexed = LocalDateTime.now()
             )
 
             repository.save(book)
+            coverExtractor.extractCover(filepath, book.id)
             println("Indexed new: ${book.title}")
         } catch (e: Exception) {
             println("Error indexing $filepath: ${e.message}")
