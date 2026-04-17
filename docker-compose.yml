@@ -16,7 +16,7 @@ services:
     volumes:
       - /run/media/stella/stella-drive/books:/run/media/stella/stella-drive/books:ro
       - ./covers:/app/covers
-      - ./yomitori.db:/app/yomitori.db
+      - yomitori-db:/app
     networks:
       - yomitori-network
 
@@ -34,3 +34,6 @@ services:
 networks:
   yomitori-network:
     driver: bridge
+
+volumes:
+  yomitori-db:
