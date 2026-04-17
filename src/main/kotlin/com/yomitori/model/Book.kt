@@ -2,14 +2,14 @@ package com.yomitori.model
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import java.util.*
 
 @Entity
 @Table(name = "books")
 data class Book(
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = "book_id_gen")
-    @TableGenerator(name = "book_id_gen", table = "id_gen", pkColumnName = "id_key", valueColumnName = "id_val", pkColumnValue = "book_id")
-    val id: Long = 0,
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: String = UUID.randomUUID().toString(),
 
     @Column(unique = true, nullable = false)
     val filepath: String,

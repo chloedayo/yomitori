@@ -38,14 +38,14 @@ class BookController(
     }
 
     @GetMapping("/{id}")
-    fun getBook(@PathVariable id: Long): ResponseEntity<Book> {
+    fun getBook(@PathVariable id: String): ResponseEntity<Book> {
         val book = bookService.getBookById(id) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(book)
     }
 
     @PostMapping("/{id}/tag")
     fun updateBookTag(
-        @PathVariable id: Long,
+        @PathVariable id: String,
         @RequestBody request: TagUpdateRequest
     ): ResponseEntity<Book> {
         val updated = bookService.updateBookTag(id, request.genre, request.type)
