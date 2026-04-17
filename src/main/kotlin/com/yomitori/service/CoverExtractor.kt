@@ -4,6 +4,7 @@ import com.yomitori.model.CoverExtractionStatus
 import com.yomitori.repository.BookRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -97,5 +98,10 @@ class CoverExtractor(
         } catch (e: Exception) {
             logger.warn("Failed to update extraction status for book {}: {}", bookId, e.message)
         }
+    }
+
+    @Async
+    fun extractCoverAsync(filepath: String, bookId: String) {
+        extractCover(filepath, bookId)
     }
 }
