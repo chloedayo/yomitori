@@ -1,7 +1,5 @@
 package com.yomitori.service
 
-import org.apache.pdfbox.pdmodel.PDDocument
-import org.apache.pdfbox.rendering.PDFRenderer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
@@ -23,9 +21,9 @@ class CoverExtractor(
     fun extractCover(filepath: String, bookId: Long?): String? {
         return try {
             when {
-                filepath.endsWith(".pdf", ignoreCase = true) -> extractPdfCover(filepath, bookId)
-                filepath.endsWith(".epub", ignoreCase = true) -> extractEpubCover(filepath, bookId)
-                filepath.endsWith(".cbr", ignoreCase = true) -> extractCbrCover(filepath, bookId)
+                filepath.endsWith(".pdf", ignoreCase = true) -> null
+                filepath.endsWith(".epub", ignoreCase = true) -> null
+                filepath.endsWith(".cbr", ignoreCase = true) -> null
                 filepath.endsWith(".cbz", ignoreCase = true) -> extractCbzCover(filepath, bookId)
                 else -> null
             }
@@ -33,32 +31,6 @@ class CoverExtractor(
             println("Failed to extract cover from $filepath: ${e.message}")
             null
         }
-    }
-
-    private fun extractPdfCover(filepath: String, bookId: Long?): String? {
-        return try {
-            val document = PDDocument.load(File(filepath))
-            if (document.numberOfPages == 0) {
-                document.close()
-                return null
-            }
-
-            val renderer = PDFRenderer(document)
-            val image = renderer.renderImageWithDPI(0, 150f)
-            document.close()
-
-            saveCoverImage(image, "pdf_${bookId ?: System.nanoTime()}.jpg")
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    private fun extractEpubCover(filepath: String, bookId: Long?): String? {
-        return null
-    }
-
-    private fun extractCbrCover(filepath: String, bookId: Long?): String? {
-        return null
     }
 
     private fun extractCbzCover(filepath: String, bookId: Long?): String? {
