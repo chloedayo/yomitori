@@ -3,6 +3,7 @@ package com.yomitori.service
 import com.yomitori.config.CrawlerConfig
 import com.yomitori.model.Book
 import com.yomitori.repository.BookRepository
+import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -15,45 +16,60 @@ class CrawlerService(
     private val metadataExtractor: MetadataExtractor,
     private val coverExtractor: CoverExtractor
 ) {
+    private val logger = LoggerFactory.getLogger(CrawlerService::class.java)
     private var isRunning = false
 
     @Scheduled(cron = "\${yomitori.crawler.schedule:0 0 * * * ?}")
     fun runCrawler() {
-        if (!config.enabled) return
+        if (!config.enabled) {
+            logger.debug("Crawler disabled, skipping")
+            return
+        }
         if (isRunning) {
-            println("Crawler already running, skipping...")
+            logger.warn("Crawler already running, skipping...")
             return
         }
 
         isRunning = true
         try {
             val startTime = System.currentTimeMillis()
-            println("Crawler started at ${LocalDateTime.now()}")
+            logger.info("Crawler started")
 
             val scannedFiles = fileSystemScanner.scanDirectory(config.booksPath)
+            logger.info("Scanned {} files from {}", scannedFiles.size, config.booksPath)
             val scannedPaths = scannedFiles.map { it.filepath }.toSet()
 
+            var indexedCount = 0
+            var updatedCount = 0
             scannedFiles.chunked(config.batchSize).forEach { batch ->
                 batch.forEach { fileInfo ->
                     val existing = repository.findByFilepath(fileInfo.filepath)
 
                     if (existing == null) {
+                        indexedCount++
                         indexNewFile(fileInfo.filepath)
                     } else if (fileInfo.lastModified.isAfter(existing.lastIndexed)) {
+                        updatedCount++
                         updateExistingFile(existing, fileInfo.filepath)
                     }
                 }
             }
+            logger.info("Indexed {} new files, updated {} existing files", indexedCount, updatedCount)
 
             val allBooks = repository.findAll()
+            var deletedCount = 0
             allBooks.forEach { book ->
                 if (book.filepath !in scannedPaths && !book.isDeleted) {
+                    deletedCount++
                     repository.save(book.copy(isDeleted = true, updatedAt = LocalDateTime.now()))
                 }
             }
+            if (deletedCount > 0) {
+                logger.info("Marked {} books as deleted", deletedCount)
+            }
 
             val elapsed = (System.currentTimeMillis() - startTime) / 1000
-            println("Crawler completed in ${elapsed}s at ${LocalDateTime.now()}")
+            logger.info("Crawler completed in {}s", elapsed)
         } finally {
             isRunning = false
         }
@@ -69,16 +85,15 @@ class CrawlerService(
                 title = metadata.title,
                 genre = metadata.genre,
                 type = metadata.type,
-                coverExtractionStatus = com.yomitori.model.CoverExtractionStatus.PENDING,
                 fileFormat = metadata.fileFormat,
                 lastIndexed = LocalDateTime.now()
             )
 
             repository.save(book)
+            logger.debug("Indexed new book: {} ({})", book.title, book.id)
             coverExtractor.extractCover(filepath, book.id)
-            println("Indexed new: ${book.title}")
         } catch (e: Exception) {
-            println("Error indexing $filepath: ${e.message}")
+            logger.warn("Failed to index file {}: {}", filepath, e.message)
         }
     }
 
@@ -86,6 +101,7 @@ class CrawlerService(
         try {
             if (existing.manualOverride) {
                 repository.save(existing.copy(lastIndexed = LocalDateTime.now()))
+                logger.debug("Skipped update for manually overridden book: {}", existing.title)
                 return
             }
 
@@ -102,9 +118,9 @@ class CrawlerService(
             )
 
             repository.save(updated)
-            println("Updated: ${updated.title}")
+            logger.debug("Updated book: {} ({})", updated.title, updated.id)
         } catch (e: Exception) {
-            println("Error updating $filepath: ${e.message}")
+            logger.warn("Failed to update file {}: {}", filepath, e.message)
         }
     }
 

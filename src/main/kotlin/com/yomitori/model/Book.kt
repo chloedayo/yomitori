@@ -28,10 +28,6 @@ data class Book(
     @Column(nullable = true)
     val coverPath: String? = null,
 
-    @Column(name = "cover_extraction_status", nullable = true)
-    @Enumerated(EnumType.STRING)
-    val coverExtractionStatus: CoverExtractionStatus? = CoverExtractionStatus.PENDING,
-
     @Column(nullable = false)
     val fileFormat: String, // pdf, epub, cbr, cbz
 

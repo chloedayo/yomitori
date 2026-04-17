@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.MockBean
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.MediaType
@@ -30,7 +30,6 @@ class BookControllerTest {
         title = "Test Book",
         genre = "fiction",
         type = "novel",
-        coverExtractionStatus = com.yomitori.model.CoverExtractionStatus.PENDING,
         fileFormat = "pdf"
     )
 
@@ -47,7 +46,7 @@ class BookControllerTest {
 
         mockMvc.perform(get("/api/books/search?title=test"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content[0].id").value(1))
+            .andExpect(jsonPath("$.content[0].id").value("1"))
             .andExpect(jsonPath("$.content[0].title").value("Test Book"))
     }
 
@@ -69,18 +68,18 @@ class BookControllerTest {
 
     @Test
     fun `should get book by id`() {
-        whenever(bookService.getBookById(1)).thenReturn(testBook)
+        whenever(bookService.getBookById("1")).thenReturn(testBook)
 
         mockMvc.perform(get("/api/books/1"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.id").value("1"))
             .andExpect(jsonPath("$.title").value("Test Book"))
     }
 
     @Test
     fun `should update book tag`() {
         val updated = testBook.copy(genre = "updated-genre", manualOverride = true)
-        whenever(bookService.updateBookTag(1, "updated-genre", null)).thenReturn(updated)
+        whenever(bookService.updateBookTag("1", "updated-genre", null)).thenReturn(updated)
 
         mockMvc.perform(
             post("/api/books/1/tag")
