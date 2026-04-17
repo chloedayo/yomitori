@@ -25,8 +25,8 @@ class CoverExtractor(
 
     fun extractCover(filepath: String, bookId: String?): String? {
         return try {
-            if (bookId != null) {
-                val book = bookRepository?.findById(bookId)
+            if (bookId != null && bookRepository != null) {
+                val book = bookRepository.findById(bookId).orElse(null)
                 if (book != null) {
                     when (book.coverExtractionStatus) {
                         CoverExtractionStatus.FOUND -> {

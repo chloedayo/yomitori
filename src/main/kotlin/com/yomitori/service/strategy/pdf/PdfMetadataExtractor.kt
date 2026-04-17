@@ -2,7 +2,6 @@ package com.yomitori.service.strategy.pdf
 
 import com.yomitori.service.strategy.CoverExtractionStrategy
 import org.apache.pdfbox.pdmodel.PDDocument
-import org.apache.pdfbox.pdmodel.graphics.PDXObject
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -19,7 +18,7 @@ class PdfMetadataExtractor : CoverExtractionStrategy {
 
     override fun extract(filepath: String): BufferedImage? {
         return try {
-            val document = PDDocument.load(File(filepath))
+            val document = PDDocument.load(java.io.FileInputStream(File(filepath)))
             val result = try {
                 findCoverImageInMetadata(document)
             } finally {
@@ -39,12 +38,14 @@ class PdfMetadataExtractor : CoverExtractionStrategy {
             val page = document.getPage(0)
             val resources = page.resources ?: return null
 
-            val xobjectNames = resources.names ?: return null
-            for (name in xobjectNames) {
-                val xobject = resources.getXObject(name)
-                if (xobject is PDImageXObject) {
-                    logger.debug("Found embedded cover image in PDF metadata")
-                    return xobject.image
+            // Try to find images in page resources
+            val xobjects = resources.xobjects
+            if (xobjects != null) {
+                for (xobject in xobjects.values) {
+                    if (xobject is PDImageXObject) {
+                        logger.debug("Found embedded cover image in PDF metadata")
+                        return xobject.image
+                    }
                 }
             }
             null
