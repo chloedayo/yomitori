@@ -10,6 +10,6 @@ FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/ /app/
+COPY --from=builder /app/build/libs/yomitori-0.1.0.jar /app/app.jar
 
-ENTRYPOINT ["sh", "-c", "java -jar /app/yomitori-*.jar | grep -v plain || java -jar /app/yomitori-*.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
