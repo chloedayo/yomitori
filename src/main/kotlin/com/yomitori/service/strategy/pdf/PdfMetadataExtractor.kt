@@ -20,8 +20,11 @@ class PdfMetadataExtractor : CoverExtractionStrategy {
     override fun extract(filepath: String): BufferedImage? {
         return try {
             val document = PDDocument.load(File(filepath))
-            val result = findCoverImageInMetadata(document)
-            document.close()
+            val result = try {
+                findCoverImageInMetadata(document)
+            } finally {
+                document.close()
+            }
             result
         } catch (e: Exception) {
             logger.warn("PDF metadata extraction failed for {}: {}", filepath, e.message)
@@ -31,18 +34,20 @@ class PdfMetadataExtractor : CoverExtractionStrategy {
 
     private fun findCoverImageInMetadata(document: PDDocument): BufferedImage? {
         return try {
-            val catalog = document.documentCatalog
             if (document.numberOfPages == 0) return null
 
             val page = document.getPage(0)
             val resources = page.resources ?: return null
-            val xobjects = resources.xobjects ?: return null
 
-            xobjects.values
-                .filterIsInstance<PDImageXObject>()
-                .firstOrNull()
-                ?.image
-                ?.also { logger.debug("Found embedded cover image in PDF metadata") }
+            val xobjectNames = resources.names ?: return null
+            for (name in xobjectNames) {
+                val xobject = resources.getXObject(name)
+                if (xobject is PDImageXObject) {
+                    logger.debug("Found embedded cover image in PDF metadata")
+                    return xobject.image
+                }
+            }
+            null
         } catch (e: Exception) {
             logger.debug("Could not extract metadata images: {}", e.message)
             null
