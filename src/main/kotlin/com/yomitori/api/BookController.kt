@@ -5,7 +5,10 @@ import com.yomitori.service.BookService
 import com.yomitori.service.CrawlerService
 import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.*
+import java.nio.file.Files
+import java.nio.file.Paths
 
 data class SearchRequest(
     val title: String = "",
@@ -37,6 +40,25 @@ class BookController(
     ): ResponseEntity<Page<Book>> {
         val results = bookService.searchBooks(title, genre, type, page, pageSize)
         return ResponseEntity.ok(results)
+    }
+
+    @GetMapping("/{bookId}/cover")
+    fun getCover(@PathVariable bookId: String): ResponseEntity<ByteArray> {
+        val book = bookService.getBookById(bookId) ?: return ResponseEntity.notFound().build()
+        if (book.coverPath == null) return ResponseEntity.notFound().build()
+
+        return try {
+            val imagePath = Paths.get(book.coverPath)
+            if (!Files.exists(imagePath)) {
+                return ResponseEntity.notFound().build()
+            }
+            val imageBytes = Files.readAllBytes(imagePath)
+            ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(imageBytes)
+        } catch (e: Exception) {
+            ResponseEntity.internalServerError().build()
+        }
     }
 
     @GetMapping("/{id}")

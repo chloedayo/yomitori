@@ -1,5 +1,5 @@
 CREATE TABLE books (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT PRIMARY KEY,
     filepath TEXT UNIQUE NOT NULL,
     filename TEXT NOT NULL,
     title TEXT NOT NULL,

@@ -1,6 +1,5 @@
 package com.yomitori.service
 
-import com.yomitori.model.CoverExtractionStatus
 import com.yomitori.repository.BookRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -28,25 +27,15 @@ class CoverExtractor(
         return try {
             if (bookId != null && bookRepository != null) {
                 val book = bookRepository.findById(bookId).orElse(null)
-                if (book != null) {
-                    when (book.coverExtractionStatus) {
-                        CoverExtractionStatus.FOUND -> {
-                            logger.debug("Cover already found for book {}, skipping extraction", bookId)
-                            return book.coverPath
-                        }
-                        CoverExtractionStatus.NOT_FOUND -> {
-                            logger.debug("Cover extraction previously failed for book {}, skipping retry", bookId)
-                            return null
-                        }
-                        CoverExtractionStatus.PENDING, null -> {}
-                    }
+                if (book != null && book.coverPath != null) {
+                    logger.debug("Cover already exists for book {}, skipping extraction", bookId)
+                    return book.coverPath
                 }
             }
 
             val strategies = fileTypeRouter.route(filepath)
             if (strategies.isEmpty()) {
                 logger.debug("No extraction strategies available for {}", filepath)
-                markExtractionAttempted(bookId, CoverExtractionStatus.NOT_FOUND)
                 return null
             }
 
@@ -58,7 +47,7 @@ class CoverExtractor(
                     val savedPath = coverImageSaver.save(image, filename)
 
                     logger.info("Cover extracted and saved for {}: {}", filepath, savedPath)
-                    markExtractionAttempted(bookId, CoverExtractionStatus.FOUND, savedPath)
+                    saveCoverPath(bookId, savedPath)
 
                     return savedPath
                 } catch (e: Exception) {
@@ -68,11 +57,9 @@ class CoverExtractor(
             }
 
             logger.warn("All extraction strategies failed for {}", filepath)
-            markExtractionAttempted(bookId, CoverExtractionStatus.NOT_FOUND)
             null
         } catch (e: Exception) {
             logger.error("Cover extraction failed for {}: {}", filepath, e.message)
-            markExtractionAttempted(bookId, CoverExtractionStatus.NOT_FOUND)
             null
         }
     }
@@ -83,25 +70,19 @@ class CoverExtractor(
         return "${baseFilename}_${id}.jpg"
     }
 
-    private fun markExtractionAttempted(bookId: String?, status: CoverExtractionStatus, coverPath: String? = null) {
+    private fun saveCoverPath(bookId: String?, coverPath: String) {
         if (bookId == null || bookRepository == null) return
 
         try {
             val book = bookRepository.findById(bookId).orElse(null) ?: return
-            println("DEBUG: Updating book $bookId with status=$status, coverPath=$coverPath")
             val updated = book.copy(
-                coverExtractionStatus = status,
-                coverPath = coverPath ?: book.coverPath,
+                coverPath = coverPath,
                 updatedAt = java.time.LocalDateTime.now()
             )
-            println("DEBUG: Updated object - status=${updated.coverExtractionStatus}, coverPath=${updated.coverPath}")
-            val saved = bookRepository.save(updated)
-            println("DEBUG: Saved book - id=${saved.id}, status=${saved.coverExtractionStatus}")
-            logger.debug("Updated extraction status for book {} to {}", bookId, status)
+            bookRepository.save(updated)
+            logger.debug("Saved cover path for book {}: {}", bookId, coverPath)
         } catch (e: Exception) {
-            println("DEBUG: Error updating book $bookId: ${e.message}")
-            e.printStackTrace()
-            logger.warn("Failed to update extraction status for book {}: {}", bookId, e.message)
+            logger.warn("Failed to save cover path for book {}: {}", bookId, e.message)
         }
     }
 

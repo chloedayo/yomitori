@@ -61,7 +61,6 @@ class CrawlerServiceTest {
             filename = "deleted.pdf",
             title = "Deleted Book",
             type = "novel",
-            coverExtractionStatus = com.yomitori.model.CoverExtractionStatus.PENDING,
             fileFormat = "pdf"
         )
 
