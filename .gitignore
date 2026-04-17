@@ -1,0 +1,14 @@
+.gradle/
+build/
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+yomitori.db
+yomitori.db-journal
+covers/
+.env
+node_modules/
+dist/
+frontend/.env.local
