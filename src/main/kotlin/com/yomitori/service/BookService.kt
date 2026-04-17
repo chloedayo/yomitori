@@ -3,6 +3,7 @@ package com.yomitori.service
 import com.yomitori.model.Book
 import com.yomitori.model.CoverExtractionStatus
 import com.yomitori.repository.BookRepository
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -14,6 +15,7 @@ class BookService(
     private val repository: BookRepository,
     private val coverExtractor: CoverExtractor
 ) {
+    private val logger = LoggerFactory.getLogger(BookService::class.java)
     fun searchBooks(
         title: String = "",
         genre: String? = null,
@@ -28,9 +30,20 @@ class BookService(
             repository.searchByTitle(title, pageable)
         }
 
-        results.content
+        logger.info("Search returned {} results, checking for covers to extract", results.content.size)
+
+        val pendingBooks = results.content
             .filter { it.coverExtractionStatus == CoverExtractionStatus.PENDING }
-            .forEach { coverExtractor.extractCoverAsync(it.filepath, it.id) }
+
+        if (pendingBooks.isNotEmpty()) {
+            logger.info("Found {} books with PENDING cover extraction, triggering async extraction", pendingBooks.size)
+            pendingBooks.forEach {
+                logger.debug("Async extracting cover for: {} ({})", it.title, it.id)
+                coverExtractor.extractCoverAsync(it.filepath, it.id)
+            }
+        } else {
+            logger.debug("No PENDING covers to extract in search results")
+        }
 
         return results
     }

@@ -102,6 +102,12 @@ class CoverExtractor(
 
     @Async
     fun extractCoverAsync(filepath: String, bookId: String) {
-        extractCover(filepath, bookId)
+        logger.info("Async extraction started for book {}", bookId)
+        val result = extractCover(filepath, bookId)
+        if (result != null) {
+            logger.info("Async extraction succeeded for book {}: {}", bookId, result)
+        } else {
+            logger.warn("Async extraction returned no cover for book {}", bookId)
+        }
     }
 }
