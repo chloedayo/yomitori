@@ -18,7 +18,7 @@ class PdfFirstPageExtractor : CoverExtractionStrategy {
 
     override fun extract(filepath: String): BufferedImage? {
         return try {
-            val document = PDDocument.load(File(filepath))
+            val document = PDDocument.load(java.io.FileInputStream(File(filepath)))
             val image = try {
                 if (document.numberOfPages == 0) {
                     return null
