@@ -36,17 +36,20 @@ class CoverExtractor(
     }
 
     private fun extractPdfCover(filepath: String, bookId: Long?): String? {
-        try {
-            PDDocument.load(File(filepath)).use { document ->
-                if (document.numberOfPages == 0) return null
-
-                val renderer = PDFRenderer(document)
-                val image = renderer.renderImageWithDPI(0, 150f)
-
-                return saveCoverImage(image, "pdf_${bookId ?: System.nanoTime()}.jpg")
+        return try {
+            val document = PDDocument.load(File(filepath))
+            if (document.numberOfPages == 0) {
+                document.close()
+                return null
             }
+
+            val renderer = PDFRenderer(document)
+            val image = renderer.renderImageWithDPI(0, 150f)
+            document.close()
+
+            saveCoverImage(image, "pdf_${bookId ?: System.nanoTime()}.jpg")
         } catch (e: Exception) {
-            return null
+            null
         }
     }
 
@@ -65,12 +68,17 @@ class CoverExtractor(
             val firstImage = entries.asSequence()
                 .filter { it.name.endsWith(".jpg", ignoreCase = true) || it.name.endsWith(".png", ignoreCase = true) }
                 .sortedBy { it.name }
-                .firstOrNull() ?: return null
+                .firstOrNull()
+
+            if (firstImage == null) {
+                zipFile.close()
+                return null
+            }
 
             zipFile.getInputStream(firstImage).use { inputStream ->
                 val image = ImageIO.read(inputStream)
                 zipFile.close()
-                return saveCoverImage(image, "cbz_${bookId ?: System.nanoTime()}.jpg")
+                saveCoverImage(image, "cbz_${bookId ?: System.nanoTime()}.jpg")
             }
         } catch (e: Exception) {
             null
