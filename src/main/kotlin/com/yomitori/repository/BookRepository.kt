@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface BookRepository : JpaRepository<Book, Long> {
+interface BookRepository : JpaRepository<Book, String> {
     @Query("SELECT b FROM Book b WHERE b.isDeleted = false AND LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%')) ORDER BY b.title ASC")
     fun searchByTitle(
         @Param("title") title: String,

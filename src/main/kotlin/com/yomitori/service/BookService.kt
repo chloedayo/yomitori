@@ -27,7 +27,7 @@ class BookService(
         }
     }
 
-    fun getBookById(id: Long): Book? {
+    fun getBookById(id: String): Book? {
         return repository.findById(id).orElse(null)
     }
 
@@ -39,7 +39,7 @@ class BookService(
         return repository.findAllTypes()
     }
 
-    fun updateBookTag(id: Long, genre: String?, type: String?): Book? {
+    fun updateBookTag(id: String, genre: String?, type: String?): Book? {
         val book = repository.findById(id).orElse(null) ?: return null
         val updated = book.copy(
             genre = genre ?: book.genre,
