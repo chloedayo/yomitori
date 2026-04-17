@@ -19,16 +19,16 @@ class PdfFirstPageExtractor : CoverExtractionStrategy {
     override fun extract(filepath: String): BufferedImage? {
         return try {
             val document = PDDocument.load(File(filepath))
+            val image = try {
+                if (document.numberOfPages == 0) {
+                    return null
+                }
 
-            if (document.numberOfPages == 0) {
+                val renderer = PDFRenderer(document)
+                renderer.renderImage(0, 2.0f)
+            } finally {
                 document.close()
-                return null
             }
-
-            val renderer = PDFRenderer(document)
-            val image = renderer.renderImage(0, 2.0f)
-
-            document.close()
             logger.debug("Extracted first page from PDF: {}", filepath)
             image
         } catch (e: Exception) {

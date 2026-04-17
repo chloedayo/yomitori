@@ -87,11 +87,12 @@ class CoverExtractor(
 
         try {
             val book = bookRepository.findById(bookId).orElse(null) ?: return
-            book.coverExtractionStatus = status
-            if (coverPath != null) {
-                book.coverPath = coverPath
-            }
-            bookRepository.save(book)
+            val updated = book.copy(
+                coverExtractionStatus = status,
+                coverPath = coverPath ?: book.coverPath,
+                updatedAt = java.time.LocalDateTime.now()
+            )
+            bookRepository.save(updated)
             logger.debug("Updated extraction status for book {} to {}", bookId, status)
         } catch (e: Exception) {
             logger.warn("Failed to update extraction status for book {}: {}", bookId, e.message)
