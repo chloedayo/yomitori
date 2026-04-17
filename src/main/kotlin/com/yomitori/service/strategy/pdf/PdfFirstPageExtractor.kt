@@ -1,7 +1,7 @@
 package com.yomitori.service.strategy.pdf
 
 import com.yomitori.service.strategy.CoverExtractionStrategy
-import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.PDFRenderer
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -18,7 +18,7 @@ class PdfFirstPageExtractor : CoverExtractionStrategy {
 
     override fun extract(filepath: String): BufferedImage? {
         return try {
-            val document = PDDocument.load(java.io.FileInputStream(File(filepath)))
+            val document = Loader.loadPDF(File(filepath))
             val image = try {
                 if (document.numberOfPages == 0) {
                     return null
