@@ -97,4 +97,16 @@ class BookController(
         crawlerService.runCrawler()
         return ResponseEntity.ok(mapOf("status" to "Crawler triggered"))
     }
+
+    @GetMapping("/cover-file/{bookId}")
+    fun coverFile(@PathVariable bookId: String): ResponseEntity<ByteArray>? {
+        val book = bookService.getBookById(bookId) ?: return ResponseEntity.notFound().build()
+        val path = book.coverPath ?: return ResponseEntity.notFound().build()
+        val file = java.io.File(path)
+        return if (file.exists()) {
+            ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(file.readBytes())
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
 }

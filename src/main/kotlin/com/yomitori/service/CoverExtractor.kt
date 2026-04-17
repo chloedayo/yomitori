@@ -67,7 +67,14 @@ class CoverExtractor(
     private fun generateFilename(filepath: String, bookId: String?): String {
         val baseFilename = filepath.substringAfterLast('/').substringBeforeLast('.')
         val id = bookId ?: System.nanoTime()
-        return "${baseFilename}_${id}.jpg"
+        val filename = "${baseFilename}_${id}.jpg"
+        return if (filename.length > 255) {
+            val maxBase = 200
+            val truncated = baseFilename.take(maxBase)
+            "${truncated}_${id}.jpg"
+        } else {
+            filename
+        }
     }
 
     private fun saveCoverPath(bookId: String?, coverPath: String) {
