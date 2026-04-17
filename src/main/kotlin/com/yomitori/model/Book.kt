@@ -9,7 +9,7 @@ import java.util.*
 data class Book(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    val id: String = UUID.randomUUID().toString(),
+    val id: String,
 
     @Column(unique = true, nullable = false)
     val filepath: String,

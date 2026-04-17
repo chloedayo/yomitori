@@ -2,6 +2,7 @@ package com.yomitori.api
 
 import com.yomitori.model.Book
 import com.yomitori.service.BookService
+import com.yomitori.service.CrawlerService
 import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -23,7 +24,8 @@ data class TagUpdateRequest(
 @RequestMapping("/api/books")
 @CrossOrigin(origins = ["http://localhost:5173", "http://localhost:3000"])
 class BookController(
-    private val bookService: BookService
+    private val bookService: BookService,
+    private val crawlerService: CrawlerService
 ) {
     @GetMapping("/search")
     fun searchBooks(
@@ -66,5 +68,11 @@ class BookController(
     @GetMapping("/stats")
     fun getStats(): ResponseEntity<Map<String, Any>> {
         return ResponseEntity.ok(bookService.getStats())
+    }
+
+    @PostMapping("/crawler/run")
+    fun runCrawler(): ResponseEntity<Map<String, String>> {
+        crawlerService.runCrawler()
+        return ResponseEntity.ok(mapOf("status" to "Crawler triggered"))
     }
 }
