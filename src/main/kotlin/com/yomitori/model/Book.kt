@@ -8,8 +8,7 @@ import java.util.*
 @Table(name = "books")
 data class Book(
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    val id: String,
+    val id: String = UUID.randomUUID().toString(),
 
     @Column(unique = true, nullable = false)
     val filepath: String,
