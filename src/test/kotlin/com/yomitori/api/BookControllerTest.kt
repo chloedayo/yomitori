@@ -24,12 +24,13 @@ class BookControllerTest {
     private lateinit var bookService: BookService
 
     private val testBook = Book(
-        id = 1,
+        id = "1",
         filepath = "/books/test.pdf",
         filename = "test.pdf",
         title = "Test Book",
         genre = "fiction",
         type = "novel",
+        coverExtractionStatus = com.yomitori.model.CoverExtractionStatus.PENDING,
         fileFormat = "pdf"
     )
 

@@ -69,6 +69,7 @@ class CrawlerService(
                 title = metadata.title,
                 genre = metadata.genre,
                 type = metadata.type,
+                coverExtractionStatus = com.yomitori.model.CoverExtractionStatus.PENDING,
                 fileFormat = metadata.fileFormat,
                 lastIndexed = LocalDateTime.now()
             )
