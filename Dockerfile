@@ -7,7 +7,7 @@ COPY src/ src/
 
 RUN gradle build -x test
 
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
