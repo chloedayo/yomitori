@@ -2,12 +2,18 @@ import { useState, useEffect } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { BookGrid } from './components/BookGrid';
 import { TabsMenu } from './components/TabsMenu';
+import { TitlesView } from './components/TitlesView';
+import { AuthorsView } from './components/AuthorsView';
 import { bookClient } from './api/bookClient';
 import { Book, SearchParams, SearchResponse } from './types/book';
 import { useLibrary } from './hooks/useLibrary';
+import HomeIcon from '@mui/icons-material/Home';
+import ListIcon from '@mui/icons-material/List';
+import PeopleIcon from '@mui/icons-material/People';
 import './styles/App.css';
 
 function App() {
+  const [activePage, setActivePage] = useState<'home' | 'titles' | 'authors'>('home');
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -40,23 +46,47 @@ function App() {
     if (bulkSearchTab === 'in-progress') {
       const bookIds = getInProgress();
       if (bookIds.length > 0) {
-        bookClient.searchBulk(bookIds, currentPage, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+        bookClient.searchBulk(bookIds, currentPage, 20).then(results => {
+          if (currentPage >= results.totalPages && currentPage > 0) {
+            setCurrentPage(results.totalPages - 1);
+            bookClient.searchBulk(bookIds, results.totalPages - 1, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+          } else {
+            setBulkBooks(results);
+          }
+        }).catch(err => setError(`Failed to refresh: ${err}`));
       } else {
         setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+        setCurrentPage(0);
       }
     } else if (bulkSearchTab === 'favorites') {
       const favIds = getFavorites();
       if (favIds.length > 0) {
-        bookClient.searchBulk(favIds, currentPage, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+        bookClient.searchBulk(favIds, currentPage, 20).then(results => {
+          if (currentPage >= results.totalPages && currentPage > 0) {
+            setCurrentPage(results.totalPages - 1);
+            bookClient.searchBulk(favIds, results.totalPages - 1, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+          } else {
+            setBulkBooks(results);
+          }
+        }).catch(err => setError(`Failed to refresh: ${err}`));
       } else {
         setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+        setCurrentPage(0);
       }
     } else if (bulkSearchTab === 'hidden') {
       const hiddenIds = getHidden();
       if (hiddenIds.length > 0) {
-        bookClient.searchBulk(hiddenIds, currentPage, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+        bookClient.searchBulk(hiddenIds, currentPage, 20).then(results => {
+          if (currentPage >= results.totalPages && currentPage > 0) {
+            setCurrentPage(results.totalPages - 1);
+            bookClient.searchBulk(hiddenIds, results.totalPages - 1, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+          } else {
+            setBulkBooks(results);
+          }
+        }).catch(err => setError(`Failed to refresh: ${err}`));
       } else {
         setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+        setCurrentPage(0);
       }
     }
   }, [library, bulkSearchTab, currentPage]);
@@ -68,16 +98,10 @@ function App() {
   };
 
   const getInProgressCount = (): number => {
-    if (bulkSearchTab === 'in-progress' && bulkBooks) {
-      return bulkBooks.content.length;
-    }
     return getInProgress().length;
   };
 
   const getFavoritesCount = (): number => {
-    if (bulkSearchTab === 'favorites' && bulkBooks) {
-      return bulkBooks.content.length;
-    }
     return getFavorites().length;
   };
 
@@ -176,9 +200,46 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <div className="app-header-content">
-          <h1>Yomitori</h1>
-          <p className="subtitle">Book Collection Search</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <div className="app-header-content">
+            <h1>Yomitori</h1>
+            <p className="subtitle">Book Collection Search</p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button
+              style={{
+                ...styles.navButton,
+                ...(activePage === 'home' ? styles.navButtonActive : {}),
+              }}
+              onClick={() => setActivePage('home')}
+              title="Home"
+            >
+              <HomeIcon sx={{ fontSize: '20px', marginRight: '6px' }} />
+              Home
+            </button>
+            <button
+              style={{
+                ...styles.navButton,
+                ...(activePage === 'titles' ? styles.navButtonActive : {}),
+              }}
+              onClick={() => setActivePage('titles')}
+              title="Titles"
+            >
+              <ListIcon sx={{ fontSize: '20px', marginRight: '6px' }} />
+              Titles
+            </button>
+            <button
+              style={{
+                ...styles.navButton,
+                ...(activePage === 'authors' ? styles.navButtonActive : {}),
+              }}
+              onClick={() => setActivePage('authors')}
+              title="Authors"
+            >
+              <PeopleIcon sx={{ fontSize: '20px', marginRight: '6px' }} />
+              Authors
+            </button>
+          </div>
         </div>
         <SearchForm
           onSearch={handleSearch}
@@ -188,76 +249,84 @@ function App() {
       </header>
 
       <main className="app-main">
-        <div style={{...styles.tabs, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-          <div style={{ display: 'flex' }}>
-            <button
-              style={{
-                ...styles.tab,
-                ...(activeTab === 'all' ? styles.tabActive : {}),
-              }}
-              onClick={() => handleTabChange('all')}
-            >
-              All Books
-            </button>
-            <button
-              style={{
-                ...styles.tab,
-                ...(activeTab === 'in-progress' ? styles.tabActive : {}),
-              }}
-              onClick={() => handleTabChange('in-progress')}
-            >
-              In Progress ({getInProgressCount()})
-            </button>
-            <button
-              style={{
-                ...styles.tab,
-                ...(activeTab === 'favorites' ? styles.tabActive : {}),
-              }}
-              onClick={() => handleTabChange('favorites')}
-            >
-              Favorites ({getFavoritesCount()})
-            </button>
-          </div>
-          <TabsMenu hiddenCount={hiddenBooks.length} onNavigateToHidden={() => handleTabChange('hidden')} />
-        </div>
+        {activePage === 'titles' && <TitlesView />}
 
-        {error && <div className="error-message">{error}</div>}
+        {activePage === 'authors' && <AuthorsView />}
 
-        {searchResults && (
-          <BookGrid
-            books={(bulkSearchTab && bulkBooks ? (bulkSearchTab === 'hidden' ? bulkBooks.content : filterHiddenBooks(bulkBooks.content)) : displayedBooks?.content) || []}
-            isLoading={isLoading}
-            totalPages={(bulkSearchTab ? bulkBooks?.totalPages : displayedBooks?.totalPages) || 0}
-            currentPage={currentPage}
-            onPageChange={async (newPage) => {
-              if (bulkSearchTab && bulkBooks) {
-                setCurrentPage(newPage);
-                try {
-                  let bookIds: string[] = [];
-                  if (bulkSearchTab === 'in-progress') {
-                    bookIds = getInProgress();
-                  } else if (bulkSearchTab === 'favorites') {
-                    bookIds = getFavorites();
-                  } else if (bulkSearchTab === 'hidden') {
-                    bookIds = getHidden();
+        {activePage === 'home' && (
+          <>
+            <div style={{...styles.tabs, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+              <div style={{ display: 'flex' }}>
+                <button
+                  style={{
+                    ...styles.tab,
+                    ...(activeTab === 'all' ? styles.tabActive : {}),
+                  }}
+                  onClick={() => handleTabChange('all')}
+                >
+                  All Books
+                </button>
+                <button
+                  style={{
+                    ...styles.tab,
+                    ...(activeTab === 'in-progress' ? styles.tabActive : {}),
+                  }}
+                  onClick={() => handleTabChange('in-progress')}
+                >
+                  In Progress ({getInProgressCount()})
+                </button>
+                <button
+                  style={{
+                    ...styles.tab,
+                    ...(activeTab === 'favorites' ? styles.tabActive : {}),
+                  }}
+                  onClick={() => handleTabChange('favorites')}
+                >
+                  Favorites ({getFavoritesCount()})
+                </button>
+              </div>
+              <TabsMenu hiddenCount={hiddenBooks.length} onNavigateToHidden={() => handleTabChange('hidden')} />
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            {searchResults && (
+              <BookGrid
+                books={(bulkSearchTab && bulkBooks ? (bulkSearchTab === 'hidden' ? bulkBooks.content : filterHiddenBooks(bulkBooks.content)) : displayedBooks?.content) || []}
+                isLoading={isLoading}
+                totalPages={(bulkSearchTab ? bulkBooks?.totalPages : displayedBooks?.totalPages) || 0}
+                currentPage={currentPage}
+                onPageChange={async (newPage) => {
+                  if (bulkSearchTab && bulkBooks) {
+                    setCurrentPage(newPage);
+                    try {
+                      let bookIds: string[] = [];
+                      if (bulkSearchTab === 'in-progress') {
+                        bookIds = getInProgress();
+                      } else if (bulkSearchTab === 'favorites') {
+                        bookIds = getFavorites();
+                      } else if (bulkSearchTab === 'hidden') {
+                        bookIds = getHidden();
+                      }
+                      const results = await bookClient.searchBulk(bookIds, newPage, 20);
+                      setBulkBooks(results);
+                    } catch (err) {
+                      setError(`Failed to load page: ${err}`);
+                    }
+                  } else {
+                    await handlePageChange(newPage);
                   }
-                  const results = await bookClient.searchBulk(bookIds, newPage, 20);
-                  setBulkBooks(results);
-                } catch (err) {
-                  setError(`Failed to load page: ${err}`);
-                }
-              } else {
-                await handlePageChange(newPage);
-              }
-            }}
-            showPagination={activeTab === 'all' || bulkSearchTab !== null}
-          />
-        )}
+                }}
+                showPagination={activeTab === 'all' || bulkSearchTab !== null}
+              />
+            )}
 
-        {!searchResults && !isLoading && !error && (
-          <div className="welcome">
-            <p>Enter search terms above to find books in your collection</p>
-          </div>
+            {!searchResults && !isLoading && !error && (
+              <div className="welcome">
+                <p>Enter search terms above to find books in your collection</p>
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -292,5 +361,23 @@ const styles = {
   tabActive: {
     color: '#e8e8e8',
     borderBottomColor: '#5a9fd4',
+  },
+  navButton: {
+    padding: '8px 16px',
+    background: 'transparent',
+    border: '1px solid #404040',
+    color: '#a8a8a8',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'all 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  navButtonActive: {
+    background: '#5a9fd4',
+    borderColor: '#5a9fd4',
+    color: '#e8e8e8',
   },
 };

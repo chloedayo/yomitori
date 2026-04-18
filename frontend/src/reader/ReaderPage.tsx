@@ -84,7 +84,8 @@ export function ReaderPage() {
 
   const handleSaveBookmark = () => {
     if (bookId) {
-      saveBookmark(bookId, currentCharPos)
+      console.log('💾 Save bookmark:', { bookId, currentCharPos, totalChars })
+      saveBookmark(bookId, currentCharPos, totalChars)
       setBookmarkPos(currentCharPos)
     }
   }
@@ -119,6 +120,10 @@ export function ReaderPage() {
     if (bookId) {
       toggleFavorite(bookId)
     }
+  }
+
+  const handleGoBack = () => {
+    window.location.href = '/'
   }
 
   if (loading) {
@@ -222,6 +227,7 @@ export function ReaderPage() {
         onJumpToBookmark={handleJumpToBookmark}
         onJumpToBeginning={handleJumpToBeginning}
         onToggleFavorite={handleToggleFavorite}
+        onGoBack={handleGoBack}
         isFavorited={bookId ? isFavorite(bookId) : false}
         hasBookmark={bookmarkPos !== null}
       />

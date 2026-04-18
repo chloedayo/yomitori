@@ -5,12 +5,14 @@ export type BookRecord = {
   id: string
   categories: ('favorite' | 'in progress' | 'hidden')[]
   progress: number
+  totalChars?: number
 }
 
 const LIBRARY_KEY = 'yomitori-library'
 const OLD_BOOKMARKS_KEY = 'yomitori-bookmarks'
 const OLD_FAVORITES_KEY = 'yomitori-favorites'
 const OLD_HIDDEN_KEY = 'yomitori-hidden-books'
+const FAVORITE_AUTHORS_KEY = 'yomitori-favorite-authors'
 
 function migrateOldSchema(): BookRecord[] {
   const recordMap = new Map<string, BookRecord>()
@@ -76,6 +78,7 @@ function migrateOldSchema(): BookRecord[] {
 
 export function useLibrary() {
   const [library, setLibrary] = useLocalStorage<BookRecord[]>(LIBRARY_KEY, [])
+  const [favoriteAuthors, setFavoriteAuthors] = useLocalStorage<string[]>(FAVORITE_AUTHORS_KEY, [])
   const [migrated, setMigrated] = useState(false)
 
   // Run migration on first load
@@ -95,18 +98,18 @@ export function useLibrary() {
 
   // Bookmarks (in progress) API
   const saveBookmark = useCallback(
-    (bookId: string, charPos: number) => {
+    (bookId: string, charPos: number, totalChars?: number) => {
       setLibrary((prev) => {
         const existing = prev.find((r) => r.id === bookId)
         if (existing) {
           const cats = existing.categories || []
           return prev.map((r) =>
             r.id === bookId
-              ? { ...r, progress: charPos, categories: cats.includes('in progress') ? cats : [...cats, 'in progress'] }
+              ? { ...r, progress: charPos, totalChars, categories: cats.includes('in progress') ? cats : [...cats, 'in progress'] }
               : r
           )
         }
-        return [...prev, { id: bookId, categories: ['in progress'], progress: charPos }]
+        return [...prev, { id: bookId, categories: ['in progress'], progress: charPos, totalChars }]
       })
     },
     [setLibrary]
@@ -116,6 +119,14 @@ export function useLibrary() {
     (bookId: string): number | null => {
       const record = library.find((r) => r.id === bookId && (r.categories || []).includes('in progress'))
       return record ? record.progress : null
+    },
+    [library]
+  )
+
+  const getBookProgress = useCallback(
+    (bookId: string): { progress: number; totalChars?: number } | null => {
+      const record = library.find((r) => r.id === bookId && (r.categories || []).includes('in progress'))
+      return record ? { progress: record.progress, totalChars: record.totalChars } : null
     },
     [library]
   )
@@ -219,10 +230,40 @@ export function useLibrary() {
       .map((r) => r.id)
   }, [library])
 
+  // Favorite Authors API
+  const toggleFavoriteAuthor = useCallback(
+    (authorId: string) => {
+      setFavoriteAuthors((prev) => {
+        const index = prev.indexOf(authorId);
+        if (index > -1) {
+          return prev.filter((id) => id !== authorId);
+        } else {
+          return [...prev, authorId];
+        }
+      });
+    },
+    [setFavoriteAuthors]
+  );
+
+  const isFavoriteAuthor = useCallback(
+    (authorId: string): boolean => {
+      return favoriteAuthors.includes(authorId);
+    },
+    [favoriteAuthors]
+  );
+
+  const getFavoriteAuthors = useCallback(
+    (): string[] => {
+      return favoriteAuthors;
+    },
+    [favoriteAuthors]
+  );
+
   return {
     library,
     saveBookmark,
     getBookmark,
+    getBookProgress,
     clearBookmark,
     toggleFavorite,
     isFavorite,
@@ -231,5 +272,8 @@ export function useLibrary() {
     isHidden,
     getHidden,
     getInProgress,
+    toggleFavoriteAuthor,
+    isFavoriteAuthor,
+    getFavoriteAuthors,
   }
 }

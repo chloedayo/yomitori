@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
 
 interface TabsMenuProps {
   hiddenCount: number
@@ -49,7 +50,7 @@ export function TabsMenu({ hiddenCount, onNavigateToHidden }: TabsMenuProps) {
         }}
         title="Menu"
       >
-        ⋯
+        <MoreVertIcon sx={{ color: '#d0d0d0' }} />
       </button>
 
       {isOpen && (

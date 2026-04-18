@@ -1,4 +1,4 @@
-import { Book, SearchParams, SearchResponse, TagUpdateRequest, StatsResponse } from '../types/book';
+import { Book, SearchParams, SearchResponse, TagUpdateRequest, StatsResponse, AuthorsResponse } from '../types/book';
 
 const API_BASE = '/api/books';
 
@@ -58,6 +58,23 @@ export const bookClient = {
   async getStats(): Promise<StatsResponse> {
     const response = await fetch(`${API_BASE}/stats`);
     if (!response.ok) throw new Error(`Failed to fetch stats: ${response.statusText}`);
+    return response.json();
+  },
+
+  async getAuthors(query: string = '', page: number = 0, pageSize: number = 50): Promise<AuthorsResponse> {
+    const queryParams = new URLSearchParams();
+    if (query) queryParams.append('query', query);
+    queryParams.append('page', String(page));
+    queryParams.append('pageSize', String(pageSize));
+
+    const response = await fetch(`/api/authors?${queryParams}`);
+    if (!response.ok) throw new Error(`Failed to fetch authors: ${response.statusText}`);
+    return response.json();
+  },
+
+  async getAuthorWithBooks(authorId: string): Promise<{ id: string; name: string; createdAt: string; books: Book[] }> {
+    const response = await fetch(`/api/authors/${authorId}`);
+    if (!response.ok) throw new Error(`Failed to fetch author: ${response.statusText}`);
     return response.json();
   }
 };

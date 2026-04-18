@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface BookAuthorRepository : JpaRepository<BookAuthor, BookAuthorId> {
     fun findByBookId(bookId: String): List<BookAuthor>
+    fun findByAuthorId(authorId: String): List<BookAuthor>
     fun deleteByBookId(bookId: String)
 }

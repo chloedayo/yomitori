@@ -6,6 +6,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite'
 import TextRotationDownIcon from '@mui/icons-material/TextRotationDown'
 import TextRotationNoneIcon from '@mui/icons-material/TextRotationNone'
 import FormatPaintIcon from '@mui/icons-material/FormatPaint'
+import HomeIcon from '@mui/icons-material/Home'
 
 interface ReaderUIProps {
   currentCharPos: number
@@ -18,6 +19,7 @@ interface ReaderUIProps {
   onJumpToBookmark: () => void
   onJumpToBeginning: () => void
   onToggleFavorite: () => void
+  onGoBack: () => void
   isFavorited: boolean
   hasBookmark: boolean
 }
@@ -33,6 +35,7 @@ export function ReaderUI({
   onJumpToBookmark,
   onJumpToBeginning,
   onToggleFavorite,
+  onGoBack,
   isFavorited,
   hasBookmark,
 }: ReaderUIProps) {
@@ -50,6 +53,14 @@ export function ReaderUI({
       </div>
 
       <div className="font-size-section">
+        <button
+          className="font-size-btn"
+          onClick={onGoBack}
+          title="Go back to home"
+          aria-label="Go back to home"
+        >
+          <HomeIcon fontSize="small" />
+        </button>
         {hasBookmark && (
           <button
             className="font-size-btn"
