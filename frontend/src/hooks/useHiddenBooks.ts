@@ -21,6 +21,19 @@ export function useHiddenBooks() {
     } else {
       hidden.push(bookIdStr)
       localStorage.setItem('yomitori-hidden-books', JSON.stringify(hidden))
+
+      // Remove from bookmarks and favorites when hiding
+      const bookmarks = JSON.parse(localStorage.getItem('yomitori-bookmarks') || '{}')
+      if (bookmarks[bookIdStr]) {
+        delete bookmarks[bookIdStr]
+        localStorage.setItem('yomitori-bookmarks', JSON.stringify(bookmarks))
+      }
+
+      const favorites = JSON.parse(localStorage.getItem('yomitori-favorites') || '[]')
+      const updatedFavorites = favorites.filter((id: string) => id !== bookIdStr)
+      if (updatedFavorites.length !== favorites.length) {
+        localStorage.setItem('yomitori-favorites', JSON.stringify(updatedFavorites))
+      }
     }
   }
 
