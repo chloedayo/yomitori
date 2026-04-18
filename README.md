@@ -1,7 +1,6 @@
 # Yomitori - Book Collection Search
 
 **yomitori** (読み取り) ~ because 40,000+ books deserve a home, not a hard drive. index. search. read. all in one place ✧  
-Built with Kotlin, React, and an unhealthy amount of coffee ♡
 
 <center>
    <img width="1454" height="817" alt="image" src="https://github.com/user-attachments/assets/8999cc47-0455-47d3-93a6-d2316c6f64a7" />
