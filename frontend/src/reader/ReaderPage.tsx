@@ -10,8 +10,21 @@ export function ReaderPage() {
   const [fontSize, setFontSize] = useState(18)
   const [currentCharPos, setCurrentCharPos] = useState(0)
   const [totalChars, setTotalChars] = useState(0)
+  const [isVertical, setIsVertical] = useState(() => {
+    const stored = localStorage.getItem('yomitori-text-orientation')
+    return stored !== 'horizontal'
+  })
   const contentRef = useRef<HTMLDivElement>(null)
   const readerRef = useRef<EpubReaderHandle>(null)
+
+  const handleToggleOrientation = () => {
+    const newMode = !isVertical
+    setIsVertical(newMode)
+    localStorage.setItem(
+      'yomitori-text-orientation',
+      newMode ? 'vertical' : 'horizontal'
+    )
+  }
 
   useEffect(() => {
     const loadBook = async () => {
@@ -120,6 +133,7 @@ export function ReaderPage() {
           fontSize={fontSize}
           onCharPosChange={setCurrentCharPos}
           onTotalCharsChange={setTotalChars}
+          isVertical={isVertical}
         />
       </div>
       <ReaderUI
@@ -127,6 +141,8 @@ export function ReaderPage() {
         totalChars={totalChars}
         fontSize={fontSize}
         onFontSizeChange={setFontSize}
+        isVertical={isVertical}
+        onToggleOrientation={handleToggleOrientation}
       />
     </div>
   )
