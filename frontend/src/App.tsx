@@ -17,6 +17,7 @@ function App() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [bulkSearchTab, setBulkSearchTab] = useState<'in-progress' | 'favorites' | 'hidden' | null>(null);
   const [bulkBooks, setBulkBooks] = useState<SearchResponse & { missingIds?: string[] } | null>(null);
+  const [, setRefreshTrigger] = useState(0);
   const { getBookmark } = useBookmark();
   const { getHidden } = useHiddenBooks();
 
@@ -111,7 +112,13 @@ function App() {
   };
 
   const refreshBulkSearch = async () => {
-    if (!bulkSearchTab || !bulkBooks) return;
+    // If on All Books tab, trigger a re-render to update hidden books filter
+    if (!bulkSearchTab) {
+      setRefreshTrigger(prev => prev + 1);
+      return;
+    }
+
+    if (!bulkBooks) return;
     try {
       let bookIds: string[] = [];
       if (bulkSearchTab === 'in-progress') {
