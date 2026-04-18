@@ -18,9 +18,9 @@ export function CardMenu({ onHide, isHidden }: CardMenuProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          background: 'rgba(0, 0, 0, 0.25)',
+          background: 'rgba(0, 0, 0, 0.75)',
           border: '1px solid #505050',
-          borderRadius: '12px',
+          borderRadius: '4px',
           cursor: 'pointer',
           fontSize: '18px',
           padding: '4px 10px',
@@ -34,12 +34,12 @@ export function CardMenu({ onHide, isHidden }: CardMenuProps) {
           minWidth: '32px',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.4)'
+          e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.9)'
           e.currentTarget.style.borderColor = '#707070'
           e.currentTarget.style.color = '#e8e8e8'
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.25)'
+          e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.75)'
           e.currentTarget.style.borderColor = '#505050'
           e.currentTarget.style.color = '#d0d0d0'
         }}
