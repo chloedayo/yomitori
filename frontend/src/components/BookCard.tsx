@@ -1,12 +1,53 @@
 import { Book } from '../types/book';
+import { useState, useEffect } from 'react';
 
 interface BookCardProps {
   book: Book;
+  onFavoritesChange?: () => void;
 }
 
-export function BookCard({ book }: BookCardProps) {
+export function BookCard({ book, onFavoritesChange }: BookCardProps) {
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    const storedFavs = localStorage.getItem('yomitori-favorites');
+    if (storedFavs) {
+      try {
+        const favs = JSON.parse(storedFavs);
+        setIsFavorite(favs.includes(book.id.toString()));
+      } catch {
+        setIsFavorite(false);
+      }
+    }
+  }, [book.id]);
+
   const handleRead = () => {
     window.open(`/reader.html?id=${book.id}`, '_blank');
+  };
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const storedFavs = localStorage.getItem('yomitori-favorites');
+    let favs: string[] = [];
+
+    if (storedFavs) {
+      try {
+        favs = JSON.parse(storedFavs);
+      } catch {
+        favs = [];
+      }
+    }
+
+    const bookIdStr = book.id.toString();
+    if (favs.includes(bookIdStr)) {
+      favs = favs.filter((id) => id !== bookIdStr);
+    } else {
+      favs.push(bookIdStr);
+    }
+
+    localStorage.setItem('yomitori-favorites', JSON.stringify(favs));
+    setIsFavorite(!isFavorite);
+    onFavoritesChange?.();
   };
 
   return (
@@ -31,14 +72,44 @@ export function BookCard({ book }: BookCardProps) {
       <div className="book-info">
         <h3 className="book-title">{book.title}</h3>
         <p className="book-format">{book.fileFormat.toUpperCase()}</p>
-        <button
-          onClick={handleRead}
-          className="read-button"
-          title="Open in reader"
-        >
-          Read
-        </button>
+        <div style={styles.buttonGroup}>
+          <button
+            onClick={handleToggleFavorite}
+            style={{...styles.favButton, ...(isFavorite ? styles.favButtonActive : {})}}
+            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {isFavorite ? '❤️' : '🤍'}
+          </button>
+          <button
+            onClick={handleRead}
+            className="read-button"
+            title="Open in reader"
+          >
+            Read
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
+const styles = {
+  buttonGroup: {
+    display: 'flex',
+    gap: '8px',
+  },
+  favButton: {
+    padding: '0.5rem',
+    background: 'none',
+    border: '1px solid #404040',
+    borderRadius: '4px',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    width: '40px',
+    transition: 'all 0.2s',
+  },
+  favButtonActive: {
+    backgroundColor: 'rgba(90, 159, 212, 0.2)',
+    borderColor: '#5a9fd4',
+  },
+};

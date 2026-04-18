@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { BookGrid } from './components/BookGrid';
 import { bookClient } from './api/bookClient';
@@ -10,6 +10,28 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  useEffect(() => {
+    const storedFavs = localStorage.getItem('yomitori-favorites');
+    if (storedFavs) {
+      try {
+        setFavorites(JSON.parse(storedFavs));
+      } catch {
+        setFavorites([]);
+      }
+    }
+  }, []);
+
+  const displayedBooks = activeTab === 'favorites' && searchResults
+    ? {
+        ...searchResults,
+        content: searchResults.content.filter((book) =>
+          favorites.includes(book.id.toString())
+        ),
+      }
+    : searchResults;
 
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
@@ -63,13 +85,38 @@ function App() {
         {error && <div className="error-message">{error}</div>}
 
         {searchResults && (
-          <BookGrid
-            books={searchResults.content}
-            isLoading={isLoading}
-            totalPages={searchResults.totalPages}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
-          />
+          <>
+            <div style={styles.tabs}>
+              <button
+                style={{
+                  ...styles.tab,
+                  ...(activeTab === 'all' ? styles.tabActive : {}),
+                }}
+                onClick={() => setActiveTab('all')}
+              >
+                All Books
+              </button>
+              <button
+                style={{
+                  ...styles.tab,
+                  ...(activeTab === 'favorites' ? styles.tabActive : {}),
+                }}
+                onClick={() => setActiveTab('favorites')}
+              >
+                Favorites ({favorites.length})
+              </button>
+            </div>
+            <BookGrid
+              books={displayedBooks?.content || []}
+              isLoading={isLoading}
+              totalPages={displayedBooks?.totalPages || 0}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              onFavoritesChange={(newFavorites) => {
+                setFavorites(newFavorites);
+              }}
+            />
+          </>
         )}
 
         {!searchResults && !isLoading && !error && (
@@ -87,3 +134,26 @@ function App() {
 }
 
 export default App;
+
+const styles = {
+  tabs: {
+    display: 'flex',
+    borderBottom: '2px solid #404040',
+    marginBottom: '2rem',
+    gap: '0',
+  },
+  tab: {
+    padding: '12px 24px',
+    background: 'none',
+    border: 'none',
+    color: '#a8a8a8',
+    cursor: 'pointer',
+    fontSize: '14px',
+    borderBottom: '2px solid transparent',
+    transition: 'all 0.2s',
+  },
+  tabActive: {
+    color: '#e8e8e8',
+    borderBottomColor: '#5a9fd4',
+  },
+};
