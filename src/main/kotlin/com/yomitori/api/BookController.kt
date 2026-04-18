@@ -15,6 +15,7 @@ data class SearchRequest(
     val title: String = "",
     val genre: String? = null,
     val type: String? = null,
+    val author: String? = null,
     val page: Int = 0,
     val pageSize: Int = 20
 )
@@ -38,10 +39,11 @@ class BookController(
         @RequestParam(required = false, defaultValue = "") title: String,
         @RequestParam(required = false) genre: String?,
         @RequestParam(required = false) type: String?,
+        @RequestParam(required = false) author: String?,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") pageSize: Int
     ): ResponseEntity<Page<Book>> {
-        val results = bookService.searchBooks(title, genre, type, page, pageSize)
+        val results = bookService.searchBooks(title, genre, type, author, page, pageSize)
         return ResponseEntity.ok(results)
     }
 

@@ -20,14 +20,22 @@ class BookService(
         title: String = "",
         genre: String? = null,
         type: String? = null,
+        author: String? = null,
         page: Int = 0,
         pageSize: Int = 20
     ): Page<Book> {
         val pageable: Pageable = PageRequest.of(page, pageSize)
-        val results = if (genre != null || type != null) {
-            repository.searchByTitleGenreType(title, genre, type, pageable)
+
+        val results = if (author.isNullOrBlank()) {
+            // Existing search without author filter
+            if (genre != null || type != null) {
+                repository.searchByTitleGenreType(title, genre, type, pageable)
+            } else {
+                repository.searchByTitle(title, pageable)
+            }
         } else {
-            repository.searchByTitle(title, pageable)
+            // New search with author filter
+            repository.searchBooksByAuthor(title, genre, type, author, pageable)
         }
 
         logger.info("Search returned {} results, checking for covers to extract", results.content.size)

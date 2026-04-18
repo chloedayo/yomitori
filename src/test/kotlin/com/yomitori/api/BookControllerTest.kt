@@ -42,7 +42,7 @@ class BookControllerTest {
     @Test
     fun `should search books by title`() {
         val page = PageImpl(listOf(testBook), PageRequest.of(0, 20), 1)
-        whenever(bookService.searchBooks("test", null, null, 0, 20)).thenReturn(page)
+        whenever(bookService.searchBooks("test", null, null, null, 0, 20)).thenReturn(page)
 
         mockMvc.perform(get("/api/books/search?title=test"))
             .andExpect(status().isOk)
