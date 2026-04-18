@@ -9,11 +9,14 @@ data class ExtractedMetadata(
     val title: String,
     val type: String, // manga, novel, light-novel, textbook, other
     val genre: String? = null,
-    val fileFormat: String // pdf, epub, cbr, cbz
+    val fileFormat: String, // pdf, epub, cbr, cbz
+    val authors: List<String> = emptyList()
 )
 
 @Service
-class MetadataExtractor {
+class MetadataExtractor(
+    private val authorExtractionService: AuthorExtractionService
+) {
     private val typeRules = mapOf(
         "PeepoHappyBooks" to "manga",
         "TMW eBook Collection" to "light-novel",
@@ -38,12 +41,14 @@ class MetadataExtractor {
         val type = detectType(filepath)
         val title = extractTitle(filename)
         val genre = inferGenre(type)
+        val authors = authorExtractionService.extractAuthors(filepath)
 
         return ExtractedMetadata(
             title = title,
             type = type,
             genre = genre,
-            fileFormat = fileFormat
+            fileFormat = fileFormat,
+            authors = authors
         )
     }
 
