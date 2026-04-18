@@ -1,5 +1,6 @@
 package com.yomitori.service
 
+import org.apache.pdfbox.Loader
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.zip.ZipFile
@@ -47,8 +48,21 @@ class AuthorExtractionService {
     }
 
     private fun extractPdfAuthors(filepath: String): List<String> {
-        // PDF extraction will be implemented in next task
-        return emptyList()
+        return try {
+            val document = Loader.loadPDF(File(filepath))
+            val info = document.documentInformation
+            val authorField = info?.author ?: ""
+            document.close()
+
+            if (authorField.isBlank()) {
+                emptyList()
+            } else {
+                // Handle multiple authors separated by semicolon or comma
+                authorField.split("[,;]".toRegex()).map { it.trim() }.filter { it.isNotEmpty() }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     private fun extractComicAuthors(filepath: String): List<String> {
