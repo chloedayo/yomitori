@@ -45,6 +45,15 @@ class BookController(
         return ResponseEntity.ok(results)
     }
 
+    @PostMapping("/search/bulk")
+    fun searchBulk(
+        @RequestBody request: BulkSearchRequest
+    ): ResponseEntity<PageResponse<Book>> {
+        val (page, missingIds) = bookService.searchByIds(request.bookIds, request.page, request.pageSize)
+        val response = PageResponse.from(page, missingIds)
+        return ResponseEntity.ok(response)
+    }
+
     @GetMapping("/{bookId}/cover")
     fun getCover(@PathVariable bookId: String): ResponseEntity<ByteArray> {
         val book = bookService.getBookById(bookId) ?: return ResponseEntity.notFound().build()

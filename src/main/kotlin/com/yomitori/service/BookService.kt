@@ -4,6 +4,7 @@ import com.yomitori.model.Book
 import com.yomitori.repository.BookRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -43,6 +44,27 @@ class BookService(
         }
 
         return results
+    }
+
+    fun searchByIds(bookIds: List<String>, page: Int, pageSize: Int): Pair<Page<Book>, List<String>> {
+        val validIds = bookIds.filter { it.isNotBlank() }
+        if (validIds.isEmpty()) {
+            return Pair(PageImpl(emptyList(), PageRequest.of(page, pageSize), 0), bookIds)
+        }
+
+        val foundBooks = repository.findAllById(validIds)
+        val foundIds = foundBooks.map { it.id }.toSet()
+        val missingIds = validIds.filter { it !in foundIds }
+
+        val sorted = foundBooks.sortedBy { it.title }
+        val start = page * pageSize
+        val end = minOf(start + pageSize, sorted.size)
+
+        val paginatedContent = if (start < sorted.size) sorted.subList(start, end) else emptyList()
+        val pageable = PageRequest.of(page, pageSize)
+        val pageImpl = PageImpl(paginatedContent, pageable, sorted.size.toLong())
+
+        return Pair(pageImpl, missingIds)
     }
 
     fun getBookById(id: String): Book? {
