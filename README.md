@@ -1,6 +1,18 @@
 # Yomitori - Book Collection Search
 
-**yomitori** (読み取り) ~ because 40,000+ books deserve a home, not a hard drive. index. search. read. all in one place ✧  
+**yomitori** (読み取り) — a love letter to your books, in code.
+
+You've got 40,000+ ebooks scattered across your hard drive. They're books with anime on the cover. Books you meant to read. Books you forgot you had. Books that deserve better than a folder named `_ebooks` or `vol-03-[broken-encoding].epub`.
+
+Yomitori brings them home.
+
+**What it does:** Crawls your collection automatically, extracts covers and metadata, learns author relationships, tracks where you left off, lets you favorite and search like you mean it. A beautiful, fast search interface for everything. Your books deserve a home that knows their names.
+
+**What it feels like:** Searching for "yuri manga" and seeing all your covers at once. Clicking an author and seeing every book they wrote. Resuming exactly where you stopped. Favoriting the ones that matter. Progress bars that actually mean something.
+
+Built with care. Built with Kotlin, React, and the kind of attention to detail that makes your heart smile when you hover over a book title and the preview appears exactly where you need it.
+
+✧  
 
 <center>
    <img width="2487" height="1019" alt="image" src="https://github.com/user-attachments/assets/2f860fd2-88a8-4716-b69f-1e87f2e829f8" />
