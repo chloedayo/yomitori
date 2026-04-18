@@ -8,9 +8,17 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import jakarta.persistence.criteria.Predicate
+
+interface BookRepositoryCustom {
+    fun searchBooks(title: String, genre: String?, type: String?, pageable: Pageable): Page<Book>
+    fun searchBooksByAuthor(title: String, genre: String?, type: String?, author: String, pageable: Pageable): Page<Book>
+}
 
 @Repository
-interface BookRepository : JpaRepository<Book, String> {
+interface BookRepository : JpaRepository<Book, String>, BookRepositoryCustom {
     @Query("SELECT b FROM Book b WHERE b.isDeleted = false AND LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%')) ORDER BY b.title ASC")
     fun searchByTitle(
         @Param("title") title: String,
