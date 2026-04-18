@@ -105,8 +105,6 @@ function App() {
       </header>
 
       <main className="app-main">
-        {error && <div className="error-message">{error}</div>}
-
         <div style={styles.tabs}>
           <button
             style={{
@@ -136,6 +134,8 @@ function App() {
             Favorites ({favorites.length})
           </button>
         </div>
+
+        {error && <div className="error-message">{error}</div>}
 
         {searchResults && (
           <BookGrid
