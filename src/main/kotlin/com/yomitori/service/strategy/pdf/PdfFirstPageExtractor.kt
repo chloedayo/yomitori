@@ -31,7 +31,7 @@ class PdfFirstPageExtractor : CoverExtractionStrategy {
             }
             logger.debug("Extracted first page from PDF: {}", filepath)
             image
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             logger.warn("PDF first-page extraction failed for {}: {}", filepath, e.message)
             null
         }

@@ -1,0 +1,15 @@
+# Build-only stage (output JAR for local use)
+
+FROM gradle:8.4-jdk17
+
+WORKDIR /app
+
+# Copy gradle config first (separate layer for caching)
+COPY build.gradle.kts settings.gradle.kts ./
+
+# Copy source and build
+COPY src/ src/
+RUN gradle bootJar -x test --build-cache -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4
+
+# Keep container running so we can extract JAR
+CMD ["sleep", "infinity"]

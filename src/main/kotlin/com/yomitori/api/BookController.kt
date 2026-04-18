@@ -3,6 +3,7 @@ package com.yomitori.api
 import com.yomitori.model.Book
 import com.yomitori.service.BookService
 import com.yomitori.service.CrawlerService
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
 import org.springframework.http.MediaType
@@ -28,7 +29,9 @@ data class TagUpdateRequest(
 @CrossOrigin(origins = ["http://localhost:5173", "http://localhost:3000"])
 class BookController(
     private val bookService: BookService,
-    private val crawlerService: CrawlerService
+    private val crawlerService: CrawlerService,
+    @Value("\${yomitori.crawler.covers-path:/app/data/covers}")
+    private val coversPath: String
 ) {
     @GetMapping("/search")
     fun searchBooks(
@@ -56,6 +59,30 @@ class BookController(
             ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(imageBytes)
+        } catch (e: Exception) {
+            ResponseEntity.internalServerError().build()
+        }
+    }
+
+    @GetMapping("/{id}/file")
+    fun getBookFile(@PathVariable id: String): ResponseEntity<ByteArray> {
+        val book = bookService.getBookById(id) ?: return ResponseEntity.notFound().build()
+
+        return try {
+            val file = java.io.File(book.filepath)
+            if (!file.exists()) return ResponseEntity.notFound().build()
+
+            val fileBytes = file.readBytes()
+            val contentType = when {
+                book.filepath.endsWith(".epub", ignoreCase = true) -> "application/epub+zip"
+                book.filepath.endsWith(".pdf", ignoreCase = true) -> "application/pdf"
+                else -> "application/octet-stream"
+            }
+
+            ResponseEntity.ok()
+                .header("Content-Disposition", "inline; filename=\"${file.name}\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(fileBytes)
         } catch (e: Exception) {
             ResponseEntity.internalServerError().build()
         }
@@ -92,6 +119,11 @@ class BookController(
         return ResponseEntity.ok(bookService.getStats())
     }
 
+    @GetMapping("/test")
+    fun testEndpoint(): ResponseEntity<String> {
+        return ResponseEntity.ok("TEST WORKS")
+    }
+
     @PostMapping("/crawler/run")
     fun runCrawler(): ResponseEntity<Map<String, String>> {
         crawlerService.runCrawler()
@@ -101,8 +133,16 @@ class BookController(
     @GetMapping("/cover-file/{bookId}")
     fun coverFile(@PathVariable bookId: String): ResponseEntity<ByteArray>? {
         val book = bookService.getBookById(bookId) ?: return ResponseEntity.notFound().build()
-        val path = book.coverPath ?: return ResponseEntity.notFound().build()
-        val file = java.io.File(path)
+        val coverPath = book.coverPath ?: return ResponseEntity.notFound().build()
+
+        val file = if (coverPath.startsWith('/')) {
+            // Absolute path (old format) or Docker path - use as-is
+            java.io.File(coverPath)
+        } else {
+            // Relative filename (new format) - prepend covers path
+            java.io.File(coversPath, coverPath)
+        }
+
         return if (file.exists()) {
             ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(file.readBytes())
         } else {

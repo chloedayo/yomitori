@@ -3,11 +3,15 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "increment": "node increment-version.js",
+    "dev": "npm run increment && vite",
+    "build": "npm run increment && tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "epubjs": "^0.3.88",
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
