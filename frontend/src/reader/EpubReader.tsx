@@ -137,6 +137,21 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     onSwipeLeft: handleNext,
   })
 
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (!contentRef.current) return
+
+      if (isVertical) {
+        e.preventDefault()
+        contentRef.current.scrollLeft += e.deltaY
+      }
+    }
+
+    const element = contentRef.current
+    element?.addEventListener('wheel', handleWheel, { passive: false })
+    return () => element?.removeEventListener('wheel', handleWheel)
+  }, [isVertical])
+
   return (
     <div
       ref={contentRef}
