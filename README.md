@@ -3,7 +3,7 @@
 **yomitori** (読み取り) ~ because 40,000+ books deserve a home, not a hard drive. index. search. read. all in one place ✧  
 
 <center>
-   <img width="1454" height="817" alt="image" src="https://github.com/user-attachments/assets/8999cc47-0455-47d3-93a6-d2316c6f64a7" />
+   <img width="2487" height="1019" alt="image" src="https://github.com/user-attachments/assets/2f860fd2-88a8-4716-b69f-1e87f2e829f8" />
    <img width="2487" height="1019" alt="image" src="https://github.com/user-attachments/assets/dd4c5bbb-5425-41ab-8dba-d827107ef352" />
 </center>
 
