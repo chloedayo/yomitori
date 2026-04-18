@@ -100,7 +100,8 @@ const styles = {
   },
   favButton: {
     padding: '0.5rem',
-    background: 'none',
+    backgroundColor: 'transparent',
+    borderColor: '#404040',
     border: '1px solid #404040',
     borderRadius: '4px',
     fontSize: '1rem',
