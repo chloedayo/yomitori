@@ -45,4 +45,12 @@ data class Book(
 
     @Column(nullable = false)
     val updatedAt: LocalDateTime = LocalDateTime.now()
-)
+) {
+    @ManyToMany(cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinTable(
+        name = "book_authors",
+        joinColumns = [JoinColumn(name = "book_id")],
+        inverseJoinColumns = [JoinColumn(name = "author_id")]
+    )
+    var authors: List<Author> = emptyList()
+}
