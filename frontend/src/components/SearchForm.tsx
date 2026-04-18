@@ -4,9 +4,10 @@ import { SearchParams } from '../types/book';
 interface SearchFormProps {
   onSearch: (params: SearchParams) => void;
   isLoading: boolean;
+  className?: string;
 }
 
-export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
+export function SearchForm({ onSearch, isLoading, className }: SearchFormProps) {
   const [title, setTitle] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,7 +20,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="search-form">
+    <form onSubmit={handleSubmit} className={`search-form ${className || ''}`}>
       <div className="search-field">
         <input
           type="text"
