@@ -48,15 +48,19 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
   useEffect(() => {
     const loadEpub = async () => {
       try {
-        if (!contentRef.current) return
+        if (!contentRef.current) {
+          console.warn('contentRef not available yet')
+          return
+        }
 
         const parsed = await parseEpub(file)
 
-        contentRef.current.innerHTML = parsed.content
-        setTotalChars(parsed.totalChars)
-        onTotalCharsChange?.(parsed.totalChars)
-
-        console.log('📖 EPUB loaded, total chars:', parsed.totalChars)
+        if (contentRef.current) {
+          contentRef.current.innerHTML = parsed.content
+          setTotalChars(parsed.totalChars)
+          onTotalCharsChange?.(parsed.totalChars)
+          console.log('📖 EPUB loaded, total chars:', parsed.totalChars)
+        }
       } catch (e) {
         console.error('Failed to load EPUB:', e)
         if (contentRef.current) {
