@@ -2,6 +2,43 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.2.1] - 2026-04-19
+
+### Added
+- **Progress Visualization**
+  - Pie chart indicator (28px) showing reading progress
+  - Off-white fill on dark background for visibility
+  - Accurate progress calculation using stored character count
+
+- **Smart UI Components**
+  - BookListRow component for reusable book row display
+  - Applied to TitlesView and AuthorsView (DRY pattern)
+  - Consistent styling and interactions across views
+
+- **Enhanced Filtering**
+  - All/Favorites/In Progress filter buttons in TitlesView
+  - All/Favorites filter buttons in AuthorsView
+  - Smart lazy-loading: disabled on filtered views (prevents infinite load)
+  - Dynamic filtering without pagination
+
+- **Author Favorites**
+  - Favorites system for authors (similar to books)
+  - Persistent storage via localStorage
+  - Visual indicator with filled/unfilled heart icon
+
+- **Improved Hover Preview**
+  - Fixed positioning (escapes container overflow)
+  - Smart top/bottom placement based on viewport space
+  - Dynamic height measurement (no estimation)
+  - Sits precisely on row edge (zero margin)
+  - Graceful fallback for missing cover images
+
+### Fixed
+- Progress bar accuracy (now stores totalChars with bookmark)
+- Infinite lazy-loading on filtered views
+- Cover preview cutoff at bottom of list
+- Hover preview positioning at viewport boundaries
+
 ## [0.2.0] - 2026-04-18
 
 ### Added
