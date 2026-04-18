@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 interface CustomCSSModalProps {
   isOpen: boolean
@@ -18,8 +18,46 @@ export function CustomCSSModal({
   error,
 }: CustomCSSModalProps) {
   const [css, setCSS] = useState(currentCSS)
+  const [liveError, setLiveError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'textarea' | 'upload'>('textarea')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(() => {
+      if (css.trim()) {
+        const isValid = validateCSS(css)
+        if (!isValid) {
+          setLiveError('Invalid CSS syntax')
+        } else {
+          setLiveError(null)
+          onSave(css)
+        }
+      } else {
+        setLiveError(null)
+      }
+    }, 800)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [css, isOpen])
+
+  const validateCSS = (cssText: string): boolean => {
+    try {
+      const style = document.createElement('style')
+      style.textContent = cssText
+      document.head.appendChild(style)
+      document.head.removeChild(style)
+      return true
+    } catch {
+      return false
+    }
+  }
 
   if (!isOpen) return null
 
@@ -31,6 +69,7 @@ export function CustomCSSModal({
 
   const handleReset = () => {
     setCSS('')
+    setLiveError(null)
     onReset()
   }
 
@@ -109,7 +148,9 @@ export function CustomCSSModal({
             </div>
           )}
 
-          {error && <div style={styles.error}>{error}</div>}
+          {(liveError || error) && (
+            <div style={styles.error}>{liveError || error}</div>
+          )}
 
           <details style={styles.guide}>
             <summary style={styles.guideSummary}>Available Selectors</summary>
