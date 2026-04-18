@@ -3,6 +3,7 @@ package com.yomitori.api
 import com.yomitori.model.Book
 import com.yomitori.service.BookService
 import com.yomitori.service.CrawlerService
+import com.yomitori.service.RetroactiveAuthorExtractionService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.http.ResponseEntity
@@ -31,6 +32,7 @@ data class TagUpdateRequest(
 class BookController(
     private val bookService: BookService,
     private val crawlerService: CrawlerService,
+    private val retroactiveAuthorExtractionService: RetroactiveAuthorExtractionService,
     @Value("\${yomitori.crawler.covers-path:/app/data/covers}")
     private val coversPath: String
 ) {
@@ -139,6 +141,17 @@ class BookController(
     fun runCrawler(): ResponseEntity<Map<String, String>> {
         crawlerService.runCrawler()
         return ResponseEntity.ok(mapOf("status" to "Crawler triggered"))
+    }
+
+    @PostMapping("/admin/extract-authors")
+    fun extractAuthorsRetroactive(): ResponseEntity<Map<String, String>> {
+        return try {
+            retroactiveAuthorExtractionService.extractAuthorsForAllBooks()
+            ResponseEntity.ok(mapOf("status" to "Author extraction completed successfully"))
+        } catch (e: Exception) {
+            ResponseEntity.internalServerError()
+                .body(mapOf("status" to "Author extraction failed: ${e.message}"))
+        }
     }
 
     @GetMapping("/cover-file/{bookId}")
