@@ -375,7 +375,7 @@ npm test
 
 ## Known Limitations (MVP)
 
-- Cover extraction works reliably for PDFs; ePub/CBR/CBZ support is stub
+- Cover extraction works reliably for ePub; PDF/CBR/CBZ support is stub
 - No book summaries (Phase 2)
 - No user ratings/annotations
 - No sync across devices
