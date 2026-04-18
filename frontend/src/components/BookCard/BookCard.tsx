@@ -1,8 +1,10 @@
-import { Book } from '../types/book';
-import { CardMenu } from './CardMenu';
-import { useLibrary } from '../hooks/useLibrary';
+import { Book } from '../../types/book';
+import { CardMenu } from '../CardMenu/CardMenu';
+import { useLibrary } from '../../hooks/useLibrary';
+import { BOOK_CARD_LABELS } from './constants';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import './style.scss';
 
 interface BookCardProps {
   book: Book;
@@ -23,8 +25,8 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
   };
 
   return (
-    <div className="book-card" style={{ position: 'relative' }}>
-      <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}>
+    <div className="book-card">
+      <div className="book-card-menu">
         <CardMenu
           onHide={() => {
             toggleHidden(book.id.toString());
@@ -36,6 +38,7 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
           hasBookmark={getBookmark(book.id.toString()) !== null}
         />
       </div>
+
       {book.coverPath && (
         <div className="book-cover">
           <img
@@ -49,19 +52,19 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
       )}
       {!book.coverPath && (
         <div className="book-cover book-cover-placeholder">
-          <div className="placeholder-text">No Cover</div>
+          <div className="placeholder-text">{BOOK_CARD_LABELS.NO_COVER}</div>
         </div>
       )}
 
       <div className="book-info">
         <h3 className="book-title">{book.title}</h3>
         <p className="book-format">{book.fileFormat.toUpperCase()}</p>
-        <div style={styles.buttonGroup}>
+        <div className="button-group">
           {!isHidden(book.id.toString()) && (
             <button
               onClick={handleToggleFavorite}
-              style={styles.favButton}
-              title={isFavorite(book.id.toString()) ? 'Remove from favorites' : 'Add to favorites'}
+              className="fav-button"
+              title={isFavorite(book.id.toString()) ? BOOK_CARD_LABELS.REMOVE_FAVORITE : BOOK_CARD_LABELS.ADD_FAVORITE}
             >
               {isFavorite(book.id.toString()) ? (
                 <FavoriteIcon sx={{ color: '#e91e63', fontSize: '28px' }} />
@@ -73,29 +76,12 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
           <button
             onClick={handleRead}
             className="read-button"
-            title="Open in reader"
+            title={BOOK_CARD_LABELS.OPEN_IN_READER}
           >
-            Read
+            {BOOK_CARD_LABELS.READ_BUTTON}
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  buttonGroup: {
-    display: 'flex',
-    gap: '8px',
-  },
-  favButton: {
-    padding: '0',
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'all 0.2s',
-  },
-};

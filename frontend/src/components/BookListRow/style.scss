@@ -1,0 +1,129 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.book-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-md;
+  border-bottom: 1px solid $bg-darker;
+  gap: $spacing-lg;
+}
+
+.progress-pie {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.3s ease;
+}
+
+.title-section {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.book-title-button {
+  color: $text-primary;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    color: $accent;
+  }
+}
+
+.cover-preview {
+  position: fixed;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  border-radius: $border-radius-md;
+  overflow: hidden;
+  width: 220px;
+  background: $bg-dark;
+  border: 1px solid $bg-darker;
+}
+
+.cover-image {
+  width: 220px;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+.cover-placeholder {
+  width: 220px;
+  height: 280px;
+  background: rgba(45, 45, 45, 0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  text-align: center;
+  color: #808080;
+  font-size: 13px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.cover-title {
+  padding: $spacing-lg;
+  background: $bg-dark;
+  color: $text-primary;
+  font-size: 15px;
+  font-weight: 500;
+  border-top: 1px solid $bg-darker;
+  max-height: 100px;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.actions-section {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xl;
+  flex-shrink: 0;
+}
+
+.read-button {
+  background: $bg-darker;
+  border: 1px solid $border-primary;
+  cursor: pointer;
+  padding: $spacing-sm $spacing-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $border-radius-sm;
+  color: $text-primary;
+  font-size: $font-size-base;
+  font-weight: 500;
+  transition: $transition;
+
+  &:hover {
+    background: $bg-light-dark;
+    border-color: $border-secondary;
+  }
+}
+
+.fav-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition;
+}
