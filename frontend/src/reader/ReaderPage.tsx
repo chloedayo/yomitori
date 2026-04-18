@@ -18,7 +18,6 @@ export function ReaderPage() {
   })
   const contentRef = useRef<HTMLDivElement>(null)
   const readerRef = useRef<EpubReaderHandle>(null)
-  const shadowRootRef = useRef<ShadowRoot | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { css, error: cssError, handleSaveCSS, handleReset } = useCustomCSS()
 
@@ -140,9 +139,6 @@ export function ReaderPage() {
           onTotalCharsChange={setTotalChars}
           isVertical={isVertical}
           customCSS={css}
-          onShadowRootReady={(root) => {
-            shadowRootRef.current = root
-          }}
         />
       </div>
       <ReaderUI
@@ -158,7 +154,7 @@ export function ReaderPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         currentCSS={css}
-        onSave={(newCSS) => handleSaveCSS(newCSS, shadowRootRef.current)}
+        onSave={handleSaveCSS}
         onReset={handleReset}
         error={cssError}
       />

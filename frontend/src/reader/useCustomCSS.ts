@@ -25,26 +25,10 @@ export function useCustomCSS() {
     }
   }
 
-  const saveCSSToShadowDOM = (shadowRoot: ShadowRoot, cssText: string) => {
-    let styleElement = shadowRoot.getElementById('custom-css') as HTMLStyleElement | null
-
-    if (!styleElement) {
-      styleElement = document.createElement('style')
-      styleElement.id = 'custom-css'
-      shadowRoot.appendChild(styleElement)
-    }
-
-    styleElement.textContent = cssText
-  }
-
-  const handleSaveCSS = (cssText: string, shadowRoot: ShadowRoot | null): boolean => {
+  const handleSaveCSS = (cssText: string): boolean => {
     setError(null)
 
     if (!cssText.trim()) {
-      if (shadowRoot) {
-        const styleElement = shadowRoot.getElementById('custom-css')
-        if (styleElement) styleElement.textContent = ''
-      }
       localStorage.removeItem(STORAGE_KEY)
       setCSS('')
       return true
@@ -53,10 +37,6 @@ export function useCustomCSS() {
     if (!validateCSS(cssText)) {
       setError('Invalid CSS. Please check your syntax.')
       return false
-    }
-
-    if (shadowRoot) {
-      saveCSSToShadowDOM(shadowRoot, cssText)
     }
 
     localStorage.setItem(STORAGE_KEY, cssText)
@@ -76,7 +56,6 @@ export function useCustomCSS() {
     error,
     setError,
     validateCSS,
-    saveCSSToShadowDOM,
     handleSaveCSS,
     handleReset,
   }
