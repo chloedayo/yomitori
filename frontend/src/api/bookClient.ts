@@ -6,6 +6,7 @@ export const bookClient = {
   async search(params: SearchParams): Promise<SearchResponse> {
     const queryParams = new URLSearchParams();
     if (params.title) queryParams.append('title', params.title);
+    if (params.author) queryParams.append('author', params.author);
     if (params.genre) queryParams.append('genre', params.genre);
     if (params.type) queryParams.append('type', params.type);
     queryParams.append('page', String(params.page || 0));
