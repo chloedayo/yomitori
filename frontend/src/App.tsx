@@ -161,9 +161,10 @@ const styles = {
     background: 'none',
     border: 'none',
     color: '#a8a8a8',
+    borderBottomColor: 'transparent',
+    borderBottom: '2px solid transparent',
     cursor: 'pointer',
     fontSize: '14px',
-    borderBottom: '2px solid transparent',
     transition: 'all 0.2s',
   },
   tabActive: {
