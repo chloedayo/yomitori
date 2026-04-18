@@ -7,6 +7,7 @@ interface EpubReaderProps {
   fontSize: number
   onCharPosChange?: (pos: number) => void
   onTotalCharsChange?: (total: number) => void
+  isVertical: boolean
 }
 
 export interface EpubReaderHandle {}
@@ -17,6 +18,7 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     fontSize,
     onCharPosChange,
     onTotalCharsChange,
+    isVertical,
   },
   ref
 ) {
@@ -121,10 +123,9 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
   return (
     <div
       ref={contentRef}
-      className="reader-text"
+      className={`reader-text ${isVertical ? 'vertical-mode' : 'horizontal-mode'}`}
       style={{
         fontSize: `${fontSize}px`,
-        writingMode: 'vertical-rl',
         textOrientation: 'mixed',
         color: '#ffffff',
         lineHeight: '2.0'
