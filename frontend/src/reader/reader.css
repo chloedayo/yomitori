@@ -58,6 +58,34 @@ body {
   background: #6fb3d9;
 }
 
+.reader-text.vertical-mode {
+  writing-mode: vertical-rl;
+  direction: rtl;
+}
+
+.reader-text.horizontal-mode {
+  writing-mode: horizontal-tb;
+  direction: ltr;
+}
+
+.reader-text.horizontal-mode::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.reader-text.horizontal-mode::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.reader-text.horizontal-mode::-webkit-scrollbar-thumb {
+  background: #5a9fd4;
+  border-radius: 4px;
+}
+
+.reader-text.horizontal-mode::-webkit-scrollbar-thumb:hover {
+  background: #6fb3d9;
+}
+
 .reader-text h1,
 .reader-text h2,
 .reader-text h3,
