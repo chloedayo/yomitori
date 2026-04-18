@@ -143,19 +143,8 @@ function App() {
             >
               Favorites ({favorites.length})
             </button>
-            {hiddenBooks.length > 0 && (
-              <button
-                style={{
-                  ...styles.tab,
-                  ...(activeTab === 'hidden' ? styles.tabActive : {}),
-                }}
-                onClick={() => setActiveTab('hidden')}
-              >
-                Hidden ({hiddenBooks.length})
-              </button>
-            )}
           </div>
-          <TabsMenu onNavigateToHidden={() => setActiveTab('hidden')} />
+          <TabsMenu hiddenCount={hiddenBooks.length} onNavigateToHidden={() => setActiveTab('hidden')} />
         </div>
 
         {error && <div className="error-message">{error}</div>}
@@ -170,6 +159,7 @@ function App() {
             onFavoritesChange={(newFavorites) => {
               setFavorites(newFavorites);
             }}
+            showPagination={activeTab === 'all'}
           />
         )}
 

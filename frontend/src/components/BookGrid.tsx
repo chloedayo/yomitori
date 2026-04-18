@@ -8,6 +8,7 @@ interface BookGridProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   onFavoritesChange?: (favorites: string[]) => void;
+  showPagination?: boolean;
 }
 
 export function BookGrid({
@@ -16,7 +17,8 @@ export function BookGrid({
   totalPages,
   currentPage,
   onPageChange,
-  onFavoritesChange
+  onFavoritesChange,
+  showPagination = true
 }: BookGridProps) {
   const handleFavoritesChange = () => {
     const storedFavs = localStorage.getItem('yomitori-favorites');
@@ -44,7 +46,7 @@ export function BookGrid({
         ))}
       </div>
 
-      {totalPages > 1 && (
+      {showPagination && totalPages > 1 && (
         <div className="pagination">
           <button
             onClick={() => onPageChange(currentPage - 1)}
