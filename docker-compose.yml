@@ -42,7 +42,7 @@ services:
     working_dir: /books
     command: python -m http.server 8888
     volumes:
-      - /run/media/stella/stella-drive/books:/books:ro
+      - ${BOOKS_MOUNT:-./.books}:/books:ro
     ports:
       - "8888:8888"
     networks:
