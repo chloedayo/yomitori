@@ -5,6 +5,7 @@ interface ReaderUIProps {
   onFontSizeChange: (size: number) => void
   isVertical: boolean
   onToggleOrientation: () => void
+  onOpenCSSModal: () => void
 }
 
 export function ReaderUI({
@@ -14,6 +15,7 @@ export function ReaderUI({
   onFontSizeChange,
   isVertical,
   onToggleOrientation,
+  onOpenCSSModal,
 }: ReaderUIProps) {
 
   const handleFontIncrease = () => {
@@ -70,6 +72,14 @@ export function ReaderUI({
           style={{ minWidth: '40px' }}
         >
           ⇄
+        </button>
+        <button
+          className="font-size-btn"
+          onClick={onOpenCSSModal}
+          title="Customize reader styles"
+          style={{ minWidth: '40px' }}
+        >
+          ⚙️
         </button>
       </div>
     </div>

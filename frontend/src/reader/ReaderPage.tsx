@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { EpubReader, type EpubReaderHandle } from './EpubReader'
 import { ReaderUI } from './ReaderUI'
+import { CustomCSSModal } from './CustomCSSModal'
+import { useCustomCSS } from './useCustomCSS'
 import './reader.css'
 
 export function ReaderPage() {
@@ -16,6 +18,9 @@ export function ReaderPage() {
   })
   const contentRef = useRef<HTMLDivElement>(null)
   const readerRef = useRef<EpubReaderHandle>(null)
+  const shadowRootRef = useRef<ShadowRoot | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { css, error: cssError, handleSaveCSS, handleReset } = useCustomCSS()
 
   const handleToggleOrientation = () => {
     const newMode = !isVertical
@@ -134,6 +139,10 @@ export function ReaderPage() {
           onCharPosChange={setCurrentCharPos}
           onTotalCharsChange={setTotalChars}
           isVertical={isVertical}
+          customCSS={css}
+          onShadowRootReady={(root) => {
+            shadowRootRef.current = root
+          }}
         />
       </div>
       <ReaderUI
@@ -143,6 +152,15 @@ export function ReaderPage() {
         onFontSizeChange={setFontSize}
         isVertical={isVertical}
         onToggleOrientation={handleToggleOrientation}
+        onOpenCSSModal={() => setIsModalOpen(true)}
+      />
+      <CustomCSSModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        currentCSS={css}
+        onSave={(newCSS) => handleSaveCSS(newCSS, shadowRootRef.current)}
+        onReset={handleReset}
+        error={cssError}
       />
     </div>
   )
