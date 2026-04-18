@@ -86,7 +86,7 @@ export function ReaderPage() {
     if (bookId && currentCharPos !== 0) {
       saveBookmark(bookId, currentCharPos)
     }
-  }, [currentCharPos, bookId, saveBookmark])
+  }, [currentCharPos, bookId])
 
   const handleRestoreBookmark = () => {
     if (bookmarkPos !== null && readerRef.current) {
