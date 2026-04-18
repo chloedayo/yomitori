@@ -8,33 +8,30 @@ Yomitori brings them home.
 
 **What it does:** Crawls your collection automatically, extracts covers and metadata, learns author relationships, tracks where you left off, lets you favorite and search like you mean it. A beautiful, fast search interface for everything. Your books deserve a home that knows their names.
 
-**What it feels like:** Searching for "yuri manga" and seeing all your covers at once. Clicking an author and seeing every book they wrote. Resuming exactly where you stopped. Favoriting the ones that matter. Progress bars that actually mean something.
+**What it feels like:** Searching for "百合" and seeing all your covers at once. Clicking an author and seeing every book they wrote. Resuming exactly where you stopped. Favoriting the ones that matter. Progress bars that actually mean something.
 
 Built with care. Built with Kotlin, React, and the kind of attention to detail that makes your heart smile when you hover over a book title and the preview appears exactly where you need it.
 
 ✧  
 
 <center>
-   <img width="2487" height="1019" alt="image" src="https://github.com/user-attachments/assets/2f860fd2-88a8-4716-b69f-1e87f2e829f8" />
-   <img width="2487" height="1019" alt="image" src="https://github.com/user-attachments/assets/dd4c5bbb-5425-41ab-8dba-d827107ef352" />
+   <img width="1528" height="969" alt="image" src="https://github.com/user-attachments/assets/94598955-eeaa-41dd-ab46-b18c676876f7" />
+   <img width="1528" height="598" alt="image" src="https://github.com/user-attachments/assets/a8e4dc0a-8d74-4683-a41d-aa97646897c1" />
+   <img width="1528" height="620" alt="image" src="https://github.com/user-attachments/assets/041e9663-d643-4e03-a241-23d2a3d62247" />
 </center>
 
 ## Important Features
 
 - **BOOKS WITH ANIME ON THE COVER**
 - **Yomitan Support:** Now you can be more dekiru by the day!
+
+## Not-So-Important Features 
+- **Smart Indexing:** Type detection from directory patterns, author extraction
+- **Reading Status Tracking:** In Progress, Favorites, Hidden tabs
 - **Author Search & Favorites:** Find books by author with autocomplete, favorite authors
 - **Reading Progress:** Pie chart visualization + character position tracking
 - **Smart Filtering:** All/Favorites/In Progress tabs with smart lazy-loading
-- **Beautiful UI:** Hover previews with intelligent positioning, consistent component design
-
-## Not-So-Important Features 
-- **Automated Crawler:** Scheduled crawl of filesystem, extracts metadata + authors, extracts covers
-- **Smart Indexing:** Type detection from directory patterns, genre inference, author extraction
-- **Author Search:** Find books by author with autocomplete
-- **Reading Status Tracking:** In Progress, Favorites, Hidden tabs
 - **REST API:** Search by title/genre/type/author with pagination, bulk filtering
-- **React Frontend:** Responsive search UI with grid display, cover images, status tabs
 - **SQLite Database:** Local, file-based persistence with author relationships
 
 ## Quick Start
