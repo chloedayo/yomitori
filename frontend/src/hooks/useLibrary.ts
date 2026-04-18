@@ -179,12 +179,15 @@ export function useLibrary() {
         if (existing) {
           const cats = existing.categories || []
           const isHid = cats.includes('hidden')
-          const newCategories = isHid
-            ? cats.filter((c) => c !== 'hidden')
-            : [...cats, 'hidden']
+          let newCategories: ('favorite' | 'in progress' | 'hidden')[]
+          if (isHid) {
+            newCategories = cats.filter((c) => c !== 'hidden')
+          } else {
+            newCategories = ['hidden']
+          }
           const updated: BookRecord = {
             ...existing,
-            categories: newCategories as ('favorite' | 'in progress' | 'hidden')[],
+            categories: newCategories,
           }
           return updated.categories.length > 0
             ? prev.map((r) => (r.id === bookId ? updated : r))

@@ -15,7 +15,6 @@ function App() {
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'in-progress' | 'hidden'>('all');
   const [bulkSearchTab, setBulkSearchTab] = useState<'in-progress' | 'favorites' | 'hidden' | null>(null);
   const [bulkBooks, setBulkBooks] = useState<SearchResponse & { missingIds?: string[] } | null>(null);
-  const [, setRefreshTrigger] = useState(0);
   const { getHidden, getFavorites, getInProgress, library } = useLibrary();
 
   useEffect(() => {
@@ -41,26 +40,26 @@ function App() {
     if (bulkSearchTab === 'in-progress') {
       const bookIds = getInProgress();
       if (bookIds.length > 0) {
-        bookClient.searchBulk(bookIds, 0, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+        bookClient.searchBulk(bookIds, currentPage, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
       } else {
         setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
       }
     } else if (bulkSearchTab === 'favorites') {
       const favIds = getFavorites();
       if (favIds.length > 0) {
-        bookClient.searchBulk(favIds, 0, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+        bookClient.searchBulk(favIds, currentPage, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
       } else {
         setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
       }
     } else if (bulkSearchTab === 'hidden') {
       const hiddenIds = getHidden();
       if (hiddenIds.length > 0) {
-        bookClient.searchBulk(hiddenIds, 0, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+        bookClient.searchBulk(hiddenIds, currentPage, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
       } else {
         setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
       }
     }
-  }, [library, bulkSearchTab]);
+  }, [library, bulkSearchTab, currentPage]);
 
   const hiddenBooks = getHidden();
 
@@ -120,30 +119,6 @@ function App() {
       setError(`Failed to load page: ${err}`);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const refreshBulkSearch = async () => {
-    // If on All Books tab, trigger a re-render to update hidden books filter
-    if (!bulkSearchTab) {
-      setRefreshTrigger(prev => prev + 1);
-      return;
-    }
-
-    if (!bulkBooks) return;
-    try {
-      let bookIds: string[] = [];
-      if (bulkSearchTab === 'in-progress') {
-        bookIds = getInProgress();
-      } else if (bulkSearchTab === 'favorites') {
-        bookIds = getFavorites();
-      } else if (bulkSearchTab === 'hidden') {
-        bookIds = getHidden();
-      }
-      const results = await bookClient.searchBulk(bookIds, currentPage, 20);
-      setBulkBooks(results);
-    } catch (err) {
-      setError(`Failed to refresh: ${err}`);
     }
   };
 
@@ -275,17 +250,6 @@ function App() {
                 await handlePageChange(newPage);
               }
             }}
-            onFavoritesChange={async (newFavorites) => {
-              if (bulkSearchTab === 'favorites' && bulkBooks) {
-                try {
-                  const results = await bookClient.searchBulk(newFavorites, currentPage, 20);
-                  setBulkBooks(results);
-                } catch (err) {
-                  setError(`Failed to refresh favorites: ${err}`);
-                }
-              }
-            }}
-            onBulkRefresh={refreshBulkSearch}
             showPagination={activeTab === 'all' || bulkSearchTab !== null}
           />
         )}
