@@ -16,6 +16,16 @@ export const bookClient = {
     return response.json();
   },
 
+  async searchBulk(bookIds: string[], page: number = 0, pageSize: number = 20): Promise<SearchResponse & { missingIds: string[] }> {
+    const response = await fetch(`${API_BASE}/search/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookIds, page, pageSize })
+    });
+    if (!response.ok) throw new Error(`Bulk search failed: ${response.statusText}`);
+    return response.json();
+  },
+
   async getBook(id: number): Promise<Book> {
     const response = await fetch(`${API_BASE}/${id}`);
     if (!response.ok) throw new Error(`Book not found: ${response.statusText}`);

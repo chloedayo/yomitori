@@ -15,6 +15,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'in-progress' | 'hidden'>('all');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [bulkSearchTab, setBulkSearchTab] = useState<'in-progress' | 'favorites' | 'hidden' | null>(null);
+  const [bulkBooks, setBulkBooks] = useState<SearchResponse & { missingIds?: string[] } | null>(null);
   const { getBookmark } = useBookmark();
   const { getHidden } = useHiddenBooks();
 
@@ -49,17 +51,12 @@ function App() {
 
   const hiddenBooks = getHidden();
 
-  const displayedBooks = searchResults
+  const displayedBooks = searchResults && activeTab === 'all'
     ? {
         ...searchResults,
         content: searchResults.content.filter((book) => {
           const bookIdStr = book.id.toString();
-
-          if (activeTab === 'hidden') return hiddenBooks.includes(bookIdStr);
           if (hiddenBooks.includes(bookIdStr)) return false;
-
-          if (activeTab === 'favorites') return favorites.includes(bookIdStr);
-          if (activeTab === 'in-progress') return getBookmark(bookIdStr) !== null;
           return true;
         }),
       }
@@ -99,6 +96,58 @@ function App() {
     }
   };
 
+  const handleTabChange = async (tab: 'all' | 'favorites' | 'in-progress' | 'hidden') => {
+    setActiveTab(tab);
+
+    if (tab === 'in-progress') {
+      setBulkSearchTab('in-progress');
+      setCurrentPage(0);
+      try {
+        const bookmarks = JSON.parse(localStorage.getItem('yomitori-bookmarks') || '{}');
+        const bookIds = Object.keys(bookmarks);
+        if (bookIds.length > 0) {
+          const results = await bookClient.searchBulk(bookIds, 0, 20);
+          setBulkBooks(results);
+        } else {
+          setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+        }
+      } catch (err) {
+        setError(`Failed to load in-progress books: ${err}`);
+      }
+    } else if (tab === 'favorites') {
+      setBulkSearchTab('favorites');
+      setCurrentPage(0);
+      try {
+        const favIds = JSON.parse(localStorage.getItem('yomitori-favorites') || '[]');
+        if (favIds.length > 0) {
+          const results = await bookClient.searchBulk(favIds, 0, 20);
+          setBulkBooks(results);
+        } else {
+          setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+        }
+      } catch (err) {
+        setError(`Failed to load favorites: ${err}`);
+      }
+    } else if (tab === 'hidden') {
+      setBulkSearchTab('hidden');
+      setCurrentPage(0);
+      try {
+        const hiddenIds = getHidden();
+        if (hiddenIds.length > 0) {
+          const results = await bookClient.searchBulk(hiddenIds, 0, 20);
+          setBulkBooks(results);
+        } else {
+          setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+        }
+      } catch (err) {
+        setError(`Failed to load hidden books: ${err}`);
+      }
+    } else {
+      setBulkSearchTab(null);
+      setBulkBooks(null);
+    }
+  };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -121,7 +170,7 @@ function App() {
                 ...styles.tab,
                 ...(activeTab === 'all' ? styles.tabActive : {}),
               }}
-              onClick={() => setActiveTab('all')}
+              onClick={() => handleTabChange('all')}
             >
               All Books
             </button>
@@ -130,7 +179,7 @@ function App() {
                 ...styles.tab,
                 ...(activeTab === 'in-progress' ? styles.tabActive : {}),
               }}
-              onClick={() => setActiveTab('in-progress')}
+              onClick={() => handleTabChange('in-progress')}
             >
               In Progress ({searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0})
             </button>
@@ -139,27 +188,48 @@ function App() {
                 ...styles.tab,
                 ...(activeTab === 'favorites' ? styles.tabActive : {}),
               }}
-              onClick={() => setActiveTab('favorites')}
+              onClick={() => handleTabChange('favorites')}
             >
               Favorites ({favorites.length})
             </button>
           </div>
-          <TabsMenu hiddenCount={hiddenBooks.length} onNavigateToHidden={() => setActiveTab('hidden')} />
+          <TabsMenu hiddenCount={hiddenBooks.length} onNavigateToHidden={() => handleTabChange('hidden')} />
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
         {searchResults && (
           <BookGrid
-            books={displayedBooks?.content || []}
+            books={(bulkSearchTab ? bulkBooks?.content : displayedBooks?.content) || []}
             isLoading={isLoading}
-            totalPages={displayedBooks?.totalPages || 0}
+            totalPages={(bulkSearchTab ? bulkBooks?.totalPages : displayedBooks?.totalPages) || 0}
             currentPage={currentPage}
-            onPageChange={handlePageChange}
+            onPageChange={async (newPage) => {
+              if (bulkSearchTab && bulkBooks) {
+                setCurrentPage(newPage);
+                try {
+                  let bookIds: string[] = [];
+                  if (bulkSearchTab === 'in-progress') {
+                    const bookmarks = JSON.parse(localStorage.getItem('yomitori-bookmarks') || '{}');
+                    bookIds = Object.keys(bookmarks);
+                  } else if (bulkSearchTab === 'favorites') {
+                    bookIds = JSON.parse(localStorage.getItem('yomitori-favorites') || '[]');
+                  } else if (bulkSearchTab === 'hidden') {
+                    bookIds = getHidden();
+                  }
+                  const results = await bookClient.searchBulk(bookIds, newPage, 20);
+                  setBulkBooks(results);
+                } catch (err) {
+                  setError(`Failed to load page: ${err}`);
+                }
+              } else {
+                await handlePageChange(newPage);
+              }
+            }}
             onFavoritesChange={(newFavorites) => {
               setFavorites(newFavorites);
             }}
-            showPagination={activeTab === 'all'}
+            showPagination={activeTab === 'all' || bulkSearchTab !== null}
           />
         )}
 
