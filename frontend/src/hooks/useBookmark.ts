@@ -29,15 +29,22 @@ export function useBookmark() {
   }, [])
 
   const saveBookmark = (bookId: string, charPos: number) => {
-    setBookmarks((prev) => {
-      const updated = { ...prev, [bookId]: charPos }
-      localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(updated))
-      return updated
-    })
+    const stored = localStorage.getItem(BOOKMARKS_KEY)
+    const current = stored ? JSON.parse(stored) : {}
+    const updated = { ...current, [bookId]: charPos }
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(updated))
+    setBookmarks(updated)
   }
 
   const getBookmark = (bookId: string): number | null => {
-    return bookmarks[bookId] ?? null
+    const stored = localStorage.getItem(BOOKMARKS_KEY)
+    if (!stored) return null
+    try {
+      const bookmarks = JSON.parse(stored)
+      return bookmarks[bookId] ?? null
+    } catch {
+      return null
+    }
   }
 
   const clearBookmark = (bookId: string) => {
