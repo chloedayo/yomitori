@@ -1,0 +1,59 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.home-page {
+  display: contents;
+}
+
+.tabs-container {
+  @include flex-between;
+  display: flex;
+  border-bottom: 2px solid $border-primary;
+  margin-bottom: $spacing-3xl;
+  gap: 0;
+
+  .tabs-group {
+    display: flex;
+  }
+}
+
+.tab {
+  padding: $spacing-md $spacing-xl;
+  background: none;
+  border: none;
+  color: $text-secondary;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-bottom-color: transparent;
+  cursor: pointer;
+  font-size: $font-size-base;
+  transition: $transition;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.tab-active {
+  color: $text-primary;
+  border-bottom-color: $accent;
+}
+
+.welcome {
+  padding: $spacing-3xl;
+  text-align: center;
+  font-size: $font-size-lg;
+  border-radius: $border-radius-md;
+  background: $bg-darker;
+  color: $text-secondary;
+}
+
+.error-message {
+  padding: $spacing-3xl;
+  text-align: center;
+  font-size: $font-size-lg;
+  border-radius: $border-radius-md;
+  background-color: $error-bg;
+  color: $error-text;
+  border: 1px solid $error-border;
+}
