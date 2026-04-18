@@ -8,6 +8,8 @@ interface EpubReaderProps {
   onCharPosChange?: (pos: number) => void
   onTotalCharsChange?: (total: number) => void
   isVertical: boolean
+  customCSS?: string
+  onShadowRootReady?: (shadowRoot: ShadowRoot) => void
 }
 
 export interface EpubReaderHandle {}
@@ -19,14 +21,40 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     onCharPosChange,
     onTotalCharsChange,
     isVertical,
+    customCSS,
+    onShadowRootReady,
   },
   ref
 ) {
   const contentRef = useRef<HTMLDivElement>(null)
+  const shadowRootRef = useRef<ShadowRoot | null>(null)
   const [totalChars, setTotalChars] = useState(0)
   const [_currentCharPos, _setCurrentCharPos] = useState(0)
 
   useImperativeHandle(ref, () => ({}))
+
+  useEffect(() => {
+    if (contentRef.current && !shadowRootRef.current) {
+      try {
+        shadowRootRef.current = contentRef.current.attachShadow({ mode: 'open' })
+        onShadowRootReady?.(shadowRootRef.current)
+      } catch (e) {
+        console.error('Failed to create shadow DOM:', e)
+      }
+    }
+  }, [onShadowRootReady])
+
+  useEffect(() => {
+    if (shadowRootRef.current && customCSS) {
+      let styleElement = shadowRootRef.current.getElementById('custom-css') as HTMLStyleElement | null
+      if (!styleElement) {
+        styleElement = document.createElement('style')
+        styleElement.id = 'custom-css'
+        shadowRootRef.current.appendChild(styleElement)
+      }
+      styleElement.textContent = customCSS
+    }
+  }, [customCSS])
 
   useEffect(() => {
     const loadEpub = async () => {
