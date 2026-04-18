@@ -4,19 +4,19 @@
 
 <center>
    <img width="1454" height="817" alt="image" src="https://github.com/user-attachments/assets/8999cc47-0455-47d3-93a6-d2316c6f64a7" />
-   <img width="2500" height="1017" alt="image" src="https://github.com/user-attachments/assets/62985eae-372c-4bbe-a479-5aa7e394e224" />
+   <img width="2487" height="1019" alt="image" src="https://github.com/user-attachments/assets/dd4c5bbb-5425-41ab-8dba-d827107ef352" />
 </center>
 
 ## Important Features
 
 - **BOOKS WITH ANIME ON THE COVER**
 - **Yomitan Support:** Now you can be more dekiru by the day!
-- **Author Search:** Find books by author with autocomplete
-- **Reading Status Tracking:** In Progress, Favorites, Hidden tabs
 
 ## Not-So-Important Features 
 - **Automated Crawler:** Scheduled crawl of filesystem, extracts metadata + authors, extracts covers
 - **Smart Indexing:** Type detection from directory patterns, genre inference, author extraction
+- **Author Search:** Find books by author with autocomplete
+- **Reading Status Tracking:** In Progress, Favorites, Hidden tabs
 - **REST API:** Search by title/genre/type/author with pagination, bulk filtering
 - **React Frontend:** Responsive search UI with grid display, cover images, status tabs
 - **SQLite Database:** Local, file-based persistence with author relationships
