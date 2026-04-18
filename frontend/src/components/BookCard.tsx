@@ -1,5 +1,7 @@
 import { Book } from '../types/book';
 import { useState, useEffect } from 'react';
+import { CardMenu } from './CardMenu';
+import { useHiddenBooks } from '../hooks/useHiddenBooks';
 
 interface BookCardProps {
   book: Book;
@@ -8,6 +10,7 @@ interface BookCardProps {
 
 export function BookCard({ book, onFavoritesChange }: BookCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const { isHidden, toggleHidden } = useHiddenBooks();
 
   useEffect(() => {
     const storedFavs = localStorage.getItem('yomitori-favorites');
@@ -51,7 +54,13 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
   };
 
   return (
-    <div className="book-card">
+    <div className="book-card" style={{ position: 'relative' }}>
+      <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}>
+        <CardMenu
+          onHide={() => toggleHidden(book.id)}
+          isHidden={isHidden(book.id)}
+        />
+      </div>
       {book.coverPath && (
         <div className="book-cover">
           <img
