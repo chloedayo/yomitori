@@ -48,7 +48,7 @@ export function AuthorsView() {
   );
 
   const fetchAuthorBooksPage = useCallback(
-    async (pageNum: number, resetList: boolean = false) => {
+    async (_pageNum?: number, _resetList?: boolean) => {
       if (!selectedAuthor) return;
 
       setIsLoading(true);
