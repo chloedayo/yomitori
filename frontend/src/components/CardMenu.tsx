@@ -43,7 +43,7 @@ export function CardMenu({ onHide, isHidden }: CardMenuProps) {
         }}
         title="Menu"
       >
-        ⋯
+        ☰
       </button>
 
       {isOpen && (
