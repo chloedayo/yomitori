@@ -3,6 +3,7 @@ import { SearchForm } from './components/SearchForm';
 import { BookGrid } from './components/BookGrid';
 import { bookClient } from './api/bookClient';
 import { SearchParams, SearchResponse } from './types/book';
+import { useBookmark } from './hooks/useBookmark';
 import './styles/App.css';
 
 function App() {
@@ -10,8 +11,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'favorites'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'in-progress'>('all');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const { getBookmark } = useBookmark();
 
   useEffect(() => {
     const storedFavs = localStorage.getItem('yomitori-favorites');
@@ -24,12 +26,15 @@ function App() {
     }
   }, []);
 
-  const displayedBooks = activeTab === 'favorites' && searchResults
+  const displayedBooks = searchResults
     ? {
         ...searchResults,
-        content: searchResults.content.filter((book) =>
-          favorites.includes(book.id.toString())
-        ),
+        content: searchResults.content.filter((book) => {
+          const bookIdStr = book.id.toString();
+          if (activeTab === 'favorites') return favorites.includes(bookIdStr);
+          if (activeTab === 'in-progress') return getBookmark(bookIdStr) !== null;
+          return true;
+        }),
       }
     : searchResults;
 
@@ -95,6 +100,15 @@ function App() {
                 onClick={() => setActiveTab('all')}
               >
                 All Books
+              </button>
+              <button
+                style={{
+                  ...styles.tab,
+                  ...(activeTab === 'in-progress' ? styles.tabActive : {}),
+                }}
+                onClick={() => setActiveTab('in-progress')}
+              >
+                In Progress ({searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0})
               </button>
               <button
                 style={{
