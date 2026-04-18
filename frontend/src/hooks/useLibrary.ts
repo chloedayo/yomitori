@@ -3,7 +3,7 @@ import { useLocalStorage } from './useLocalStorage'
 
 export type BookRecord = {
   id: string
-  category: 'favorite' | 'in progress' | 'hidden'
+  categories: ('favorite' | 'in progress' | 'hidden')[]
   progress: number
 }
 
@@ -13,7 +13,7 @@ const OLD_FAVORITES_KEY = 'yomitori-favorites'
 const OLD_HIDDEN_KEY = 'yomitori-hidden-books'
 
 function migrateOldSchema(): BookRecord[] {
-  const records: BookRecord[] = []
+  const recordMap = new Map<string, BookRecord>()
 
   // Migrate bookmarks (in progress)
   try {
@@ -21,7 +21,12 @@ function migrateOldSchema(): BookRecord[] {
     if (oldBookmarks) {
       const bookmarks: Record<string, number> = JSON.parse(oldBookmarks)
       Object.entries(bookmarks).forEach(([id, progress]) => {
-        records.push({ id, category: 'in progress', progress })
+        if (!recordMap.has(id)) {
+          recordMap.set(id, { id, categories: [], progress })
+        }
+        const record = recordMap.get(id)!
+        record.categories.push('in progress')
+        record.progress = progress
       })
     }
   } catch (error) {
@@ -34,12 +39,13 @@ function migrateOldSchema(): BookRecord[] {
     if (oldFavorites) {
       const favorites: string[] = JSON.parse(oldFavorites)
       favorites.forEach((id) => {
-        // Check if already exists as in-progress
-        const existing = records.find((r) => r.id === id && r.category === 'in progress')
-        if (existing) {
-          // Don't duplicate, just mark as favorite separately
+        if (!recordMap.has(id)) {
+          recordMap.set(id, { id, categories: [], progress: 0 })
         }
-        records.push({ id, category: 'favorite', progress: 0 })
+        const record = recordMap.get(id)!
+        if (!record.categories.includes('favorite')) {
+          record.categories.push('favorite')
+        }
       })
     }
   } catch (error) {
@@ -52,14 +58,20 @@ function migrateOldSchema(): BookRecord[] {
     if (oldHidden) {
       const hidden: string[] = JSON.parse(oldHidden)
       hidden.forEach((id) => {
-        records.push({ id, category: 'hidden', progress: 0 })
+        if (!recordMap.has(id)) {
+          recordMap.set(id, { id, categories: [], progress: 0 })
+        }
+        const record = recordMap.get(id)!
+        if (!record.categories.includes('hidden')) {
+          record.categories.push('hidden')
+        }
       })
     }
   } catch (error) {
     console.error('Failed to migrate hidden:', error)
   }
 
-  return records
+  return Array.from(recordMap.values())
 }
 
 export function useLibrary() {
@@ -85,13 +97,15 @@ export function useLibrary() {
   const saveBookmark = useCallback(
     (bookId: string, charPos: number) => {
       setLibrary((prev) => {
-        const existing = prev.find((r) => r.id === bookId && r.category === 'in progress')
+        const existing = prev.find((r) => r.id === bookId)
         if (existing) {
           return prev.map((r) =>
-            r.id === bookId && r.category === 'in progress' ? { ...r, progress: charPos } : r
+            r.id === bookId
+              ? { ...r, progress: charPos, categories: r.categories.includes('in progress') ? r.categories : [...r.categories, 'in progress'] }
+              : r
           )
         }
-        return [...prev, { id: bookId, category: 'in progress', progress: charPos }]
+        return [...prev, { id: bookId, categories: ['in progress'], progress: charPos }]
       })
     },
     [setLibrary]
@@ -99,7 +113,7 @@ export function useLibrary() {
 
   const getBookmark = useCallback(
     (bookId: string): number | null => {
-      const record = library.find((r) => r.id === bookId && r.category === 'in progress')
+      const record = library.find((r) => r.id === bookId && r.categories.includes('in progress'))
       return record ? record.progress : null
     },
     [library]
@@ -107,7 +121,13 @@ export function useLibrary() {
 
   const clearBookmark = useCallback(
     (bookId: string) => {
-      setLibrary((prev) => prev.filter((r) => !(r.id === bookId && r.category === 'in progress')))
+      setLibrary((prev) =>
+        prev.map((r) =>
+          r.id === bookId
+            ? { ...r, categories: r.categories.filter((c) => c !== 'in progress') }
+            : r
+        ).filter((r) => r.categories.length > 0)
+      )
     },
     [setLibrary]
   )
@@ -116,11 +136,21 @@ export function useLibrary() {
   const toggleFavorite = useCallback(
     (bookId: string) => {
       setLibrary((prev) => {
-        const hasFavorite = prev.some((r) => r.id === bookId && r.category === 'favorite')
-        if (hasFavorite) {
-          return prev.filter((r) => !(r.id === bookId && r.category === 'favorite'))
+        const existing = prev.find((r) => r.id === bookId)
+        if (existing) {
+          const isFav = existing.categories.includes('favorite')
+          const newCategories = isFav
+            ? existing.categories.filter((c) => c !== 'favorite')
+            : [...existing.categories, 'favorite']
+          const updated: BookRecord = {
+            ...existing,
+            categories: newCategories as ('favorite' | 'in progress' | 'hidden')[],
+          }
+          return updated.categories.length > 0
+            ? prev.map((r) => (r.id === bookId ? updated : r))
+            : prev.filter((r) => r.id !== bookId)
         }
-        return [...prev, { id: bookId, category: 'favorite', progress: 0 }]
+        return [...prev, { id: bookId, categories: ['favorite'], progress: 0 }]
       })
     },
     [setLibrary]
@@ -128,14 +158,14 @@ export function useLibrary() {
 
   const isFavorite = useCallback(
     (bookId: string): boolean => {
-      return library.some((r) => r.id === bookId && r.category === 'favorite')
+      return library.some((r) => r.id === bookId && r.categories.includes('favorite'))
     },
     [library]
   )
 
   const getFavorites = useCallback((): string[] => {
     return library
-      .filter((r) => r.category === 'favorite')
+      .filter((r) => r.categories.includes('favorite'))
       .map((r) => r.id)
   }, [library])
 
@@ -143,13 +173,21 @@ export function useLibrary() {
   const toggleHidden = useCallback(
     (bookId: string) => {
       setLibrary((prev) => {
-        const isHidden = prev.some((r) => r.id === bookId && r.category === 'hidden')
-        if (isHidden) {
-          return prev.filter((r) => !(r.id === bookId && r.category === 'hidden'))
+        const existing = prev.find((r) => r.id === bookId)
+        if (existing) {
+          const isHid = existing.categories.includes('hidden')
+          const newCategories = isHid
+            ? existing.categories.filter((c) => c !== 'hidden')
+            : [...existing.categories, 'hidden']
+          const updated: BookRecord = {
+            ...existing,
+            categories: newCategories as ('favorite' | 'in progress' | 'hidden')[],
+          }
+          return updated.categories.length > 0
+            ? prev.map((r) => (r.id === bookId ? updated : r))
+            : prev.filter((r) => r.id !== bookId)
         }
-        // Remove from other categories when hiding
-        const filtered = prev.filter((r) => r.id !== bookId)
-        return [...filtered, { id: bookId, category: 'hidden', progress: 0 }]
+        return [...prev, { id: bookId, categories: ['hidden'], progress: 0 }]
       })
     },
     [setLibrary]
@@ -157,21 +195,21 @@ export function useLibrary() {
 
   const isHidden = useCallback(
     (bookId: string): boolean => {
-      return library.some((r) => r.id === bookId && r.category === 'hidden')
+      return library.some((r) => r.id === bookId && r.categories.includes('hidden'))
     },
     [library]
   )
 
   const getHidden = useCallback((): string[] => {
     return library
-      .filter((r) => r.category === 'hidden')
+      .filter((r) => r.categories.includes('hidden'))
       .map((r) => r.id)
   }, [library])
 
   // State queries
   const getInProgress = useCallback((): string[] => {
     return library
-      .filter((r) => r.category === 'in progress')
+      .filter((r) => r.categories.includes('in progress'))
       .map((r) => r.id)
   }, [library])
 

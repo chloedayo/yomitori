@@ -16,7 +16,7 @@ function App() {
   const [bulkSearchTab, setBulkSearchTab] = useState<'in-progress' | 'favorites' | 'hidden' | null>(null);
   const [bulkBooks, setBulkBooks] = useState<SearchResponse & { missingIds?: string[] } | null>(null);
   const [, setRefreshTrigger] = useState(0);
-  const { getHidden, getFavorites, getInProgress } = useLibrary();
+  const { getHidden, getFavorites, getInProgress, library } = useLibrary();
 
   useEffect(() => {
     const loadInitialBooks = async () => {
@@ -35,6 +35,32 @@ function App() {
 
     loadInitialBooks();
   }, []);
+
+  // Watch library changes and refresh category views in real-time
+  useEffect(() => {
+    if (bulkSearchTab === 'in-progress') {
+      const bookIds = getInProgress();
+      if (bookIds.length > 0) {
+        bookClient.searchBulk(bookIds, 0, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+      } else {
+        setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+      }
+    } else if (bulkSearchTab === 'favorites') {
+      const favIds = getFavorites();
+      if (favIds.length > 0) {
+        bookClient.searchBulk(favIds, 0, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+      } else {
+        setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+      }
+    } else if (bulkSearchTab === 'hidden') {
+      const hiddenIds = getHidden();
+      if (hiddenIds.length > 0) {
+        bookClient.searchBulk(hiddenIds, 0, 20).then(setBulkBooks).catch(err => setError(`Failed to refresh: ${err}`));
+      } else {
+        setBulkBooks({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 }, last: true, first: true, missingIds: [] });
+      }
+    }
+  }, [library, bulkSearchTab]);
 
   const hiddenBooks = getHidden();
 
