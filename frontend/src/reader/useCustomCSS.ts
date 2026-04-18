@@ -22,7 +22,7 @@ export function useCustomCSS() {
       }
       if (trimmed.endsWith('{')) {
         const selector = trimmed.slice(0, -1).trim()
-        if (selector && !selector.startsWith('@')) {
+        if (selector && !selector.startsWith('@') && !selector.includes('::-webkit')) {
           return line.replace(selector, `.reader-content ${selector}`)
         }
       }
