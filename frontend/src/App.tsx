@@ -96,6 +96,25 @@ function App() {
     }
   };
 
+  const refreshBulkSearch = async () => {
+    if (!bulkSearchTab || !bulkBooks) return;
+    try {
+      let bookIds: string[] = [];
+      if (bulkSearchTab === 'in-progress') {
+        const bookmarks = JSON.parse(localStorage.getItem('yomitori-bookmarks') || '{}');
+        bookIds = Object.keys(bookmarks);
+      } else if (bulkSearchTab === 'favorites') {
+        bookIds = JSON.parse(localStorage.getItem('yomitori-favorites') || '[]');
+      } else if (bulkSearchTab === 'hidden') {
+        bookIds = getHidden();
+      }
+      const results = await bookClient.searchBulk(bookIds, currentPage, 20);
+      setBulkBooks(results);
+    } catch (err) {
+      setError(`Failed to refresh: ${err}`);
+    }
+  };
+
   const handleTabChange = async (tab: 'all' | 'favorites' | 'in-progress' | 'hidden') => {
     setActiveTab(tab);
 
@@ -237,6 +256,7 @@ function App() {
                 }
               }
             }}
+            onBulkRefresh={refreshBulkSearch}
             showPagination={activeTab === 'all' || bulkSearchTab !== null}
           />
         )}

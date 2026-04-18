@@ -1,8 +1,8 @@
 import { useState } from 'react'
 
 interface CardMenuProps {
-  onHide: () => void
-  onClearBookmark?: () => void
+  onHide: () => void | Promise<void>
+  onClearBookmark?: () => void | Promise<void>
   isHidden?: boolean
   hasBookmark?: boolean
 }
@@ -10,13 +10,13 @@ interface CardMenuProps {
 export function CardMenu({ onHide, onClearBookmark, isHidden, hasBookmark }: CardMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const handleHideClick = () => {
-    onHide()
+  const handleHideClick = async () => {
+    await onHide()
     setIsOpen(false)
   }
 
-  const handleClearBookmarkClick = () => {
-    onClearBookmark?.()
+  const handleClearBookmarkClick = async () => {
+    await onClearBookmark?.()
     setIsOpen(false)
   }
 

@@ -8,6 +8,7 @@ interface BookGridProps {
   currentPage: number;
   onPageChange: (page: number) => void;
   onFavoritesChange?: (favorites: string[]) => void;
+  onBulkRefresh?: () => Promise<void>;
   showPagination?: boolean;
 }
 
@@ -18,6 +19,7 @@ export function BookGrid({
   currentPage,
   onPageChange,
   onFavoritesChange,
+  onBulkRefresh,
   showPagination = true
 }: BookGridProps) {
   const handleFavoritesChange = () => {
@@ -42,7 +44,7 @@ export function BookGrid({
     <div className="book-grid-container">
       <div className="book-grid">
         {books.map((book) => (
-          <BookCard key={book.id} book={book} onFavoritesChange={handleFavoritesChange} />
+          <BookCard key={book.id} book={book} onFavoritesChange={handleFavoritesChange} onBulkRefresh={onBulkRefresh} />
         ))}
       </div>
 

@@ -7,9 +7,10 @@ import { useBookmark } from '../hooks/useBookmark';
 interface BookCardProps {
   book: Book;
   onFavoritesChange?: () => void;
+  onBulkRefresh?: () => Promise<void>;
 }
 
-export function BookCard({ book, onFavoritesChange }: BookCardProps) {
+export function BookCard({ book, onFavoritesChange, onBulkRefresh }: BookCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const { isHidden, toggleHidden } = useHiddenBooks();
   const { getBookmark, clearBookmark } = useBookmark();
@@ -59,8 +60,14 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
     <div className="book-card" style={{ position: 'relative' }}>
       <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}>
         <CardMenu
-          onHide={() => toggleHidden(book.id)}
-          onClearBookmark={() => clearBookmark(book.id.toString())}
+          onHide={async () => {
+            toggleHidden(book.id);
+            await onBulkRefresh?.();
+          }}
+          onClearBookmark={async () => {
+            clearBookmark(book.id.toString());
+            await onBulkRefresh?.();
+          }}
           isHidden={isHidden(book.id)}
           hasBookmark={getBookmark(book.id.toString()) !== null}
         />
