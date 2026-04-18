@@ -12,7 +12,9 @@ interface EpubReaderProps {
   scopeCSS?: (css: string) => string
 }
 
-export interface EpubReaderHandle {}
+export interface EpubReaderHandle {
+  scrollToCharPos: (charPos: number) => void
+}
 
 export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function EpubReader(
   {
@@ -30,7 +32,25 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
   const [totalChars, setTotalChars] = useState(0)
   const [_currentCharPos, _setCurrentCharPos] = useState(0)
 
-  useImperativeHandle(ref, () => ({}))
+  useImperativeHandle(ref, () => ({
+    scrollToCharPos: (charPos: number) => {
+      if (!contentRef.current) return
+
+      const maxScroll = isVertical
+        ? contentRef.current.scrollWidth - contentRef.current.clientWidth
+        : contentRef.current.scrollHeight - contentRef.current.clientHeight
+
+      const scrollPos = (charPos / (totalChars || 1)) * maxScroll
+
+      if (isVertical) {
+        contentRef.current.scrollLeft = scrollPos
+      } else {
+        contentRef.current.scrollTop = scrollPos
+      }
+
+      _setCurrentCharPos(charPos)
+    },
+  }))
 
   useEffect(() => {
     if (customCSS) {

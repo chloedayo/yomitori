@@ -82,32 +82,37 @@ export function ReaderPage() {
     loadBook()
   }, [])
 
-  useEffect(() => {
-    if (bookId && currentCharPos !== 0) {
+  const handleSaveBookmark = () => {
+    if (bookId) {
       saveBookmark(bookId, currentCharPos)
+      setBookmarkPos(currentCharPos)
     }
-  }, [currentCharPos, bookId])
+  }
 
   const handleRestoreBookmark = () => {
     if (bookmarkPos !== null && readerRef.current) {
-      setCurrentCharPos(bookmarkPos)
+      readerRef.current.scrollToCharPos(bookmarkPos)
       setShowRestorePrompt(false)
     }
   }
 
   const handleStartFresh = () => {
-    setCurrentCharPos(0)
+    if (readerRef.current) {
+      readerRef.current.scrollToCharPos(0)
+    }
     setShowRestorePrompt(false)
   }
 
   const handleJumpToBookmark = () => {
-    if (bookmarkPos !== null) {
-      setCurrentCharPos(bookmarkPos)
+    if (bookmarkPos !== null && readerRef.current) {
+      readerRef.current.scrollToCharPos(bookmarkPos)
     }
   }
 
   const handleJumpToBeginning = () => {
-    setCurrentCharPos(0)
+    if (readerRef.current) {
+      readerRef.current.scrollToCharPos(0)
+    }
   }
 
   const handleToggleFavorite = () => {
@@ -212,6 +217,7 @@ export function ReaderPage() {
         isVertical={isVertical}
         onToggleOrientation={handleToggleOrientation}
         onOpenCSSModal={() => setIsModalOpen(true)}
+        onSaveBookmark={handleSaveBookmark}
         onJumpToBookmark={handleJumpToBookmark}
         onJumpToBeginning={handleJumpToBeginning}
         onToggleFavorite={handleToggleFavorite}

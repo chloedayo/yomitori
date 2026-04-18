@@ -4,6 +4,7 @@ interface ReaderUIProps {
   isVertical: boolean
   onToggleOrientation: () => void
   onOpenCSSModal: () => void
+  onSaveBookmark: () => void
   onJumpToBookmark: () => void
   onJumpToBeginning: () => void
   onToggleFavorite: () => void
@@ -17,6 +18,7 @@ export function ReaderUI({
   isVertical,
   onToggleOrientation,
   onOpenCSSModal,
+  onSaveBookmark,
   onJumpToBookmark,
   onJumpToBeginning,
   onToggleFavorite,
@@ -51,6 +53,14 @@ export function ReaderUI({
           style={{ minWidth: '40px' }}
         >
           ⬆️
+        </button>
+        <button
+          className="font-size-btn"
+          onClick={onSaveBookmark}
+          title="Save current position as bookmark"
+          style={{ minWidth: '40px' }}
+        >
+          🔖
         </button>
         <button
           className="font-size-btn"
