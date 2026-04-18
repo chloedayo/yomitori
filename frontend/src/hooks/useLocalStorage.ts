@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [state, setState] = useState<T>(() => {
@@ -16,6 +16,12 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         const next = typeof value === 'function' ? (value as (prev: T) => T)(prev) : value
         try {
           localStorage.setItem(key, JSON.stringify(next))
+          // Dispatch custom event for cross-instance sync
+          window.dispatchEvent(
+            new CustomEvent('storage-change', {
+              detail: { key, value: next },
+            })
+          )
         } catch (error) {
           console.error(`Failed to save to localStorage[${key}]:`, error)
         }
@@ -24,6 +30,19 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     },
     [key]
   )
+
+  // Listen for storage changes from other instances
+  useEffect(() => {
+    const handleStorageChange = (e: Event) => {
+      const event = e as CustomEvent
+      if (event.detail.key === key) {
+        setState(event.detail.value)
+      }
+    }
+
+    window.addEventListener('storage-change', handleStorageChange)
+    return () => window.removeEventListener('storage-change', handleStorageChange)
+  }, [key])
 
   return [state, setValue] as const
 }
