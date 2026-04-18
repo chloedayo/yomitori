@@ -1,5 +1,6 @@
 import { Book } from '../types/book';
 import { BookCard } from './BookCard';
+import { useLibrary } from '../hooks/useLibrary';
 
 interface BookGridProps {
   books: Book[];
@@ -22,15 +23,10 @@ export function BookGrid({
   onBulkRefresh,
   showPagination = true
 }: BookGridProps) {
+  const { getFavorites } = useLibrary();
+
   const handleFavoritesChange = () => {
-    const storedFavs = localStorage.getItem('yomitori-favorites');
-    if (storedFavs) {
-      try {
-        onFavoritesChange?.(JSON.parse(storedFavs));
-      } catch {
-        onFavoritesChange?.([]);
-      }
-    }
+    onFavoritesChange?.(getFavorites());
   };
   if (isLoading) {
     return <div className="loading">Loading books...</div>;

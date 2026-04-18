@@ -1,8 +1,6 @@
 import { Book } from '../types/book';
-import { useState, useEffect } from 'react';
 import { CardMenu } from './CardMenu';
-import { useHiddenBooks } from '../hooks/useHiddenBooks';
-import { useBookmark } from '../hooks/useBookmark';
+import { useLibrary } from '../hooks/useLibrary';
 
 interface BookCardProps {
   book: Book;
@@ -11,21 +9,7 @@ interface BookCardProps {
 }
 
 export function BookCard({ book, onFavoritesChange, onBulkRefresh }: BookCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
-  const { isHidden, toggleHidden } = useHiddenBooks();
-  const { getBookmark, clearBookmark } = useBookmark();
-
-  useEffect(() => {
-    const storedFavs = localStorage.getItem('yomitori-favorites');
-    if (storedFavs) {
-      try {
-        const favs = JSON.parse(storedFavs);
-        setIsFavorite(favs.includes(book.id.toString()));
-      } catch {
-        setIsFavorite(false);
-      }
-    }
-  }, [book.id]);
+  const { isHidden, toggleHidden, isFavorite, toggleFavorite, getBookmark, clearBookmark } = useLibrary();
 
   const handleRead = () => {
     window.open(`/reader.html?id=${book.id}`, '_blank');
@@ -33,26 +17,7 @@ export function BookCard({ book, onFavoritesChange, onBulkRefresh }: BookCardPro
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
-    const storedFavs = localStorage.getItem('yomitori-favorites');
-    let favs: string[] = [];
-
-    if (storedFavs) {
-      try {
-        favs = JSON.parse(storedFavs);
-      } catch {
-        favs = [];
-      }
-    }
-
-    const bookIdStr = book.id.toString();
-    if (favs.includes(bookIdStr)) {
-      favs = favs.filter((id) => id !== bookIdStr);
-    } else {
-      favs.push(bookIdStr);
-    }
-
-    localStorage.setItem('yomitori-favorites', JSON.stringify(favs));
-    setIsFavorite(!isFavorite);
+    toggleFavorite(book.id.toString());
     onFavoritesChange?.();
   };
 
@@ -95,10 +60,10 @@ export function BookCard({ book, onFavoritesChange, onBulkRefresh }: BookCardPro
         <div style={styles.buttonGroup}>
           <button
             onClick={handleToggleFavorite}
-            style={{...styles.favButton, ...(isFavorite ? styles.favButtonActive : {})}}
-            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            style={{...styles.favButton, ...(isFavorite(book.id.toString()) ? styles.favButtonActive : {})}}
+            title={isFavorite(book.id.toString()) ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {isFavorite ? '❤️' : '🤍'}
+            {isFavorite(book.id.toString()) ? '❤️' : '🤍'}
           </button>
           <button
             onClick={handleRead}
