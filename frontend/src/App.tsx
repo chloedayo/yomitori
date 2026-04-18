@@ -13,7 +13,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'in-progress'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'in-progress' | 'hidden'>('all');
   const [favorites, setFavorites] = useState<string[]>([]);
   const { getBookmark } = useBookmark();
   const { getHidden } = useHiddenBooks();
@@ -54,6 +54,8 @@ function App() {
         ...searchResults,
         content: searchResults.content.filter((book) => {
           const bookIdStr = book.id.toString();
+
+          if (activeTab === 'hidden') return hiddenBooks.includes(bookIdStr);
           if (hiddenBooks.includes(bookIdStr)) return false;
 
           if (activeTab === 'favorites') return favorites.includes(bookIdStr);
@@ -141,8 +143,19 @@ function App() {
             >
               Favorites ({favorites.length})
             </button>
+            {hiddenBooks.length > 0 && (
+              <button
+                style={{
+                  ...styles.tab,
+                  ...(activeTab === 'hidden' ? styles.tabActive : {}),
+                }}
+                onClick={() => setActiveTab('hidden')}
+              >
+                Hidden ({hiddenBooks.length})
+              </button>
+            )}
           </div>
-          <TabsMenu allBooks={searchResults?.content || []} />
+          <TabsMenu onNavigateToHidden={() => setActiveTab('hidden')} />
         </div>
 
         {error && <div className="error-message">{error}</div>}
