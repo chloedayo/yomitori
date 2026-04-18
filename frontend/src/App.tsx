@@ -113,7 +113,7 @@ function App() {
             }}
             onClick={() => setActiveTab('all')}
           >
-            All Books
+            All Books ({searchResults?.totalElements || 0})
           </button>
           <button
             style={{
