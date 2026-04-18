@@ -1,0 +1,107 @@
+@import './styles/variables';
+@import './styles/mixins';
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: linear-gradient(135deg, $bg-darkest 0%, $bg-dark 100%);
+  color: white;
+  padding: $spacing-2xl $spacing-3xl;
+  @include flex-between;
+  box-shadow: $shadow-header;
+
+  .header-wrapper {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xl;
+    width: 100%;
+  }
+
+  .header-content {
+    flex: 1;
+
+    h1 {
+      font-size: $font-size-2xl;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      font-size: $font-size-md;
+      opacity: 0.9;
+      margin: 0;
+    }
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+  }
+
+  @include responsive-tablet {
+    flex-direction: column;
+    text-align: center;
+    gap: $spacing-lg;
+
+    .header-wrapper {
+      flex-direction: column;
+    }
+
+    .header-content h1 {
+      font-size: $font-size-xl;
+    }
+
+    .nav-buttons {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+.nav-button {
+  @include button-secondary;
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-base;
+
+  &.nav-button-active {
+    @include button-primary;
+    background-color: $accent;
+    border-color: $accent;
+    color: $text-primary;
+  }
+}
+
+.app-main {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: $spacing-3xl $spacing-lg;
+}
+
+.app-footer {
+  background-color: $bg-darkest;
+  color: $text-secondary;
+  text-align: center;
+  padding: $spacing-2xl;
+  margin-top: $spacing-3xl;
+  font-size: $font-size-base;
+}
+
+.search-form-header {
+  width: 30%;
+  flex-shrink: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  margin-bottom: 0;
+  box-shadow: none;
+
+  @include responsive-tablet {
+    width: 100%;
+  }
+}
