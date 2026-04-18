@@ -53,7 +53,7 @@ export function ReaderUI({
         >
           A+
         </button>
-        <span style={{ fontSize: '12px', color: '#999', marginLeft: '8px' }}>
+        <span style={{ fontSize: '12px', color: '#a8a8a8', marginLeft: '8px' }}>
           {fontSize}px
         </span>
       </div>
