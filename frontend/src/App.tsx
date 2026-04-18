@@ -55,6 +55,20 @@ function App() {
     return books.filter((book) => !hiddenBooks.includes(book.id.toString()));
   };
 
+  const getInProgressCount = (): number => {
+    if (bulkSearchTab === 'in-progress' && bulkBooks) {
+      return bulkBooks.content.length;
+    }
+    return searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0;
+  };
+
+  const getFavoritesCount = (): number => {
+    if (bulkSearchTab === 'favorites' && bulkBooks) {
+      return bulkBooks.content.length;
+    }
+    return favorites.length;
+  };
+
   const displayedBooks = searchResults && activeTab === 'all'
     ? {
         ...searchResults,
@@ -200,7 +214,7 @@ function App() {
               }}
               onClick={() => handleTabChange('in-progress')}
             >
-              In Progress ({searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0})
+              In Progress ({getInProgressCount()})
             </button>
             <button
               style={{
@@ -209,7 +223,7 @@ function App() {
               }}
               onClick={() => handleTabChange('favorites')}
             >
-              Favorites ({favorites.length})
+              Favorites ({getFavoritesCount()})
             </button>
           </div>
           <TabsMenu hiddenCount={hiddenBooks.length} onNavigateToHidden={() => handleTabChange('hidden')} />
