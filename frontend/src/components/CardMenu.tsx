@@ -2,14 +2,21 @@ import { useState } from 'react'
 
 interface CardMenuProps {
   onHide: () => void
+  onClearBookmark?: () => void
   isHidden?: boolean
+  hasBookmark?: boolean
 }
 
-export function CardMenu({ onHide, isHidden }: CardMenuProps) {
+export function CardMenu({ onHide, onClearBookmark, isHidden, hasBookmark }: CardMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleHideClick = () => {
     onHide()
+    setIsOpen(false)
+  }
+
+  const handleClearBookmarkClick = () => {
+    onClearBookmark?.()
     setIsOpen(false)
   }
 
@@ -81,6 +88,28 @@ export function CardMenu({ onHide, isHidden }: CardMenuProps) {
           >
             {isHidden ? 'Unhide book' : 'Hide book'}
           </button>
+          {hasBookmark && (
+            <button
+              onClick={handleClearBookmarkClick}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '10px 16px',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderTop: '1px solid #404040',
+                color: '#e8e8e8',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontSize: '14px',
+                transition: 'background-color 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2d2d2d')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              Remove from In Progress
+            </button>
+          )}
         </div>
       )}
 
