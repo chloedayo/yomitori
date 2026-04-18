@@ -26,6 +26,24 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const loadInitialBooks = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const results = await bookClient.search({ title: '', page: 0, pageSize: 20 });
+        setSearchResults(results);
+      } catch (err) {
+        setError(`Failed to load books: ${err}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialBooks();
+  }, []);
+
   const displayedBooks = searchResults
     ? {
         ...searchResults,
