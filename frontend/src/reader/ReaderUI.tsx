@@ -1,3 +1,12 @@
+import BookmarkIcon from '@mui/icons-material/Bookmark'
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
+import KeyboardDoubleArrowUpIcon from '@mui/icons-material/KeyboardDoubleArrowUp'
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import TextRotationDownIcon from '@mui/icons-material/TextRotationDown'
+import TextRotationNoneIcon from '@mui/icons-material/TextRotationNone'
+import FormatPaintIcon from '@mui/icons-material/FormatPaint'
+
 interface ReaderUIProps {
   currentCharPos: number
   totalChars: number
@@ -27,6 +36,9 @@ export function ReaderUI({
   isFavorited,
   hasBookmark,
 }: ReaderUIProps) {
+  const bookmarkPercent = bookmarkPos !== null
+    ? Math.abs(Math.round(-1 * (bookmarkPos / (totalChars || 1)) * 100))
+    : 0
 
   return (
     <div className="reader-ui">
@@ -42,51 +54,60 @@ export function ReaderUI({
           <button
             className="font-size-btn"
             onClick={onJumpToBookmark}
-            title={bookmarkPos !== null ? `Jump to bookmark (${Math.abs(Math.round(-1 * (bookmarkPos / (totalChars || 1)) * 100))}% • ${bookmarkPos.toLocaleString()} chars)` : 'Jump to bookmark'}
-            style={{ minWidth: '80px' }}
+            title={`Jump to bookmark (${bookmarkPercent}% • ${bookmarkPos?.toLocaleString()} chars)`}
+            aria-label="Jump to bookmark"
           >
-            📍 {bookmarkPos !== null && `${Math.abs(Math.round(-1 * (bookmarkPos / (totalChars || 1)) * 100))}%`}
+            <BookmarkIcon fontSize="small" />
+            <span className="btn-label">{bookmarkPercent}%</span>
           </button>
         )}
         <button
           className="font-size-btn"
           onClick={onJumpToBeginning}
           title="Jump to beginning"
-          style={{ minWidth: '40px' }}
+          aria-label="Jump to beginning"
         >
-          ⬆️
+          <KeyboardDoubleArrowUpIcon fontSize="small" />
         </button>
         <button
           className="font-size-btn"
           onClick={onSaveBookmark}
-          title="Save current position as bookmark"
-          style={{ minWidth: '40px' }}
+          title="Save bookmark"
+          aria-label="Save bookmark"
         >
-          🔖
+          <BookmarkBorderIcon fontSize="small" />
         </button>
         <button
           className="font-size-btn"
           onClick={onToggleFavorite}
           title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-          style={{ minWidth: '40px' }}
+          aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         >
-          {isFavorited ? '❤️' : '🤍'}
+          {isFavorited ? (
+            <FavoriteIcon fontSize="small" sx={{ color: '#e91e63' }} />
+          ) : (
+            <FavoriteBorderIcon fontSize="small" />
+          )}
         </button>
         <button
           className="font-size-btn"
           onClick={onToggleOrientation}
-          title={isVertical ? 'Switch to horizontal' : 'Switch to vertical'}
-          style={{ minWidth: '40px' }}
+          title={isVertical ? 'Switch to horizontal (横書き)' : 'Switch to vertical (縦書き)'}
+          aria-label={isVertical ? 'Switch to horizontal' : 'Switch to vertical'}
         >
-          {isVertical ? 'switch to horizontal (横書き)' : 'Switch to vertical (縦書き)'}
+          {isVertical ? (
+            <TextRotationNoneIcon fontSize="small" />
+          ) : (
+            <TextRotationDownIcon fontSize="small" />
+          )}
         </button>
         <button
           className="font-size-btn"
           onClick={onOpenCSSModal}
-          title="Customize reader styles"
-          style={{ minWidth: '40px' }}
+          title="Customize styles"
+          aria-label="Customize styles"
         >
-          Custom CSS
+          <FormatPaintIcon fontSize="small" />
         </button>
       </div>
     </div>

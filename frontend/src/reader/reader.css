@@ -124,20 +124,31 @@ body {
   background-color: #2d2d2d;
   color: #e8e8e8;
   border: 1px solid #404040;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
+  font-size: 13px;
+  transition: background-color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
 }
 
 .font-size-btn:hover {
   background-color: #3a3a3a;
+  border-color: #505050;
 }
 
 .font-size-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.font-size-btn .btn-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #b0b0b0;
 }
 
 .font-size-slider {
