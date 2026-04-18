@@ -9,7 +9,29 @@ yomitori.db
 yomitori.db-journal
 covers/
 .env
+.env.local
 node_modules/
 dist/
 frontend/.env.local
 books/
+docs/superpowers/
+docs/plans/
+
+# IDE & system
+.vscode/
+.DS_Store
+*.swp
+*.swo
+
+# Secrets & credentials
+*.key
+*.pem
+*.p12
+*.pfx
+.credentials
+credentials.json
+secrets.json
+
+# Logs
+*.log
+logs/
