@@ -48,16 +48,18 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Yomitori</h1>
-        <p className="subtitle">Book Collection Search</p>
-      </header>
-
-      <main className="app-main">
+        <div className="app-header-content">
+          <h1>Yomitori</h1>
+          <p className="subtitle">Book Collection Search</p>
+        </div>
         <SearchForm
           onSearch={handleSearch}
           isLoading={isLoading}
+          className="search-form-header"
         />
+      </header>
 
+      <main className="app-main">
         {error && <div className="error-message">{error}</div>}
 
         {searchResults && (
