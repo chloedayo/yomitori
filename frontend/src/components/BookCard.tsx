@@ -5,10 +5,9 @@ import { useLibrary } from '../hooks/useLibrary';
 interface BookCardProps {
   book: Book;
   onFavoritesChange?: () => void;
-  onBulkRefresh?: () => Promise<void>;
 }
 
-export function BookCard({ book, onFavoritesChange, onBulkRefresh }: BookCardProps) {
+export function BookCard({ book, onFavoritesChange }: BookCardProps) {
   const { isHidden, toggleHidden, isFavorite, toggleFavorite, getBookmark, clearBookmark } = useLibrary();
 
   const handleRead = () => {
@@ -25,15 +24,13 @@ export function BookCard({ book, onFavoritesChange, onBulkRefresh }: BookCardPro
     <div className="book-card" style={{ position: 'relative' }}>
       <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}>
         <CardMenu
-          onHide={async () => {
-            toggleHidden(book.id);
-            await onBulkRefresh?.();
+          onHide={() => {
+            toggleHidden(book.id.toString());
           }}
-          onClearBookmark={async () => {
+          onClearBookmark={() => {
             clearBookmark(book.id.toString());
-            await onBulkRefresh?.();
           }}
-          isHidden={isHidden(book.id)}
+          isHidden={isHidden(book.id.toString())}
           hasBookmark={getBookmark(book.id.toString()) !== null}
         />
       </div>
@@ -58,13 +55,15 @@ export function BookCard({ book, onFavoritesChange, onBulkRefresh }: BookCardPro
         <h3 className="book-title">{book.title}</h3>
         <p className="book-format">{book.fileFormat.toUpperCase()}</p>
         <div style={styles.buttonGroup}>
-          <button
-            onClick={handleToggleFavorite}
-            style={{...styles.favButton, ...(isFavorite(book.id.toString()) ? styles.favButtonActive : {})}}
-            title={isFavorite(book.id.toString()) ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            {isFavorite(book.id.toString()) ? '❤️' : '🤍'}
-          </button>
+          {!isHidden(book.id.toString()) && (
+            <button
+              onClick={handleToggleFavorite}
+              style={{...styles.favButton, ...(isFavorite(book.id.toString()) ? styles.favButtonActive : {})}}
+              title={isFavorite(book.id.toString()) ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {isFavorite(book.id.toString()) ? '❤️' : '🤍'}
+            </button>
+          )}
           <button
             onClick={handleRead}
             className="read-button"
