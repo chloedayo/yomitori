@@ -59,7 +59,6 @@ body {
 
 .reader-text.vertical-mode {
   writing-mode: vertical-rl;
-  direction: rtl;
 }
 
 .reader-text.horizontal-mode {
