@@ -31,7 +31,10 @@ export function ReaderUI({
   return (
     <div className="reader-ui">
       <div className="progress-text">
-        {Math.max(0, currentCharPos*-1).toLocaleString()} / {totalChars.toLocaleString()}
+        {isVertical
+          ? Math.max(0, currentCharPos * -1).toLocaleString()
+          : Math.max(0, currentCharPos).toLocaleString()
+        } / {totalChars.toLocaleString()}
       </div>
 
       <div className="font-size-section">
