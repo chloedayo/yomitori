@@ -4,8 +4,7 @@ import { BookGrid } from './components/BookGrid';
 import { TabsMenu } from './components/TabsMenu';
 import { bookClient } from './api/bookClient';
 import { Book, SearchParams, SearchResponse } from './types/book';
-import { useBookmark } from './hooks/useBookmark';
-import { useHiddenBooks } from './hooks/useHiddenBooks';
+import { useLibrary } from './hooks/useLibrary';
 import './styles/App.css';
 
 function App() {
@@ -14,23 +13,10 @@ function App() {
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'in-progress' | 'hidden'>('all');
-  const [favorites, setFavorites] = useState<string[]>([]);
   const [bulkSearchTab, setBulkSearchTab] = useState<'in-progress' | 'favorites' | 'hidden' | null>(null);
   const [bulkBooks, setBulkBooks] = useState<SearchResponse & { missingIds?: string[] } | null>(null);
   const [, setRefreshTrigger] = useState(0);
-  const { getBookmark } = useBookmark();
-  const { getHidden } = useHiddenBooks();
-
-  useEffect(() => {
-    const storedFavs = localStorage.getItem('yomitori-favorites');
-    if (storedFavs) {
-      try {
-        setFavorites(JSON.parse(storedFavs));
-      } catch {
-        setFavorites([]);
-      }
-    }
-  }, []);
+  const { getHidden, getFavorites, getInProgress } = useLibrary();
 
   useEffect(() => {
     const loadInitialBooks = async () => {
@@ -60,14 +46,14 @@ function App() {
     if (bulkSearchTab === 'in-progress' && bulkBooks) {
       return bulkBooks.content.length;
     }
-    return searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0;
+    return getInProgress().length;
   };
 
   const getFavoritesCount = (): number => {
     if (bulkSearchTab === 'favorites' && bulkBooks) {
       return bulkBooks.content.length;
     }
-    return favorites.length;
+    return getFavorites().length;
   };
 
   const displayedBooks = searchResults && activeTab === 'all'
@@ -122,10 +108,9 @@ function App() {
     try {
       let bookIds: string[] = [];
       if (bulkSearchTab === 'in-progress') {
-        const bookmarks = JSON.parse(localStorage.getItem('yomitori-bookmarks') || '{}');
-        bookIds = Object.keys(bookmarks);
+        bookIds = getInProgress();
       } else if (bulkSearchTab === 'favorites') {
-        bookIds = JSON.parse(localStorage.getItem('yomitori-favorites') || '[]');
+        bookIds = getFavorites();
       } else if (bulkSearchTab === 'hidden') {
         bookIds = getHidden();
       }
@@ -143,8 +128,7 @@ function App() {
       setBulkSearchTab('in-progress');
       setCurrentPage(0);
       try {
-        const bookmarks = JSON.parse(localStorage.getItem('yomitori-bookmarks') || '{}');
-        const bookIds = Object.keys(bookmarks);
+        const bookIds = getInProgress();
         if (bookIds.length > 0) {
           const results = await bookClient.searchBulk(bookIds, 0, 20);
           setBulkBooks(results);
@@ -158,7 +142,7 @@ function App() {
       setBulkSearchTab('favorites');
       setCurrentPage(0);
       try {
-        const favIds = JSON.parse(localStorage.getItem('yomitori-favorites') || '[]');
+        const favIds = getFavorites();
         if (favIds.length > 0) {
           const results = await bookClient.searchBulk(favIds, 0, 20);
           setBulkBooks(results);
@@ -250,10 +234,9 @@ function App() {
                 try {
                   let bookIds: string[] = [];
                   if (bulkSearchTab === 'in-progress') {
-                    const bookmarks = JSON.parse(localStorage.getItem('yomitori-bookmarks') || '{}');
-                    bookIds = Object.keys(bookmarks);
+                    bookIds = getInProgress();
                   } else if (bulkSearchTab === 'favorites') {
-                    bookIds = JSON.parse(localStorage.getItem('yomitori-favorites') || '[]');
+                    bookIds = getFavorites();
                   } else if (bulkSearchTab === 'hidden') {
                     bookIds = getHidden();
                   }
@@ -267,7 +250,6 @@ function App() {
               }
             }}
             onFavoritesChange={async (newFavorites) => {
-              setFavorites(newFavorites);
               if (bulkSearchTab === 'favorites' && bulkBooks) {
                 try {
                   const results = await bookClient.searchBulk(newFavorites, currentPage, 20);

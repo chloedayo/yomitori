@@ -3,7 +3,7 @@ import { EpubReader, type EpubReaderHandle } from './EpubReader'
 import { ReaderUI } from './ReaderUI'
 import { CustomCSSModal } from './CustomCSSModal'
 import { useCustomCSS } from './useCustomCSS'
-import { useBookmark } from '../hooks/useBookmark'
+import { useLibrary } from '../hooks/useLibrary'
 import './reader.css'
 
 export function ReaderPage() {
@@ -24,7 +24,7 @@ export function ReaderPage() {
   const [showRestorePrompt, setShowRestorePrompt] = useState(false)
   const [bookmarkPos, setBookmarkPos] = useState<number | null>(null)
   const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
-  const { getBookmark, saveBookmark, toggleFavorite, isFavorite } = useBookmark()
+  const { getBookmark, saveBookmark, toggleFavorite, isFavorite } = useLibrary()
 
   const handleToggleOrientation = () => {
     const newMode = !isVertical
