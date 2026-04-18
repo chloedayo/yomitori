@@ -10,6 +10,7 @@ interface EpubReaderProps {
   isVertical: boolean
   customCSS?: string
   scopeCSS?: (css: string) => string
+  bookmarkPos?: number | null
 }
 
 export interface EpubReaderHandle {
@@ -25,6 +26,7 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     isVertical,
     customCSS,
     scopeCSS,
+    bookmarkPos,
   },
   ref
 ) {
@@ -193,16 +195,36 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     return () => element?.removeEventListener('wheel', handleWheel)
   }, [isVertical])
 
+  const bookmarkPercent = bookmarkPos !== null && bookmarkPos !== undefined && totalChars ? (bookmarkPos / totalChars) * 100 : null
+
   return (
-    <div
-      ref={contentRef}
-      className={`reader-text ${isVertical ? 'vertical-mode' : 'horizontal-mode'}`}
-      style={{
-        fontSize: `${fontSize}px`,
-        textOrientation: 'mixed',
-        color: '#ffffff',
-        lineHeight: '2.0'
-      }}
-    />
+    <>
+      <div
+        ref={contentRef}
+        className={`reader-text ${isVertical ? 'vertical-mode' : 'horizontal-mode'}`}
+        style={{
+          fontSize: `${fontSize}px`,
+          textOrientation: 'mixed',
+          color: '#ffffff',
+          lineHeight: '2.0',
+          position: 'relative'
+        }}
+      />
+      {bookmarkPercent !== null && (
+        <div
+          style={{
+            position: 'fixed',
+            [isVertical ? 'right' : 'bottom']: '0',
+            [isVertical ? 'top' : 'left']: `${bookmarkPercent}%`,
+            width: isVertical ? '3px' : '100%',
+            height: isVertical ? '100%' : '3px',
+            backgroundColor: 'rgba(90, 159, 212, 0.4)',
+            pointerEvents: 'none',
+            zIndex: 10,
+            transition: 'all 0.1s ease-out'
+          }}
+        />
+      )}
+    </>
   )
 })

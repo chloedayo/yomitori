@@ -2,6 +2,7 @@ interface ReaderUIProps {
   currentCharPos: number
   totalChars: number
   isVertical: boolean
+  bookmarkPos: number | null
   onToggleOrientation: () => void
   onOpenCSSModal: () => void
   onSaveBookmark: () => void
@@ -16,6 +17,7 @@ export function ReaderUI({
   currentCharPos,
   totalChars,
   isVertical,
+  bookmarkPos,
   onToggleOrientation,
   onOpenCSSModal,
   onSaveBookmark,
@@ -40,10 +42,10 @@ export function ReaderUI({
           <button
             className="font-size-btn"
             onClick={onJumpToBookmark}
-            title="Jump to bookmark"
-            style={{ minWidth: '40px' }}
+            title={bookmarkPos !== null ? `Jump to bookmark (${Math.round((bookmarkPos / (totalChars || 1)) * 100)}% • ${bookmarkPos.toLocaleString()} chars)` : 'Jump to bookmark'}
+            style={{ minWidth: '80px' }}
           >
-            📍
+            📍 {bookmarkPos !== null && `${Math.round((bookmarkPos / (totalChars || 1)) * 100)}%`}
           </button>
         )}
         <button

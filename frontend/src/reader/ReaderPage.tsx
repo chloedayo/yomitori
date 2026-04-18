@@ -209,12 +209,14 @@ export function ReaderPage() {
           isVertical={isVertical}
           customCSS={css}
           scopeCSS={scopeCSS}
+          bookmarkPos={bookmarkPos}
         />
       </div>
       <ReaderUI
         currentCharPos={currentCharPos}
         totalChars={totalChars}
         isVertical={isVertical}
+        bookmarkPos={bookmarkPos}
         onToggleOrientation={handleToggleOrientation}
         onOpenCSSModal={() => setIsModalOpen(true)}
         onSaveBookmark={handleSaveBookmark}
