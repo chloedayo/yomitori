@@ -34,3 +34,4 @@ secrets.json
 # Logs
 *.log
 logs/
+books/
