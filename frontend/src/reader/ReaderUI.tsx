@@ -3,6 +3,8 @@ interface ReaderUIProps {
   totalChars: number
   fontSize: number
   onFontSizeChange: (size: number) => void
+  isVertical: boolean
+  onToggleOrientation: () => void
 }
 
 export function ReaderUI({
@@ -10,6 +12,8 @@ export function ReaderUI({
   totalChars,
   fontSize,
   onFontSizeChange,
+  isVertical,
+  onToggleOrientation,
 }: ReaderUIProps) {
 
   const handleFontIncrease = () => {
@@ -56,6 +60,14 @@ export function ReaderUI({
         <span style={{ fontSize: '12px', color: '#a8a8a8', marginLeft: '8px' }}>
           {fontSize}px
         </span>
+        <button
+          className="font-size-btn"
+          onClick={onToggleOrientation}
+          title={isVertical ? 'Switch to horizontal' : 'Switch to vertical'}
+          style={{ minWidth: '40px' }}
+        >
+          ⇄
+        </button>
       </div>
     </div>
   )
