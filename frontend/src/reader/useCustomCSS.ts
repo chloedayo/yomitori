@@ -13,10 +13,29 @@ export function useCustomCSS() {
     }
   }, [])
 
+  const scopeCSS = (cssText: string): string => {
+    const lines = cssText.split('\n')
+    const scopedLines = lines.map((line) => {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
+        return line
+      }
+      if (trimmed.endsWith('{')) {
+        const selector = trimmed.slice(0, -1).trim()
+        if (selector && !selector.startsWith('@')) {
+          return line.replace(selector, `.reader-content ${selector}`)
+        }
+      }
+      return line
+    })
+    return scopedLines.join('\n')
+  }
+
   const validateCSS = (cssText: string): boolean => {
     try {
+      const scopedCSS = scopeCSS(cssText)
       const style = document.createElement('style')
-      style.textContent = cssText
+      style.textContent = scopedCSS
       document.head.appendChild(style)
       document.head.removeChild(style)
       return true
@@ -56,6 +75,7 @@ export function useCustomCSS() {
     error,
     setError,
     validateCSS,
+    scopeCSS,
     handleSaveCSS,
     handleReset,
   }

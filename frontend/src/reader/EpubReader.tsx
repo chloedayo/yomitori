@@ -9,6 +9,7 @@ interface EpubReaderProps {
   onTotalCharsChange?: (total: number) => void
   isVertical: boolean
   customCSS?: string
+  scopeCSS?: (css: string) => string
 }
 
 export interface EpubReaderHandle {}
@@ -21,6 +22,7 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     onTotalCharsChange,
     isVertical,
     customCSS,
+    scopeCSS,
   },
   ref
 ) {
@@ -38,9 +40,10 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
         styleElement.id = 'custom-css'
         document.head.appendChild(styleElement)
       }
-      styleElement.textContent = customCSS
+      const scopedCSS = scopeCSS ? scopeCSS(customCSS) : customCSS
+      styleElement.textContent = scopedCSS
     }
-  }, [customCSS])
+  }, [customCSS, scopeCSS])
 
   useEffect(() => {
     const loadEpub = async () => {
