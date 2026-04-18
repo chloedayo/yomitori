@@ -12,3 +12,4 @@ covers/
 node_modules/
 dist/
 frontend/.env.local
+books/
