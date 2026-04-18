@@ -89,48 +89,47 @@ function App() {
       <main className="app-main">
         {error && <div className="error-message">{error}</div>}
 
+        <div style={styles.tabs}>
+          <button
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'all' ? styles.tabActive : {}),
+            }}
+            onClick={() => setActiveTab('all')}
+          >
+            All Books
+          </button>
+          <button
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'in-progress' ? styles.tabActive : {}),
+            }}
+            onClick={() => setActiveTab('in-progress')}
+          >
+            In Progress ({searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0})
+          </button>
+          <button
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'favorites' ? styles.tabActive : {}),
+            }}
+            onClick={() => setActiveTab('favorites')}
+          >
+            Favorites ({favorites.length})
+          </button>
+        </div>
+
         {searchResults && (
-          <>
-            <div style={styles.tabs}>
-              <button
-                style={{
-                  ...styles.tab,
-                  ...(activeTab === 'all' ? styles.tabActive : {}),
-                }}
-                onClick={() => setActiveTab('all')}
-              >
-                All Books
-              </button>
-              <button
-                style={{
-                  ...styles.tab,
-                  ...(activeTab === 'in-progress' ? styles.tabActive : {}),
-                }}
-                onClick={() => setActiveTab('in-progress')}
-              >
-                In Progress ({searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0})
-              </button>
-              <button
-                style={{
-                  ...styles.tab,
-                  ...(activeTab === 'favorites' ? styles.tabActive : {}),
-                }}
-                onClick={() => setActiveTab('favorites')}
-              >
-                Favorites ({favorites.length})
-              </button>
-            </div>
-            <BookGrid
-              books={displayedBooks?.content || []}
-              isLoading={isLoading}
-              totalPages={displayedBooks?.totalPages || 0}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-              onFavoritesChange={(newFavorites) => {
-                setFavorites(newFavorites);
-              }}
-            />
-          </>
+          <BookGrid
+            books={displayedBooks?.content || []}
+            isLoading={isLoading}
+            totalPages={displayedBooks?.totalPages || 0}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+            onFavoritesChange={(newFavorites) => {
+              setFavorites(newFavorites);
+            }}
+          />
         )}
 
         {!searchResults && !isLoading && !error && (
