@@ -1,0 +1,78 @@
+@import 'variables';
+@import 'mixins';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: $font-family;
+  background-color: $bg-dark;
+  color: $text-primary;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: linear-gradient(135deg, $bg-darkest 0%, $bg-dark 100%);
+  color: white;
+  padding: $spacing-2xl $spacing-3xl;
+  @include flex-between;
+  box-shadow: $shadow-header;
+
+  @include responsive-tablet {
+    flex-direction: column;
+    text-align: center;
+    gap: $spacing-lg;
+  }
+}
+
+.app-header-content {
+  flex: 1;
+
+  @include responsive-tablet {
+    width: 100%;
+  }
+
+  h1 {
+    font-size: $font-size-2xl;
+    margin-bottom: 0.25rem;
+
+    @include responsive-tablet {
+      font-size: $font-size-xl;
+    }
+  }
+}
+
+.subtitle {
+  font-size: $font-size-md;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.app-main {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: $spacing-3xl $spacing-lg;
+}
+
+.app-footer {
+  background-color: $bg-darkest;
+  color: $text-secondary;
+  text-align: center;
+  padding: $spacing-2xl;
+  margin-top: $spacing-3xl;
+  font-size: $font-size-base;
+}
