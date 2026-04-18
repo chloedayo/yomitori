@@ -99,9 +99,10 @@ export function useLibrary() {
       setLibrary((prev) => {
         const existing = prev.find((r) => r.id === bookId)
         if (existing) {
+          const cats = existing.categories || []
           return prev.map((r) =>
             r.id === bookId
-              ? { ...r, progress: charPos, categories: r.categories.includes('in progress') ? r.categories : [...r.categories, 'in progress'] }
+              ? { ...r, progress: charPos, categories: cats.includes('in progress') ? cats : [...cats, 'in progress'] }
               : r
           )
         }
@@ -113,7 +114,7 @@ export function useLibrary() {
 
   const getBookmark = useCallback(
     (bookId: string): number | null => {
-      const record = library.find((r) => r.id === bookId && r.categories.includes('in progress'))
+      const record = library.find((r) => r.id === bookId && (r.categories || []).includes('in progress'))
       return record ? record.progress : null
     },
     [library]
@@ -124,9 +125,9 @@ export function useLibrary() {
       setLibrary((prev) =>
         prev.map((r) =>
           r.id === bookId
-            ? { ...r, categories: r.categories.filter((c) => c !== 'in progress') }
+            ? { ...r, categories: (r.categories || []).filter((c) => c !== 'in progress') }
             : r
-        ).filter((r) => r.categories.length > 0)
+        ).filter((r) => (r.categories || []).length > 0)
       )
     },
     [setLibrary]
@@ -138,10 +139,11 @@ export function useLibrary() {
       setLibrary((prev) => {
         const existing = prev.find((r) => r.id === bookId)
         if (existing) {
-          const isFav = existing.categories.includes('favorite')
+          const cats = existing.categories || []
+          const isFav = cats.includes('favorite')
           const newCategories = isFav
-            ? existing.categories.filter((c) => c !== 'favorite')
-            : [...existing.categories, 'favorite']
+            ? cats.filter((c) => c !== 'favorite')
+            : [...cats, 'favorite']
           const updated: BookRecord = {
             ...existing,
             categories: newCategories as ('favorite' | 'in progress' | 'hidden')[],
@@ -158,14 +160,14 @@ export function useLibrary() {
 
   const isFavorite = useCallback(
     (bookId: string): boolean => {
-      return library.some((r) => r.id === bookId && r.categories.includes('favorite'))
+      return library.some((r) => r.id === bookId && (r.categories || []).includes('favorite'))
     },
     [library]
   )
 
   const getFavorites = useCallback((): string[] => {
     return library
-      .filter((r) => r.categories.includes('favorite'))
+      .filter((r) => (r.categories || []).includes('favorite'))
       .map((r) => r.id)
   }, [library])
 
@@ -175,10 +177,11 @@ export function useLibrary() {
       setLibrary((prev) => {
         const existing = prev.find((r) => r.id === bookId)
         if (existing) {
-          const isHid = existing.categories.includes('hidden')
+          const cats = existing.categories || []
+          const isHid = cats.includes('hidden')
           const newCategories = isHid
-            ? existing.categories.filter((c) => c !== 'hidden')
-            : [...existing.categories, 'hidden']
+            ? cats.filter((c) => c !== 'hidden')
+            : [...cats, 'hidden']
           const updated: BookRecord = {
             ...existing,
             categories: newCategories as ('favorite' | 'in progress' | 'hidden')[],
@@ -195,21 +198,21 @@ export function useLibrary() {
 
   const isHidden = useCallback(
     (bookId: string): boolean => {
-      return library.some((r) => r.id === bookId && r.categories.includes('hidden'))
+      return library.some((r) => r.id === bookId && (r.categories || []).includes('hidden'))
     },
     [library]
   )
 
   const getHidden = useCallback((): string[] => {
     return library
-      .filter((r) => r.categories.includes('hidden'))
+      .filter((r) => (r.categories || []).includes('hidden'))
       .map((r) => r.id)
   }, [library])
 
   // State queries
   const getInProgress = useCallback((): string[] => {
     return library
-      .filter((r) => r.categories.includes('in progress'))
+      .filter((r) => (r.categories || []).includes('in progress'))
       .map((r) => r.id)
   }, [library])
 
