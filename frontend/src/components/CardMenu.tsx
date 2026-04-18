@@ -20,15 +20,18 @@ export function CardMenu({ onHide, isHidden }: CardMenuProps) {
         style={{
           background: '#2d2d2d',
           border: 'none',
-          borderRadius: '6px',
+          borderRadius: '12px',
           cursor: 'pointer',
-          fontSize: '24px',
-          padding: '6px 8px',
+          fontSize: '18px',
+          padding: '4px 10px',
           color: '#a8a8a8',
           transition: 'all 0.2s',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          height: '28px',
+          width: '32px',
+          minWidth: '32px',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = '#3d3d3d'
