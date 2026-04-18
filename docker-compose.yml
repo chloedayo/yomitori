@@ -32,6 +32,10 @@ services:
       - "5173:5173"
     environment:
       - DOCKER_ENV=true
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/tsconfig.json:/app/tsconfig.json
     depends_on:
       - backend
     networks:
