@@ -42,10 +42,10 @@ export function ReaderUI({
           <button
             className="font-size-btn"
             onClick={onJumpToBookmark}
-            title={bookmarkPos !== null ? `Jump to bookmark (${Math.round((Math.max(0, isVertical ? totalChars - bookmarkPos : bookmarkPos) / (totalChars || 1)) * 100)}% • ${bookmarkPos.toLocaleString()} chars)` : 'Jump to bookmark'}
+            title={bookmarkPos !== null ? `Jump to bookmark (${Math.round((bookmarkPos / (totalChars || 1)) * 100)}% • ${bookmarkPos.toLocaleString()} chars)` : 'Jump to bookmark'}
             style={{ minWidth: '80px' }}
           >
-            📍 {bookmarkPos !== null && `${Math.round((Math.max(0, isVertical ? totalChars - bookmarkPos : bookmarkPos) / (totalChars || 1)) * 100)}%`}
+            📍 {bookmarkPos !== null && `${Math.round((bookmarkPos / (totalChars || 1)) * 100)}%`}
           </button>
         )}
         <button

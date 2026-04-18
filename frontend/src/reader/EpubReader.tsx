@@ -195,7 +195,7 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     return () => element?.removeEventListener('wheel', handleWheel)
   }, [isVertical])
 
-  const bookmarkPercent = bookmarkPos !== null && bookmarkPos !== undefined && totalChars ? ((isVertical ? totalChars - bookmarkPos : bookmarkPos) / totalChars) * 100 : null
+  const bookmarkPercent = bookmarkPos !== null && bookmarkPos !== undefined && totalChars ? (bookmarkPos / totalChars) * 100 : null
 
   return (
     <>
