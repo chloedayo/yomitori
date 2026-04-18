@@ -1,0 +1,57 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.book-grid-container {
+  margin-top: $spacing-3xl;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: $spacing-xl;
+  margin-bottom: $spacing-3xl;
+
+  @include responsive-tablet {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: $spacing-lg;
+  }
+}
+
+.loading,
+.no-results {
+  padding: $spacing-3xl;
+  text-align: center;
+  font-size: $font-size-lg;
+  border-radius: $border-radius-md;
+  background: $bg-darker;
+}
+
+.loading {
+  color: $accent;
+}
+
+.no-results {
+  color: $text-secondary;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $spacing-lg;
+  margin-top: $spacing-3xl;
+}
+
+.pagination-button {
+  @include button-primary;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pagination-info {
+  font-size: $font-size-md;
+  color: $text-primary;
+}

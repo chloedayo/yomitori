@@ -1,6 +1,8 @@
-import { Book } from '../types/book';
-import { BookCard } from './BookCard';
-import { useLibrary } from '../hooks/useLibrary';
+import { Book } from '../../types/book';
+import { BookCard } from '../BookCard/BookCard';
+import { useLibrary } from '../../hooks/useLibrary';
+import { BOOK_GRID_LABELS } from './constants';
+import './style.scss';
 
 interface BookGridProps {
   books: Book[];
@@ -26,12 +28,13 @@ export function BookGrid({
   const handleFavoritesChange = () => {
     onFavoritesChange?.(getFavorites());
   };
+
   if (isLoading) {
-    return <div className="loading">Loading books...</div>;
+    return <div className="loading">{BOOK_GRID_LABELS.LOADING}</div>;
   }
 
   if (books.length === 0) {
-    return <div className="no-results">No books found. Try a different search.</div>;
+    return <div className="no-results">{BOOK_GRID_LABELS.NO_RESULTS}</div>;
   }
 
   return (

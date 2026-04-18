@@ -1,0 +1,68 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.tabs-menu-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-button {
+  position: relative;
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid $border-secondary;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  font-size: $font-size-lg;
+  padding: $spacing-xs $spacing-md;
+  color: $text-muted;
+  transition: $transition;
+  @include flex-center;
+  height: 28px;
+  width: 32px;
+  min-width: 32px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+    border-color: $border-tertiary;
+    color: $text-primary;
+  }
+}
+
+.menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: $bg-dark;
+  border: 1px solid $border-primary;
+  border-radius: $border-radius-sm;
+  min-width: 160px;
+  box-shadow: $shadow-md;
+  z-index: 100;
+
+  button {
+    display: block;
+    width: 100%;
+    padding: $spacing-md $spacing-lg;
+    background-color: transparent;
+    border: none;
+    color: $text-primary;
+    cursor: pointer;
+    text-align: left;
+    font-size: $font-size-base;
+    transition: $transition;
+
+    &:hover {
+      background-color: $bg-darker;
+    }
+  }
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+}

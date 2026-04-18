@@ -1,0 +1,65 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.search-form {
+  background: $bg-darker;
+  padding: $spacing-2xl;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-3xl;
+  box-shadow: $shadow-sm;
+
+  &.search-form-header {
+    width: 30%;
+    flex-shrink: 0;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+
+    .search-field {
+      margin-bottom: 0;
+      gap: $spacing-sm;
+    }
+
+    .search-input {
+      padding: $spacing-sm;
+      font-size: $font-size-base;
+    }
+
+    .search-button {
+      padding: $spacing-sm $spacing-lg;
+      font-size: $font-size-base;
+      white-space: nowrap;
+    }
+
+    @include responsive-tablet {
+      width: 100%;
+
+      .search-field {
+        flex-direction: column;
+      }
+
+      .search-input,
+      .search-button {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.search-field {
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  @include input-base;
+}
+
+.search-button {
+  @include button-primary;
+}
