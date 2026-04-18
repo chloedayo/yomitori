@@ -80,7 +80,7 @@ export function ReaderPage() {
     }
 
     loadBook()
-  }, [getBookmark])
+  }, [])
 
   useEffect(() => {
     if (bookId && currentCharPos !== 0) {
