@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { BookGrid } from './components/BookGrid';
+import { TabsMenu } from './components/TabsMenu';
 import { bookClient } from './api/bookClient';
 import { SearchParams, SearchResponse } from './types/book';
 import { useBookmark } from './hooks/useBookmark';
+import { useHiddenBooks } from './hooks/useHiddenBooks';
 import './styles/App.css';
 
 function App() {
@@ -14,6 +16,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'all' | 'favorites' | 'in-progress'>('all');
   const [favorites, setFavorites] = useState<string[]>([]);
   const { getBookmark } = useBookmark();
+  const { getHidden } = useHiddenBooks();
 
   useEffect(() => {
     const storedFavs = localStorage.getItem('yomitori-favorites');
@@ -44,11 +47,15 @@ function App() {
     loadInitialBooks();
   }, []);
 
+  const hiddenBooks = getHidden();
+
   const displayedBooks = searchResults
     ? {
         ...searchResults,
         content: searchResults.content.filter((book) => {
           const bookIdStr = book.id.toString();
+          if (hiddenBooks.includes(bookIdStr)) return false;
+
           if (activeTab === 'favorites') return favorites.includes(bookIdStr);
           if (activeTab === 'in-progress') return getBookmark(bookIdStr) !== null;
           return true;
@@ -105,34 +112,37 @@ function App() {
       </header>
 
       <main className="app-main">
-        <div style={styles.tabs}>
-          <button
-            style={{
-              ...styles.tab,
-              ...(activeTab === 'all' ? styles.tabActive : {}),
-            }}
-            onClick={() => setActiveTab('all')}
-          >
-            All Books ({searchResults?.totalElements || 0})
-          </button>
-          <button
-            style={{
-              ...styles.tab,
-              ...(activeTab === 'in-progress' ? styles.tabActive : {}),
-            }}
-            onClick={() => setActiveTab('in-progress')}
-          >
-            In Progress ({searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0})
-          </button>
-          <button
-            style={{
-              ...styles.tab,
-              ...(activeTab === 'favorites' ? styles.tabActive : {}),
-            }}
-            onClick={() => setActiveTab('favorites')}
-          >
-            Favorites ({favorites.length})
-          </button>
+        <div style={{...styles.tabs, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+          <div style={{ display: 'flex' }}>
+            <button
+              style={{
+                ...styles.tab,
+                ...(activeTab === 'all' ? styles.tabActive : {}),
+              }}
+              onClick={() => setActiveTab('all')}
+            >
+              All Books ({searchResults?.totalElements || 0})
+            </button>
+            <button
+              style={{
+                ...styles.tab,
+                ...(activeTab === 'in-progress' ? styles.tabActive : {}),
+              }}
+              onClick={() => setActiveTab('in-progress')}
+            >
+              In Progress ({searchResults?.content.filter((book) => getBookmark(book.id.toString()) !== null).length || 0})
+            </button>
+            <button
+              style={{
+                ...styles.tab,
+                ...(activeTab === 'favorites' ? styles.tabActive : {}),
+              }}
+              onClick={() => setActiveTab('favorites')}
+            >
+              Favorites ({favorites.length})
+            </button>
+          </div>
+          <TabsMenu allBooks={searchResults?.content || []} />
         </div>
 
         {error && <div className="error-message">{error}</div>}
