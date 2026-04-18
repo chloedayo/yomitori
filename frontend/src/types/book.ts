@@ -47,3 +47,21 @@ export interface StatsResponse {
   genres: number;
   types: number;
 }
+
+export interface Author {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface AuthorsResponse {
+  content: Author[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+  first: boolean;
+}

@@ -1,6 +1,8 @@
 import { Book } from '../types/book';
 import { CardMenu } from './CardMenu';
 import { useLibrary } from '../hooks/useLibrary';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 interface BookCardProps {
   book: Book;
@@ -58,10 +60,14 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
           {!isHidden(book.id.toString()) && (
             <button
               onClick={handleToggleFavorite}
-              style={{...styles.favButton, ...(isFavorite(book.id.toString()) ? styles.favButtonActive : {})}}
+              style={styles.favButton}
               title={isFavorite(book.id.toString()) ? 'Remove from favorites' : 'Add to favorites'}
             >
-              {isFavorite(book.id.toString()) ? '❤️' : '🤍'}
+              {isFavorite(book.id.toString()) ? (
+                <FavoriteIcon sx={{ color: '#e91e63', fontSize: '28px' }} />
+              ) : (
+                <FavoriteBorderIcon sx={{ color: '#ffffff', fontSize: '28px' }} />
+              )}
             </button>
           )}
           <button
@@ -83,18 +89,13 @@ const styles = {
     gap: '8px',
   },
   favButton: {
-    padding: '0.5rem',
+    padding: '0',
     backgroundColor: 'transparent',
-    borderColor: '#404040',
-    border: '1px solid #404040',
-    borderRadius: '4px',
-    fontSize: '1rem',
+    border: 'none',
     cursor: 'pointer',
-    width: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     transition: 'all 0.2s',
-  },
-  favButtonActive: {
-    backgroundColor: 'rgba(90, 159, 212, 0.2)',
-    borderColor: '#5a9fd4',
   },
 };

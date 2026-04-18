@@ -5,12 +5,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class CrawlerConfig(
-    @Value("\${yomitori.crawler.enabled:true}")
-    val enabled: Boolean,
-
-    @Value("\${yomitori.crawler.schedule:0 0 * * * ?}")
-    val schedule: String,
-
     @Value("\${yomitori.crawler.books-path:/app/data/books}")
     val booksPath: String,
 

@@ -4,7 +4,6 @@ import com.yomitori.config.CrawlerConfig
 import com.yomitori.model.Book
 import com.yomitori.repository.BookRepository
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -19,12 +18,7 @@ class CrawlerService(
     private val logger = LoggerFactory.getLogger(CrawlerService::class.java)
     private var isRunning = false
 
-    @Scheduled(cron = "\${yomitori.crawler.schedule:0 0 * * * ?}")
     fun runCrawler() {
-        if (!config.enabled) {
-            logger.debug("Crawler disabled, skipping")
-            return
-        }
         if (isRunning) {
             logger.warn("Crawler already running, skipping...")
             return
@@ -41,6 +35,7 @@ class CrawlerService(
 
             var indexedCount = 0
             var updatedCount = 0
+            var processedTotal = 0
             scannedFiles.chunked(config.batchSize).forEach { batch ->
                 batch.forEach { fileInfo ->
                     val existing = repository.findByFilepath(fileInfo.filepath)
@@ -51,6 +46,11 @@ class CrawlerService(
                     } else if (fileInfo.lastModified.isAfter(existing.lastIndexed)) {
                         updatedCount++
                         updateExistingFile(existing, fileInfo.filepath)
+                    }
+
+                    processedTotal++
+                    if (processedTotal % 500 == 0) {
+                        logger.info("Processed {} files (indexed: {}, updated: {})", processedTotal, indexedCount, updatedCount)
                     }
                 }
             }
@@ -90,7 +90,6 @@ class CrawlerService(
             )
 
             repository.save(book)
-            logger.debug("Indexed new book: {} ({})", book.title, book.id)
             coverExtractor.extractCover(filepath, book.id)
         } catch (e: Exception) {
             logger.warn("Failed to index file {}: {}", filepath, e.message)
@@ -101,7 +100,6 @@ class CrawlerService(
         try {
             if (existing.manualOverride) {
                 repository.save(existing.copy(lastIndexed = LocalDateTime.now()))
-                logger.debug("Skipped update for manually overridden book: {}", existing.title)
                 return
             }
 
@@ -118,7 +116,6 @@ class CrawlerService(
             )
 
             repository.save(updated)
-            logger.debug("Updated book: {} ({})", updated.title, updated.id)
         } catch (e: Exception) {
             logger.warn("Failed to update file {}: {}", filepath, e.message)
         }

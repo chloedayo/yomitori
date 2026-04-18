@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import MenuIcon from '@mui/icons-material/Menu'
 
 interface CardMenuProps {
   onHide: () => void | Promise<void>
@@ -52,7 +53,7 @@ export function CardMenu({ onHide, onClearBookmark, isHidden, hasBookmark }: Car
         }}
         title="Menu"
       >
-        ☰
+        <MenuIcon sx={{ color: '#d0d0d0' }} />
       </button>
 
       {isOpen && (

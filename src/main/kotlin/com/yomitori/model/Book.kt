@@ -10,7 +10,7 @@ data class Book(
     @Id
     val id: String = UUID.randomUUID().toString(),
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     val filepath: String,
 
     @Column(nullable = false)
