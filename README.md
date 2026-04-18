@@ -11,6 +11,10 @@
 
 - **BOOKS WITH ANIME ON THE COVER**
 - **Yomitan Support:** Now you can be more dekiru by the day!
+- **Author Search & Favorites:** Find books by author with autocomplete, favorite authors
+- **Reading Progress:** Pie chart visualization + character position tracking
+- **Smart Filtering:** All/Favorites/In Progress tabs with smart lazy-loading
+- **Beautiful UI:** Hover previews with intelligent positioning, consistent component design
 
 ## Not-So-Important Features 
 - **Automated Crawler:** Scheduled crawl of filesystem, extracts metadata + authors, extracts covers
