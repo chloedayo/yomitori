@@ -7,6 +7,7 @@ interface BookGridProps {
   totalPages: number;
   currentPage: number;
   onPageChange: (page: number) => void;
+  onFavoritesChange?: (favorites: string[]) => void;
 }
 
 export function BookGrid({
@@ -14,8 +15,19 @@ export function BookGrid({
   isLoading,
   totalPages,
   currentPage,
-  onPageChange
+  onPageChange,
+  onFavoritesChange
 }: BookGridProps) {
+  const handleFavoritesChange = () => {
+    const storedFavs = localStorage.getItem('yomitori-favorites');
+    if (storedFavs) {
+      try {
+        onFavoritesChange?.(JSON.parse(storedFavs));
+      } catch {
+        onFavoritesChange?.([]);
+      }
+    }
+  };
   if (isLoading) {
     return <div className="loading">Loading books...</div>;
   }
@@ -28,7 +40,7 @@ export function BookGrid({
     <div className="book-grid-container">
       <div className="book-grid">
         {books.map((book) => (
-          <BookCard key={book.id} book={book} />
+          <BookCard key={book.id} book={book} onFavoritesChange={handleFavoritesChange} />
         ))}
       </div>
 
