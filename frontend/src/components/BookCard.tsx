@@ -2,6 +2,7 @@ import { Book } from '../types/book';
 import { useState, useEffect } from 'react';
 import { CardMenu } from './CardMenu';
 import { useHiddenBooks } from '../hooks/useHiddenBooks';
+import { useBookmark } from '../hooks/useBookmark';
 
 interface BookCardProps {
   book: Book;
@@ -11,6 +12,7 @@ interface BookCardProps {
 export function BookCard({ book, onFavoritesChange }: BookCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const { isHidden, toggleHidden } = useHiddenBooks();
+  const { getBookmark, clearBookmark } = useBookmark();
 
   useEffect(() => {
     const storedFavs = localStorage.getItem('yomitori-favorites');
@@ -58,7 +60,9 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
       <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}>
         <CardMenu
           onHide={() => toggleHidden(book.id)}
+          onClearBookmark={() => clearBookmark(book.id.toString())}
           isHidden={isHidden(book.id)}
+          hasBookmark={getBookmark(book.id.toString()) !== null}
         />
       </div>
       {book.coverPath && (

@@ -3,7 +3,7 @@ import { SearchForm } from './components/SearchForm';
 import { BookGrid } from './components/BookGrid';
 import { TabsMenu } from './components/TabsMenu';
 import { bookClient } from './api/bookClient';
-import { SearchParams, SearchResponse } from './types/book';
+import { Book, SearchParams, SearchResponse } from './types/book';
 import { useBookmark } from './hooks/useBookmark';
 import { useHiddenBooks } from './hooks/useHiddenBooks';
 import './styles/App.css';
@@ -51,14 +51,14 @@ function App() {
 
   const hiddenBooks = getHidden();
 
+  const filterHiddenBooks = (books: Book[]): Book[] => {
+    return books.filter((book) => !hiddenBooks.includes(book.id.toString()));
+  };
+
   const displayedBooks = searchResults && activeTab === 'all'
     ? {
         ...searchResults,
-        content: searchResults.content.filter((book) => {
-          const bookIdStr = book.id.toString();
-          if (hiddenBooks.includes(bookIdStr)) return false;
-          return true;
-        }),
+        content: filterHiddenBooks(searchResults.content),
       }
     : searchResults;
 
@@ -200,7 +200,7 @@ function App() {
 
         {searchResults && (
           <BookGrid
-            books={(bulkSearchTab ? bulkBooks?.content : displayedBooks?.content) || []}
+            books={(bulkSearchTab && bulkBooks ? (bulkSearchTab === 'hidden' ? bulkBooks.content : filterHiddenBooks(bulkBooks.content)) : displayedBooks?.content) || []}
             isLoading={isLoading}
             totalPages={(bulkSearchTab ? bulkBooks?.totalPages : displayedBooks?.totalPages) || 0}
             currentPage={currentPage}
@@ -226,8 +226,16 @@ function App() {
                 await handlePageChange(newPage);
               }
             }}
-            onFavoritesChange={(newFavorites) => {
+            onFavoritesChange={async (newFavorites) => {
               setFavorites(newFavorites);
+              if (bulkSearchTab === 'favorites' && bulkBooks) {
+                try {
+                  const results = await bookClient.searchBulk(newFavorites, currentPage, 20);
+                  setBulkBooks(results);
+                } catch (err) {
+                  setError(`Failed to refresh favorites: ${err}`);
+                }
+              }
             }}
             showPagination={activeTab === 'all' || bulkSearchTab !== null}
           />
