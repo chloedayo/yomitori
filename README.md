@@ -1,9 +1,18 @@
 # Yomitori - Book Collection Search
 
-A full-stack web application for indexing and searching a large personal book collection (40,000+ files, focus on Japanese titles).
+A full-stack web application for indexing and searching a large personal book collection (40,000+ files, focus on Japanese titles), and reading them too!
 
-## Features
+<center>
+   <img width="1454" height="817" alt="image" src="https://github.com/user-attachments/assets/8999cc47-0455-47d3-93a6-d2316c6f64a7" />
+   <img width="2500" height="1017" alt="image" src="https://github.com/user-attachments/assets/62985eae-372c-4bbe-a479-5aa7e394e224" />
+</center>
 
+## Important Features
+
+- **BOOKS WITH ANIME ON THE COVER**
+- **Yomitan Support:** Now you can be more dekiru by the day!
+
+## Not-So-Important Features 
 - **Automated Crawler:** Scheduled crawl of filesystem, extracts metadata, extracts covers
 - **Smart Indexing:** Type detection from directory patterns, genre inference
 - **REST API:** Search by title, genre, type with pagination
