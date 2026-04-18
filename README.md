@@ -11,13 +11,15 @@
 
 - **BOOKS WITH ANIME ON THE COVER**
 - **Yomitan Support:** Now you can be more dekiru by the day!
+- **Author Search:** Find books by author with autocomplete
+- **Reading Status Tracking:** In Progress, Favorites, Hidden tabs
 
 ## Not-So-Important Features 
-- **Automated Crawler:** Scheduled crawl of filesystem, extracts metadata, extracts covers
-- **Smart Indexing:** Type detection from directory patterns, genre inference
-- **REST API:** Search by title, genre, type with pagination
-- **React Frontend:** Responsive search UI with grid display and cover images
-- **SQLite Database:** Local, file-based persistence
+- **Automated Crawler:** Scheduled crawl of filesystem, extracts metadata + authors, extracts covers
+- **Smart Indexing:** Type detection from directory patterns, genre inference, author extraction
+- **REST API:** Search by title/genre/type/author with pagination, bulk filtering
+- **React Frontend:** Responsive search UI with grid display, cover images, status tabs
+- **SQLite Database:** Local, file-based persistence with author relationships
 
 ## Quick Start
 
@@ -87,13 +89,22 @@ cd frontend && npm install && npm run dev
 
 ## API Endpoints
 
-- `GET /api/books/search?title=...&genre=...&type=...` - Search books (supports pagination: `page=0&pageSize=20`)
+### Book Search & Filtering
+- `GET /api/books/search?title=...&genre=...&type=...&author=...` - Search books (supports pagination: `page=0&pageSize=20`)
+- `POST /api/books/bulk-search` - Search with multiple status filters (In Progress, Favorites, Hidden)
 - `GET /api/books/{id}` - Get book details
 - `POST /api/books/{id}/tag` - Update genre/type (manual override)
+
+### Browse & Metadata
 - `GET /api/books/genres` - List available genres
 - `GET /api/books/types` - List available types
 - `GET /api/books/stats` - Collection statistics
+- `GET /api/authors/autocomplete?q=...` - Author search with autocomplete
+- `GET /api/authors/{id}` - Get author details
+
+### Admin & Management
 - `POST /api/books/crawler/run` - Manually trigger the book crawler (useful for testing)
+- `POST /api/admin/authors/extract` - Retroactively extract authors from entire collection
 
 ## Configuration
 
