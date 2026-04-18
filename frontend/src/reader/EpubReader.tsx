@@ -54,9 +54,18 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
   useEffect(() => {
     const handleScroll = () => {
       if (contentRef.current) {
-        const scrollLeft = contentRef.current.scrollLeft
-        const maxScroll = contentRef.current.scrollWidth - contentRef.current.clientWidth
-        const scrollRatio = scrollLeft / (maxScroll || 1)
+        let scrollPos: number
+        let maxScroll: number
+
+        if (isVertical) {
+          scrollPos = contentRef.current.scrollLeft
+          maxScroll = contentRef.current.scrollWidth - contentRef.current.clientWidth
+        } else {
+          scrollPos = contentRef.current.scrollTop
+          maxScroll = contentRef.current.scrollHeight - contentRef.current.clientHeight
+        }
+
+        const scrollRatio = scrollPos / (maxScroll || 1)
         const approximateCharPos = Math.floor(totalChars * scrollRatio)
         _setCurrentCharPos(approximateCharPos)
         onCharPosChange?.(approximateCharPos)
@@ -66,7 +75,7 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     const element = contentRef.current
     element?.addEventListener('scroll', handleScroll)
     return () => element?.removeEventListener('scroll', handleScroll)
-  }, [totalChars])
+  }, [totalChars, isVertical])
 
   useEffect(() => {
     if (contentRef.current) {
@@ -105,13 +114,21 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
 
   const handleNext = () => {
     if (contentRef.current) {
-      contentRef.current.scrollLeft += contentRef.current.clientHeight
+      if (isVertical) {
+        contentRef.current.scrollLeft += contentRef.current.clientHeight
+      } else {
+        contentRef.current.scrollTop += contentRef.current.clientHeight
+      }
     }
   }
 
   const handlePrev = () => {
     if (contentRef.current) {
-      contentRef.current.scrollLeft -= contentRef.current.clientHeight
+      if (isVertical) {
+        contentRef.current.scrollLeft -= contentRef.current.clientHeight
+      } else {
+        contentRef.current.scrollTop -= contentRef.current.clientHeight
+      }
     }
   }
 
