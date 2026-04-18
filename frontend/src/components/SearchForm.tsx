@@ -29,9 +29,6 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
           disabled={isLoading}
           className="search-input"
         />
-      </div>
-
-      <div className="filter-row">
         <button
           type="submit"
           disabled={isLoading}

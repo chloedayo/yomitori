@@ -62,11 +62,13 @@ body {
 }
 
 .search-field {
+  display: flex;
+  gap: 1rem;
   margin-bottom: 1rem;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1;
   padding: 0.75rem;
   font-size: 1rem;
   border: 1px solid var(--border);
@@ -289,15 +291,20 @@ body {
     gap: 1rem;
   }
 
+  .search-field {
+    flex-direction: column;
+  }
+
+  .search-input,
+  .search-button {
+    width: 100%;
+  }
+
   .filter-row {
     flex-direction: column;
   }
 
   .filter-select {
-    width: 100%;
-  }
-
-  .search-button {
     width: 100%;
   }
 }
