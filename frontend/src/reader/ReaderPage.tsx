@@ -19,7 +19,7 @@ export function ReaderPage() {
   const contentRef = useRef<HTMLDivElement>(null)
   const readerRef = useRef<EpubReaderHandle>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const { css, error: cssError, handleSaveCSS, handleReset } = useCustomCSS()
+  const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
 
   const handleToggleOrientation = () => {
     const newMode = !isVertical
@@ -139,6 +139,7 @@ export function ReaderPage() {
           onTotalCharsChange={setTotalChars}
           isVertical={isVertical}
           customCSS={css}
+          scopeCSS={scopeCSS}
         />
       </div>
       <ReaderUI
