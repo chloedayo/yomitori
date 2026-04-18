@@ -16,6 +16,7 @@ export interface Book {
 
 export interface SearchParams {
   title?: string;
+  author?: string;
   genre?: string | null;
   type?: string | null;
   page?: number;
