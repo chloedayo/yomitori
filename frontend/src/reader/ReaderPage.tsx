@@ -209,7 +209,6 @@ export function ReaderPage() {
           isVertical={isVertical}
           customCSS={css}
           scopeCSS={scopeCSS}
-          bookmarkPos={bookmarkPos}
         />
       </div>
       <ReaderUI
