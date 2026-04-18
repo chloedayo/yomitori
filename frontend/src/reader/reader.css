@@ -37,6 +37,7 @@ body {
   padding: 40px;
   line-height: 1.8;
   font-size: 18px;
+  scroll-behavior: smooth;
 }
 
 .reader-text::-webkit-scrollbar {
