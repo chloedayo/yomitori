@@ -20,7 +20,6 @@ class CoverExtractor(
 
     init {
         Files.createDirectories(Paths.get(coversPath))
-        coverImageSaver.setCoversPath(coversPath)
     }
 
     fun extractCover(filepath: String, bookId: String?): String? {

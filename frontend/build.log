@@ -1,0 +1,13 @@
+
+> yomitori-frontend@0.1.0 build
+> tsc && vite build
+
+src/reader/EpubReader.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/reader/EpubReader.tsx(2,1): error TS6133: 'ePub' is declared but its value is never read.
+src/reader/EpubReader.tsx(20,10): error TS6133: 'currentCharPos' is declared but its value is never read.
+src/reader/PdfReader.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/reader/PdfReader.tsx(16,3): error TS6133: 'fontSize' is declared but its value is never read.
+src/reader/PdfReader.tsx(40,69): error TS2339: Property 'str' does not exist on type 'TextItem | TextMarkedContent'.
+  Property 'str' does not exist on type 'TextMarkedContent'.
+src/reader/ReaderPage.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/reader/ReaderUI.tsx(1,1): error TS6133: 'React' is declared but its value is never read.

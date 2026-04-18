@@ -1,5 +1,6 @@
 package com.yomitori.service
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
 import java.io.File
@@ -9,15 +10,11 @@ import javax.imageio.ImageIO
 import kotlin.math.min
 
 @Service
-class CoverImageSaver {
-    private var coversPath: String = "/app/covers"
-
+class CoverImageSaver(
+    @Value("\${yomitori.crawler.covers-path:/tmp/covers}")
+    private val coversPath: String
+) {
     init {
-        Files.createDirectories(Paths.get(coversPath))
-    }
-
-    fun setCoversPath(path: String) {
-        coversPath = path
         Files.createDirectories(Paths.get(coversPath))
     }
 
@@ -28,7 +25,7 @@ class CoverImageSaver {
         val coverFile = Paths.get(coversPath, filename).toFile()
         ImageIO.write(scaled, "jpg", coverFile)
 
-        return coverFile.absolutePath
+        return filename
     }
 
     private fun scaleImage(image: BufferedImage, maxDim: Int): BufferedImage {

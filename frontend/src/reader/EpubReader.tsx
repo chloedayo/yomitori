@@ -1,0 +1,134 @@
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react'
+import { useSwipeGesture } from './useSwipeGesture'
+import { parseEpub } from './EpubParser'
+
+interface EpubReaderProps {
+  file: Blob
+  fontSize: number
+  onCharPosChange?: (pos: number) => void
+  onTotalCharsChange?: (total: number) => void
+}
+
+export interface EpubReaderHandle {}
+
+export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function EpubReader(
+  {
+    file,
+    fontSize,
+    onCharPosChange,
+    onTotalCharsChange,
+  },
+  ref
+) {
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [totalChars, setTotalChars] = useState(0)
+  const [_currentCharPos, _setCurrentCharPos] = useState(0)
+
+  useImperativeHandle(ref, () => ({}))
+
+  useEffect(() => {
+    const loadEpub = async () => {
+      try {
+        if (!contentRef.current) return
+
+        const parsed = await parseEpub(file)
+
+        contentRef.current.innerHTML = parsed.content
+        setTotalChars(parsed.totalChars)
+        onTotalCharsChange?.(parsed.totalChars)
+
+        console.log('📖 EPUB loaded, total chars:', parsed.totalChars)
+      } catch (e) {
+        console.error('Failed to load EPUB:', e)
+        if (contentRef.current) {
+          contentRef.current.innerHTML = `<p style="color: #ff6b6b;">Error loading EPUB: ${e instanceof Error ? e.message : 'Unknown error'}</p>`
+        }
+      }
+    }
+
+    loadEpub()
+  }, [file])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (contentRef.current) {
+        const scrollLeft = contentRef.current.scrollLeft
+        const maxScroll = contentRef.current.scrollWidth - contentRef.current.clientWidth
+        const scrollRatio = scrollLeft / (maxScroll || 1)
+        const approximateCharPos = Math.floor(totalChars * scrollRatio)
+        _setCurrentCharPos(approximateCharPos)
+        onCharPosChange?.(approximateCharPos)
+      }
+    }
+
+    const element = contentRef.current
+    element?.addEventListener('scroll', handleScroll)
+    return () => element?.removeEventListener('scroll', handleScroll)
+  }, [totalChars])
+
+  useEffect(() => {
+    if (contentRef.current) {
+      // Apply font size and line-height to all elements
+      const allElements = contentRef.current.querySelectorAll('*')
+      allElements.forEach((el) => {
+        if (el instanceof HTMLElement) {
+          const isHeader = /^h[1-6]$/i.test(el.tagName)
+          const isDiv = el.tagName.toLowerCase() === 'div'
+          const isRuby = el.tagName.toLowerCase() === 'ruby' || el.tagName.toLowerCase() === 'rt'
+
+          if (isHeader) {
+            // For headers, 1.5x the size of normal text
+            el.style.fontSize = `${fontSize * 1.5}px`
+
+            // Apply spacing (left/right for vertical-RL)
+            el.style.marginLeft = '4em'
+            el.style.marginRight = '4em'
+          } else if (isDiv) {
+            // For divs, apply the same spacing as headers
+            el.style.marginLeft = '4em'
+            el.style.marginRight = '4em'
+          } else if (isRuby) {
+            // For ruby text, 0.5x the size of normal text
+            el.style.fontSize = `${fontSize * 0.5}px`
+          } else {
+            // For regular text, use the fontSize directly
+            el.style.fontSize = `${fontSize}px`
+          }
+
+          el.style.lineHeight = '2.0'
+        }
+      })
+    }
+  }, [fontSize])
+
+  const handleNext = () => {
+    if (contentRef.current) {
+      contentRef.current.scrollLeft += contentRef.current.clientHeight
+    }
+  }
+
+  const handlePrev = () => {
+    if (contentRef.current) {
+      contentRef.current.scrollLeft -= contentRef.current.clientHeight
+    }
+  }
+
+  useSwipeGesture(contentRef, {
+    onSwipeRight: handlePrev,
+    onSwipeLeft: handleNext,
+  })
+
+  return (
+    <div
+      ref={contentRef}
+      className="reader-text"
+      style={{
+        fontSize: `${fontSize}px`,
+        writingMode: 'vertical-rl',
+        textOrientation: 'mixed',
+        color: '#ffffff',
+        lineHeight: '2.0'
+      }}
+    />
+  )
+})

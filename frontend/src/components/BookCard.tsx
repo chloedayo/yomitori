@@ -5,9 +5,8 @@ interface BookCardProps {
 }
 
 export function BookCard({ book }: BookCardProps) {
-  const handleOpenFile = () => {
-    const fileUrl = `file://${encodeURI(book.filepath)}`;
-    window.open(fileUrl, '_blank');
+  const handleRead = () => {
+    window.open(`/reader.html?id=${book.id}`, '_blank');
   };
 
   return (
@@ -31,17 +30,13 @@ export function BookCard({ book }: BookCardProps) {
 
       <div className="book-info">
         <h3 className="book-title">{book.title}</h3>
-        <p className="book-meta">
-          <span className="book-type">{book.type}</span>
-          {book.genre && <span className="book-genre">{book.genre}</span>}
-        </p>
         <p className="book-format">{book.fileFormat.toUpperCase()}</p>
         <button
-          onClick={handleOpenFile}
-          className="open-button"
-          title={book.filepath}
+          onClick={handleRead}
+          className="read-button"
+          title="Open in reader"
         >
-          Open
+          Read
         </button>
       </div>
     </div>

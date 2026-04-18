@@ -11,10 +11,10 @@ class CrawlerConfig(
     @Value("\${yomitori.crawler.schedule:0 0 * * * ?}")
     val schedule: String,
 
-    @Value("\${yomitori.crawler.books-path:/run/media/stella/stella-drive/books}")
+    @Value("\${yomitori.crawler.books-path:/app/data/books}")
     val booksPath: String,
 
-    @Value("\${yomitori.crawler.covers-path:./covers}")
+    @Value("\${yomitori.crawler.covers-path:/app/data/covers}")
     val coversPath: String,
 
     @Value("\${yomitori.crawler.batch-size:100}")
