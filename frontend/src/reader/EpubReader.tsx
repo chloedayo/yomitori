@@ -143,7 +143,7 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
 
       if (isVertical) {
         e.preventDefault()
-        contentRef.current.scrollLeft += e.deltaY
+        contentRef.current.scrollLeft -= e.deltaY * 1.5
       }
     }
 
