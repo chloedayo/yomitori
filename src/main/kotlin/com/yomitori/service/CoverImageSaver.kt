@@ -7,6 +7,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import javax.imageio.ImageIO
+import javax.imageio.ImageWriteParam
 import kotlin.math.min
 
 @Service
@@ -19,11 +20,20 @@ class CoverImageSaver(
     }
 
     fun save(image: BufferedImage, filename: String): String {
-        val targetSize = 300
+        val targetSize = 600
         val scaled = scaleImage(image, targetSize)
 
         val coverFile = Paths.get(coversPath, filename).toFile()
-        ImageIO.write(scaled, "jpg", coverFile)
+        val writer = ImageIO.getImageWritersByFormatName("jpg").next()
+        val writeParam = writer.defaultWriteParam as ImageWriteParam
+        writeParam.compressionMode = ImageWriteParam.MODE_EXPLICIT
+        writeParam.compressionQuality = 0.92f
+
+        val output = ImageIO.createImageOutputStream(coverFile)
+        writer.output = output
+        writer.write(null, javax.imageio.IIOImage(scaled, null, null), writeParam)
+        writer.dispose()
+        output?.close()
 
         return filename
     }
