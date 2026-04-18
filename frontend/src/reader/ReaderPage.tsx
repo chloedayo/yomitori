@@ -9,9 +9,9 @@ export function ReaderPage() {
   const [file, setFile] = useState<Blob | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [fontSize, setFontSize] = useState(18)
   const [currentCharPos, setCurrentCharPos] = useState(0)
   const [totalChars, setTotalChars] = useState(0)
+  const fontSize = 18
   const [isVertical, setIsVertical] = useState(() => {
     const stored = localStorage.getItem('yomitori-text-orientation')
     return stored !== 'horizontal'
@@ -145,8 +145,6 @@ export function ReaderPage() {
       <ReaderUI
         currentCharPos={currentCharPos}
         totalChars={totalChars}
-        fontSize={fontSize}
-        onFontSizeChange={setFontSize}
         isVertical={isVertical}
         onToggleOrientation={handleToggleOrientation}
         onOpenCSSModal={() => setIsModalOpen(true)}
