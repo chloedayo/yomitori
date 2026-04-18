@@ -7,10 +7,12 @@ import kotlin.test.assertNull
 
 class MetadataExtractorTest {
     private lateinit var extractor: MetadataExtractor
+    private lateinit var authorExtractionService: AuthorExtractionService
 
     @BeforeEach
     fun setup() {
-        extractor = MetadataExtractor()
+        authorExtractionService = AuthorExtractionService()
+        extractor = MetadataExtractor(authorExtractionService)
     }
 
     @Test
