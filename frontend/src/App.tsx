@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { SearchForm } from './components/SearchForm';
 import { BookGrid } from './components/BookGrid';
 import { bookClient } from './api/bookClient';
@@ -6,29 +6,10 @@ import { SearchParams, SearchResponse } from './types/book';
 import './styles/App.css';
 
 function App() {
-  const [genres, setGenres] = useState<string[]>([]);
-  const [types, setTypes] = useState<string[]>([]);
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadFilters = async () => {
-      try {
-        const [genresData, typesData] = await Promise.all([
-          bookClient.getGenres(),
-          bookClient.getTypes()
-        ]);
-        setGenres(genresData);
-        setTypes(typesData);
-      } catch (err) {
-        setError(`Failed to load filters: ${err}`);
-      }
-    };
-
-    loadFilters();
-  }, []);
 
   const handleSearch = async (params: SearchParams) => {
     setIsLoading(true);
@@ -73,8 +54,6 @@ function App() {
 
       <main className="app-main">
         <SearchForm
-          genres={genres}
-          types={types}
           onSearch={handleSearch}
           isLoading={isLoading}
         />
