@@ -142,6 +142,11 @@ body {
   }
 }
 
+.word-miner-btn--active {
+  border-color: #e05050 !important;
+  color: #e05050 !important;
+}
+
 .progress-section {
   display: flex;
   align-items: center;

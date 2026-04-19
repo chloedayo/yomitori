@@ -43,6 +43,11 @@ export function useWordMiner({
 }: UsWordMinerProps) {
   const useKuromojiRef = useRef(true)
   const initPromiseRef = useRef<Promise<void> | null>(null)
+  const cancelledRef = useRef(false)
+
+  const cancelMining = useCallback(() => {
+    cancelledRef.current = true
+  }, [])
 
   const initializeTokenizer = useCallback(async () => {
     if (initPromiseRef.current) return initPromiseRef.current
@@ -131,6 +136,7 @@ export function useWordMiner({
 
       // Process words in batches
       for (let i = 0; i < wordKeys.length; i += BATCH_SIZE) {
+        if (cancelledRef.current) break
         const batch = wordKeys.slice(i, i + BATCH_SIZE)
         onMiningWord?.(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}...`)
 
@@ -186,6 +192,7 @@ export function useWordMiner({
   )
 
   const mineWords = useCallback(async (): Promise<MinedWord[]> => {
+    cancelledRef.current = false
     try {
       await initializeTokenizer()
 
@@ -215,5 +222,5 @@ export function useWordMiner({
     }
   }, [initializeTokenizer, extractText, tokenizeText, dedupeAndCount, enrichWithDefinitions, frequencySource, minFrequencyRank, maxFrequencyRank])
 
-  return { mineWords }
+  return { mineWords, cancelMining }
 }

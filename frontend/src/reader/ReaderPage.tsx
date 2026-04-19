@@ -8,6 +8,7 @@ import { useWordMiner } from './useWordMiner'
 import { useLibrary } from '../hooks/useLibrary'
 import { useProxy } from '../hooks/useProxy'
 import { MinedWord } from '../services/ankiService'
+import { ankiQueue } from '../services/ankiQueueService'
 import './reader.css'
 
 export function ReaderPage() {
@@ -33,7 +34,7 @@ export function ReaderPage() {
   const [frequencySource, setFrequencySource] = useState<string | null>(null)
   const [minFrequencyRank, setMinFrequencyRank] = useState<number | null>(null)
   const [maxFrequencyRank, setMaxFrequencyRank] = useState<number | null>(null)
-  const { mineWords } = useWordMiner({
+  const { mineWords, cancelMining } = useWordMiner({
     contentRef,
     bookId: bookId || '',
     onMiningWord: setCurrentMiningWord,
@@ -183,7 +184,15 @@ export function ReaderPage() {
     window.location.href = '/'
   }
 
-  const handleMineWords = async () => {
+  const handleToggleMining = async () => {
+    if (isMining) {
+      cancelMining()
+      ankiQueue.clearQueue()
+      setIsMining(false)
+      setCurrentMiningWord(null)
+      return
+    }
+
     setIsMining(true)
     setCurrentMiningWord(null)
     try {
@@ -304,7 +313,7 @@ export function ReaderPage() {
         onJumpToBeginning={handleJumpToBeginning}
         onToggleFavorite={handleToggleFavorite}
         onGoBack={handleGoBack}
-        onMineWords={handleMineWords}
+        onMineWords={handleToggleMining}
         isMining={isMining}
         minedWordCount={minedWords.length}
         currentMiningWord={currentMiningWord}
