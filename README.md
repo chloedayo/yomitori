@@ -49,8 +49,8 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 
 ## Documentation
 
-- [Architecture Deep Dive](docs/ARCHITECTURE.md) — tech reference, DB schema, full API tables
-- [Roadmap](docs/ROADMAP.md) — what's built, what's next
+- [Architecture Deep Dive](ARCHITECTURE.md) — tech reference, DB schema, full API tables
+- [Roadmap](ROADMAP.md) — what's built, what's next
 
 ---
 
@@ -128,7 +128,7 @@ Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yo
 
 ## API Reference
 
-Full schema with request/response tables: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+Full schema with request/response tables: [docs/ARCHITECTURE.md](ARCHITECTURE.md)
 
 ### Quick Reference
 
