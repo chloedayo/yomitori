@@ -15,11 +15,13 @@ services:
       - YOMITORI_CRAWLER_SCHEDULE=0 */1 * * * ?
       - YOMITORI_CRAWLER_BOOKS_PATH=${BOOKS_PATH:-/app/data/books}
       - YOMITORI_CRAWLER_COVERS_PATH=/app/data/covers
+      - YOMITORI_DICTIONARIES_PATH=/app/data/dictionaries
       - SERVER_ADDRESS=0.0.0.0
       - YOMITORI_CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
       - ANKI_CONNECT_URL=${ANKI_CONNECT_URL:-http://localhost:8765}
     volumes:
       - ${BOOKS_MOUNT:-./.books}:/app/data/books:ro
+      - ${DICTIONARIES_MOUNT:-./.dictionaries}:/app/data/dictionaries:ro
       - yomitori-data:/app/data
 
   middleware:

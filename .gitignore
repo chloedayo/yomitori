@@ -39,3 +39,6 @@ secrets.json
 *.log
 logs/
 books/
+
+# Dictionaries
+.dictionaries/

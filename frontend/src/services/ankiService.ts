@@ -5,7 +5,6 @@ export interface MinedWord {
   reading: string
   baseForm: string
   frequency: number
-  jlptLevel: string | null
   definitions: string[]
   addedToAnki: boolean
   bookId: string
@@ -73,9 +72,7 @@ export async function getDeckNames(): Promise<string[]> {
 }
 
 export async function addNote(word: MinedWord, deckName: string): Promise<number> {
-  const tags = []
-  if (word.jlptLevel) tags.push(`jlpt-${word.jlptLevel.toLowerCase()}`)
-  tags.push(`yomitori-${word.bookId}`)
+  const tags = [`yomitori-${word.bookId}`]
   console.log('Adding note to Anki:', word, tags)
 
   return await invoke('addNote', {
@@ -102,7 +99,6 @@ export async function addNotes(words: MinedWord[], deckName: string): Promise<nu
       Back: word.definitions.length > 0 ? word.definitions.join('<br>') : 'No definition found',
     },
     tags: [
-      ...(word.jlptLevel ? [`jlpt-${word.jlptLevel.toLowerCase()}`] : []),
       `yomitori-${word.bookId}`,
     ],
   }))
