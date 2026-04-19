@@ -210,6 +210,11 @@ body {
     flex-direction: column;
     align-items: center;
   }
+
+  .progress-section {
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 .progress-text {
