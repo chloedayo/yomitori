@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react'
 import * as kuromoji from 'kuromoji'
-import { lookupWord, batchLookup, JishoEntry } from '../api/jishoClient'
+import { batchLookup } from '../api/jishoClient'
 import { MinedWord } from '../services/ankiService'
 
 export interface UsWordMinerProps {
@@ -24,11 +24,16 @@ const JLPT_LEVELS: Record<string, string | null> = {
 }
 
 export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
-  const tokenizerRef = useRef<kuromoji.Tokenizer | null>(null)
+  const tokenizerRef = useRef<any | null>(null)
 
   const initializeTokenizer = useCallback(async () => {
     if (tokenizerRef.current) return
-    tokenizerRef.current = await kuromoji.default.builder({ dicPath: '/kuromoji/dict' }).build()
+    try {
+      tokenizerRef.current = await (kuromoji as any).default.builder({ dicPath: '/kuromoji/dict' }).build()
+    } catch (err) {
+      console.warn('Failed to load kuromoji dict from /kuromoji/dict, trying relative path', err)
+      tokenizerRef.current = await (kuromoji as any).default.builder().build()
+    }
   }, [])
 
   const extractText = useCallback(() => {
@@ -46,11 +51,11 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
       if (!tokenizerRef.current) return []
       const tokens = tokenizerRef.current.tokenize(text)
       return tokens
-        .filter((token) => {
+        .filter((token: any) => {
           const pos = token.pos[0]
           return (pos === '名詞' || pos === '動詞' || pos === '形容詞') && token.surface.length > 1
         })
-        .map((token) => ({
+        .map((token: any) => ({
           surface: token.surface,
           baseForm: token.basic_form || token.surface,
           partOfSpeech: token.pos[0],
