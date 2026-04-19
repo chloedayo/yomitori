@@ -8,6 +8,7 @@ import TextRotationDownIcon from '@mui/icons-material/TextRotationDown'
 import TextRotationNoneIcon from '@mui/icons-material/TextRotationNone'
 import FormatPaintIcon from '@mui/icons-material/FormatPaint'
 import HomeIcon from '@mui/icons-material/Home'
+import SchoolIcon from '@mui/icons-material/School'
 
 interface ReaderUIProps {
   currentCharPos: number
@@ -22,6 +23,9 @@ interface ReaderUIProps {
   onJumpToBeginning: () => void
   onToggleFavorite: () => void
   onGoBack: () => void
+  onMineWords?: () => void
+  isMining?: boolean
+  minedWordCount?: number
   isFavorited: boolean
   hasBookmark: boolean
 }
@@ -39,6 +43,9 @@ export function ReaderUI({
   onJumpToBeginning,
   onToggleFavorite,
   onGoBack,
+  onMineWords,
+  isMining = false,
+  minedWordCount = 0,
   isFavorited,
   hasBookmark,
 }: ReaderUIProps) {
@@ -132,6 +139,16 @@ export function ReaderUI({
           aria-label="Customize styles"
         >
           <FormatPaintIcon fontSize="small" />
+        </button>
+        <button
+          className="font-size-btn word-miner-btn"
+          onClick={onMineWords}
+          disabled={isMining}
+          title={isMining ? 'Mining words...' : 'Mine vocabulary from this book'}
+          aria-label="Mine vocabulary"
+        >
+          <SchoolIcon fontSize="small" />
+          {minedWordCount > 0 && <span className="btn-label">{minedWordCount}</span>}
         </button>
       </div>
     </div>
