@@ -226,7 +226,7 @@ export function SettingsModal({
             <div style={styles.error}>{liveError || error}</div>
           )}
 
-          <details style={styles.guide}>
+          {activeTab !== 'frequency' && <details style={styles.guide}>
             <summary style={styles.guideSummary}>Available Selectors</summary>
             <div style={styles.guideContent}>
               <p><code>.reader-text</code> — Main text container</p>
@@ -236,7 +236,7 @@ export function SettingsModal({
               <p><code>.font-size-slider</code> — Font size slider</p>
               <p><code>h1, h2, h3, etc.</code> — Headings inside reader</p>
             </div>
-          </details>
+          </details>}
         </div>
 
         <div style={styles.buttons}>
