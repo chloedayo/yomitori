@@ -10,6 +10,10 @@ yomitori.db-journal
 covers/
 .env
 .env.local
+.env.development
+frontend/.env
+frontend/.env.development
+frontend/.env.local
 node_modules/
 dist/
 frontend/.env.local

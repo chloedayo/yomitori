@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useProxy } from './useProxy';
 
 interface Author {
   id: string;
@@ -21,7 +22,8 @@ export function useAuthorAutocomplete(query: string) {
       setError(null);
 
       try {
-        const response = await fetch(`/api/authors/autocomplete?query=${encodeURIComponent(query)}`);
+        const url = useProxy(`/api/authors/autocomplete?query=${encodeURIComponent(query)}`);
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch authors');
         const data = await response.json();
         setAuthors(data);

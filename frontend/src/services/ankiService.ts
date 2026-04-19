@@ -1,3 +1,5 @@
+import { useProxy } from '../hooks/useProxy';
+
 export interface MinedWord {
   surface: string
   reading: string
@@ -10,7 +12,7 @@ export interface MinedWord {
   minedAt: number
 }
 
-const ANKI_PROXY_URL = '/api/proxy/anki'
+const ANKI_PROXY_URL = useProxy('/api/proxy/anki')
 
 interface AnkiRequest {
   action: string
@@ -71,17 +73,21 @@ export async function getDeckNames(): Promise<string[]> {
 }
 
 export async function addNote(word: MinedWord, deckName: string): Promise<number> {
-  const front = `${word.surface}${word.reading ? ` (${word.reading})` : ''}`
-  const back = word.definitions.length > 0 ? word.definitions.join('<br>') : 'No definition found'
   const tags = []
   if (word.jlptLevel) tags.push(`jlpt-${word.jlptLevel.toLowerCase()}`)
   tags.push(`yomitori-${word.bookId}`)
+  console.log('Adding note to Anki:', word, tags)
 
   return await invoke('addNote', {
     note: {
       deckName,
-      modelName: 'Basic',
-      fields: { Front: front, Back: back },
+      modelName: 'Lapis',
+      fields: {
+        Expression: word.surface,
+        ExpressionFurigana: word.reading,
+        ExpressionReading: word.reading,
+        MainDefinition: word.definitions.length > 0 ? word.definitions.join('<br>') : 'No definition found',
+      },
       tags,
     },
   })
@@ -90,7 +96,7 @@ export async function addNote(word: MinedWord, deckName: string): Promise<number
 export async function addNotes(words: MinedWord[], deckName: string): Promise<number[]> {
   const notes = words.map((word) => ({
     deckName,
-    modelName: 'Basic',
+    modelName: 'Lapis',
     fields: {
       Front: `${word.surface}${word.reading ? ` (${word.reading})` : ''}`,
       Back: word.definitions.length > 0 ? word.definitions.join('<br>') : 'No definition found',
