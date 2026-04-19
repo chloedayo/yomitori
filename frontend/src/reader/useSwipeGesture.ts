@@ -2,8 +2,8 @@ import { useRef, useEffect } from 'react'
 
 interface SwipeGestureOptions {
   threshold?: number
-  onSwipeLeft?: () => void
-  onSwipeRight?: () => void
+  onSwipeLeft?: (distance: number) => void
+  onSwipeRight?: (distance: number) => void
 }
 
 export function useSwipeGesture(
@@ -53,9 +53,9 @@ export function useSwipeGesture(
       // Only consider horizontal swipes (not vertical)
       if (absDeltaX > absDeltaY && absDeltaX > threshold) {
         if (deltaX > 0) {
-          onSwipeRight?.()
+          onSwipeRight?.(absDeltaX)
         } else {
-          onSwipeLeft?.()
+          onSwipeLeft?.(absDeltaX)
         }
       }
     }

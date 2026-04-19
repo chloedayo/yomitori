@@ -153,22 +153,24 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
     }
   }, [fontSize])
 
-  const handleNext = () => {
+  const handleNext = (swipeDistance: number) => {
     if (contentRef.current) {
+      const scrollAmount = swipeDistance * 0.6
       if (isVertical) {
-        contentRef.current.scrollLeft += contentRef.current.clientHeight
+        contentRef.current.scrollLeft += scrollAmount
       } else {
-        contentRef.current.scrollTop += contentRef.current.clientHeight
+        contentRef.current.scrollTop += scrollAmount
       }
     }
   }
 
-  const handlePrev = () => {
+  const handlePrev = (swipeDistance: number) => {
     if (contentRef.current) {
+      const scrollAmount = swipeDistance * 0.6
       if (isVertical) {
-        contentRef.current.scrollLeft -= contentRef.current.clientHeight
+        contentRef.current.scrollLeft -= scrollAmount
       } else {
-        contentRef.current.scrollTop -= contentRef.current.clientHeight
+        contentRef.current.scrollTop -= scrollAmount
       }
     }
   }
