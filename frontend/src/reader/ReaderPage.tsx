@@ -30,7 +30,17 @@ export function ReaderPage() {
   const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
   const { getBookmark, saveBookmark, clearBookmark, toggleFavorite, isFavorite } = useLibrary()
   const [currentMiningWord, setCurrentMiningWord] = useState<string | null>(null)
-  const { mineWords } = useWordMiner({ contentRef, bookId: bookId || '', onMiningWord: setCurrentMiningWord })
+  const [frequencySource, setFrequencySource] = useState<string | null>(null)
+  const [minFrequencyRank, setMinFrequencyRank] = useState<number | null>(null)
+  const [maxFrequencyRank, setMaxFrequencyRank] = useState<number | null>(null)
+  const { mineWords } = useWordMiner({
+    contentRef,
+    bookId: bookId || '',
+    onMiningWord: setCurrentMiningWord,
+    frequencySource,
+    minFrequencyRank,
+    maxFrequencyRank,
+  })
   const [minedWords, setMinedWords] = useState<MinedWord[]>([])
   const [showWordMiner, setShowWordMiner] = useState(false)
   const [isMining, setIsMining] = useState(false)
@@ -297,6 +307,12 @@ export function ReaderPage() {
           words={minedWords}
           onClose={() => setShowWordMiner(false)}
           bookId={bookId}
+          frequencySource={frequencySource}
+          onFrequencySourceChange={setFrequencySource}
+          minFrequencyRank={minFrequencyRank}
+          onMinFrequencyRankChange={setMinFrequencyRank}
+          maxFrequencyRank={maxFrequencyRank}
+          onMaxFrequencyRankChange={setMaxFrequencyRank}
         />
       )}
       </div>

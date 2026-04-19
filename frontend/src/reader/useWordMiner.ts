@@ -8,6 +8,9 @@ export interface UsWordMinerProps {
   contentRef: React.RefObject<HTMLDivElement>
   bookId: string
   onMiningWord?: (word: string) => void
+  frequencySource?: string | null
+  minFrequencyRank?: number | null
+  maxFrequencyRank?: number | null
 }
 
 interface TokenizedWord {
@@ -124,12 +127,32 @@ export function useWordMiner({ contentRef, bookId, onMiningWord }: UsWordMinerPr
         const entry = dictionaryResults.get(key)
 
         if (entry) {
+          // Filter by frequency range if specified
+          if (frequencySource) {
+            const freq = entry.frequencies?.find(f => f.sourceName === frequencySource)
+            if (!freq) {
+              console.log(`Skipping ${entry.expression} - no frequency data from ${frequencySource}`)
+              continue
+            }
+
+            const inRange = (
+              (minFrequencyRank === null || minFrequencyRank === undefined || freq.frequency >= minFrequencyRank) &&
+              (maxFrequencyRank === null || maxFrequencyRank === undefined || freq.frequency <= maxFrequencyRank)
+            )
+
+            if (!inRange) {
+              console.log(`Skipping ${entry.expression} - frequency ${freq.frequency} outside range [${minFrequencyRank}, ${maxFrequencyRank}]`)
+              continue
+            }
+          }
+
           const minedWord: MinedWord = {
             surface: entry.expression,
             reading: entry.reading,
             baseForm: entry.expression,
             frequency: count,
             definitions: entry.definitions,
+            frequencies: entry.frequencies || [],
             addedToAnki: false,
             bookId,
             minedAt: Date.now(),
@@ -145,7 +168,7 @@ export function useWordMiner({ contentRef, bookId, onMiningWord }: UsWordMinerPr
 
       return minedWords.sort((a, b) => b.frequency - a.frequency)
     },
-    [bookId, onMiningWord]
+    [bookId, onMiningWord, frequencySource, minFrequencyRank, maxFrequencyRank]
   )
 
   const mineWords = useCallback(async (): Promise<MinedWord[]> => {
@@ -156,6 +179,10 @@ export function useWordMiner({ contentRef, bookId, onMiningWord }: UsWordMinerPr
       const decks = (await getDeckNames()) || []
       const defaultDeck = decks.find(d => d === '自動') || decks[0] || 'Default'
       console.log('Mining to deck:', defaultDeck)
+
+      if (frequencySource) {
+        console.log(`Frequency filtering: source=${frequencySource}, range=[${minFrequencyRank}, ${maxFrequencyRank}]`)
+      }
 
       const text = extractText()
       if (!text.trim()) throw new Error('No text found in reader')
@@ -172,7 +199,7 @@ export function useWordMiner({ contentRef, bookId, onMiningWord }: UsWordMinerPr
       console.error('Mining error:', err)
       throw err
     }
-  }, [initializeTokenizer, extractText, tokenizeText, dedupeAndCount, enrichWithDefinitions])
+  }, [initializeTokenizer, extractText, tokenizeText, dedupeAndCount, enrichWithDefinitions, frequencySource, minFrequencyRank, maxFrequencyRank])
 
   return { mineWords }
 }

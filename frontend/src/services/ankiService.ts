@@ -1,11 +1,17 @@
 import { useProxy } from '../hooks/useProxy';
 
+export interface DictionaryFrequency {
+  sourceName: string
+  frequency: number
+}
+
 export interface MinedWord {
   surface: string
   reading: string
   baseForm: string
   frequency: number
   definitions: string[]
+  frequencies: DictionaryFrequency[]
   addedToAnki: boolean
   bookId: string
   minedAt: number

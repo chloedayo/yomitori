@@ -96,6 +96,24 @@
         background: $bg-light-dark;
         padding: $spacing-sm $spacing-md;
       }
+
+      .range-inputs {
+        display: flex;
+        gap: $spacing-sm;
+        align-items: center;
+
+        input[type='number'] {
+          @include input-base;
+          background: $bg-light-dark;
+          padding: $spacing-sm $spacing-md;
+          flex: 1;
+        }
+
+        span {
+          color: $text-secondary;
+          font-size: $font-size-sm;
+        }
+      }
     }
   }
 
