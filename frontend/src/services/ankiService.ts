@@ -10,7 +10,7 @@ export interface MinedWord {
   minedAt: number
 }
 
-const ANKI_URL = 'http://localhost:8765'
+const ANKI_PROXY_URL = '/api/proxy/anki'
 
 interface AnkiRequest {
   action: string
@@ -24,7 +24,7 @@ async function invoke(action: string, params: Record<string, any> = {}): Promise
   const timeout = setTimeout(() => controller.abort(), 5000)
 
   try {
-    const response = await fetch(ANKI_URL, {
+    const response = await fetch(ANKI_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, version: 6, params } as AnkiRequest),
