@@ -4,7 +4,7 @@ import { bookClient } from '../../api/bookClient';
 import { useLibrary } from '../../hooks/useLibrary';
 import { BookGrid } from '../../components/BookGrid/BookGrid';
 import { TabsMenu } from '../../components/TabsMenu/TabsMenu';
-import { DEFAULT_PAGE_SIZE, TAB_LABELS, ERROR_MESSAGES } from '../../constants';
+import { DEFAULT_PAGE_SIZE, TAB_LABELS } from '../../constants';
 import { HOME_PAGE_LABELS } from './constants';
 import './style.scss';
 
@@ -91,72 +91,12 @@ export function HomePage({
         }
       : searchResults;
 
-  const handleTabChange = async (tab: typeof activeTab) => {
+  const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
 
-    if (tab === 'in-progress') {
-      setBulkSearchTab('in-progress');
-      try {
-        const bookIds = getInProgress();
-        if (bookIds.length > 0) {
-          const results = await bookClient.searchBulk(bookIds, 0, DEFAULT_PAGE_SIZE);
-          setBulkBooks(results);
-        } else {
-          setBulkBooks({
-            content: [],
-            totalElements: 0,
-            totalPages: 0,
-            pageable: { pageNumber: 0, pageSize: DEFAULT_PAGE_SIZE },
-            last: true,
-            first: true,
-            missingIds: [],
-          });
-        }
-      } catch (err) {
-        console.error(ERROR_MESSAGES.LOAD_IN_PROGRESS, err);
-      }
-    } else if (tab === 'favorites') {
-      setBulkSearchTab('favorites');
-      try {
-        const favIds = getFavorites();
-        if (favIds.length > 0) {
-          const results = await bookClient.searchBulk(favIds, 0, DEFAULT_PAGE_SIZE);
-          setBulkBooks(results);
-        } else {
-          setBulkBooks({
-            content: [],
-            totalElements: 0,
-            totalPages: 0,
-            pageable: { pageNumber: 0, pageSize: DEFAULT_PAGE_SIZE },
-            last: true,
-            first: true,
-            missingIds: [],
-          });
-        }
-      } catch (err) {
-        console.error(ERROR_MESSAGES.LOAD_FAVORITES, err);
-      }
-    } else if (tab === 'hidden') {
-      setBulkSearchTab('hidden');
-      try {
-        const hiddenIds = getHidden();
-        if (hiddenIds.length > 0) {
-          const results = await bookClient.searchBulk(hiddenIds, 0, DEFAULT_PAGE_SIZE);
-          setBulkBooks(results);
-        } else {
-          setBulkBooks({
-            content: [],
-            totalElements: 0,
-            totalPages: 0,
-            pageable: { pageNumber: 0, pageSize: DEFAULT_PAGE_SIZE },
-            last: true,
-            first: true,
-            missingIds: [],
-          });
-        }
-      } catch (err) {
-        console.error(ERROR_MESSAGES.LOAD_HIDDEN, err);
-      }
+    if (tab === 'in-progress' || tab === 'favorites' || tab === 'hidden') {
+      onPageChange(0);
+      setBulkSearchTab(tab);
     } else {
       setBulkSearchTab(null);
       setBulkBooks(null);
