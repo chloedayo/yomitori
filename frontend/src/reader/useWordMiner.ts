@@ -106,10 +106,13 @@ export function useWordMiner({
     []
   )
 
+  const isKanaOnly = (str: string) => /^[\u3041-\u30FF\u30FC]+$/.test(str)
+
   const dedupeAndCount = useCallback(
     (words: TokenizedWord[]): Map<string, { word: TokenizedWord; count: number }> => {
       const map = new Map<string, { word: TokenizedWord; count: number }>()
       words.forEach((word) => {
+        if (isKanaOnly(word.baseForm)) return
         const key = word.baseForm
         const existing = map.get(key)
         if (existing) {
@@ -144,10 +147,12 @@ export function useWordMiner({
         if (cancelledRef.current) break
 
         for (const key of batch) {
-          const { count } = words.get(key)!
           const entry = dictionaryResults.get(key)
 
           if (entry) {
+
+            let minedFreq = 0;
+
             // Filter by frequency range if specified
             if (frequencySource) {
               const freq = entry.frequencies?.find(f => f.sourceName === frequencySource)
@@ -163,13 +168,14 @@ export function useWordMiner({
               if (!inRange) {
                 continue
               }
+              minedFreq = freq.frequency;
             }
 
             const minedWord: MinedWord = {
               surface: entry.expression,
               reading: entry.reading,
               baseForm: entry.expression,
-              frequency: count,
+              frequency: minedFreq,
               definitions: entry.definitions,
               frequencies: entry.frequencies || [],
               addedToAnki: false,
