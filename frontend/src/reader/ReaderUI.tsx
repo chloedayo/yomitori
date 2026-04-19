@@ -57,11 +57,16 @@ export function ReaderUI({
 
   return (
     <div className="reader-ui">
-      <div className="progress-text">
-        {isVertical
-          ? Math.max(0, currentCharPos * -1).toLocaleString()
-          : Math.max(0, currentCharPos).toLocaleString()
-        } / {totalChars.toLocaleString()}
+      <div className="progress-section">
+        <div className="progress-text">
+          {isVertical
+            ? Math.max(0, currentCharPos * -1).toLocaleString()
+            : Math.max(0, currentCharPos).toLocaleString()
+          } / {totalChars.toLocaleString()}
+        </div>
+        {currentMiningWord && isMining && (
+          <div className="mining-status">Mining: {currentMiningWord}</div>
+        )}
       </div>
 
       <div className="font-size-section">
@@ -153,9 +158,6 @@ export function ReaderUI({
           {minedWordCount > 0 && <span className="btn-label">{minedWordCount}</span>}
         </button>
       </div>
-      {currentMiningWord && isMining && (
-        <div className="mining-status">Mining: {currentMiningWord}</div>
-      )}
     </div>
   )
 }
