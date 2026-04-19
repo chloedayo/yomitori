@@ -26,6 +26,7 @@ export function ReaderPage() {
   const readerRef = useRef<EpubReaderHandle>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [bookId, setBookId] = useState<string | null>(null)
+  const [bookTitle, setBookTitle] = useState<string | null>(null)
   const [showRestorePrompt, setShowRestorePrompt] = useState(false)
   const [bookmarkPos, setBookmarkPos] = useState<number | null>(null)
   const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
@@ -110,6 +111,14 @@ export function ReaderPage() {
         if (bookmark !== null) {
           setBookmarkPos(bookmark)
           setShowRestorePrompt(true)
+        }
+
+        // Fetch book metadata for title
+        const metaUrl = useProxy(`/api/books/${id}`)
+        const metaResponse = await fetch(metaUrl)
+        if (metaResponse.ok) {
+          const book = await metaResponse.json()
+          setBookTitle(book.title ?? null)
         }
 
         // Fetch file from API endpoint (CORS-safe via proxy)
@@ -305,6 +314,7 @@ export function ReaderPage() {
         totalChars={totalChars}
         isVertical={isVertical}
         bookmarkPos={bookmarkPos}
+        bookTitle={bookTitle}
         onToggleOrientation={handleToggleOrientation}
         onOpenCSSModal={() => setIsModalOpen(true)}
         onSaveBookmark={handleSaveBookmark}
