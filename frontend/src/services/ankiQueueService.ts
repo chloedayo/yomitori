@@ -67,6 +67,11 @@ class AnkiQueueService {
     return this.stats.books.find(b => b.bookId === bookId)?.minedCount ?? 0
   }
 
+  clearQueue() {
+    this.queue = []
+    localStorage.removeItem(QUEUE_KEY)
+  }
+
   private async startProcessing() {
     setInterval(() => {
       if (!this.processing && this.queue.length > 0) {

@@ -9,6 +9,7 @@ import TextRotationNoneIcon from '@mui/icons-material/TextRotationNone'
 import FormatPaintIcon from '@mui/icons-material/FormatPaint'
 import HomeIcon from '@mui/icons-material/Home'
 import SchoolIcon from '@mui/icons-material/School'
+import StopIcon from '@mui/icons-material/Stop'
 
 interface ReaderUIProps {
   currentCharPos: number
@@ -148,13 +149,12 @@ export function ReaderUI({
           <FormatPaintIcon fontSize="small" />
         </button>
         <button
-          className="font-size-btn word-miner-btn"
+          className={`font-size-btn word-miner-btn${isMining ? ' word-miner-btn--active' : ''}`}
           onClick={onMineWords}
-          disabled={isMining}
-          title={isMining ? 'Mining words...' : 'Mine vocabulary from this book'}
-          aria-label="Mine vocabulary"
+          title={isMining ? 'Stop mining (clears queue)' : 'Mine vocabulary from this book'}
+          aria-label={isMining ? 'Stop mining' : 'Mine vocabulary'}
         >
-          <SchoolIcon fontSize="small" />
+          {isMining ? <StopIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
           {minedWordCount > 0 && <span className="btn-label">{minedWordCount}</span>}
         </button>
       </div>
