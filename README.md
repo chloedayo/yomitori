@@ -1,18 +1,18 @@
-# Yomitori - Book Collection Search
+# yomitori ♡
 
 **yomitori** (読み取り) — a love letter to your books, in code.
 
-You've got 40,000+ ebooks scattered across your hard drive. They're books with anime on the cover. Books you meant to read. Books you forgot you had. Books that deserve better than a folder named `_ebooks` or `vol-03-[broken-encoding].epub`.
+You've got 40,000+ ebooks scattered across your hard drive. Books with anime on the cover. Books you meant to read. Books you forgot you had. Books that deserve better than a folder named `_ebooks_final_v2` or `vol-03-[broken-encoding].epub`.
 
-Yomitori brings them home.
+Yomitori brings them home. ♡
 
-**What it does:** Crawls your collection automatically, extracts covers and metadata, learns author relationships, tracks where you left off, lets you favorite and search like you mean it. A beautiful, fast search interface for everything. Your books deserve a home that knows their names.
+**What it does:** Crawls your collection automatically, extracts covers and metadata, learns author relationships, tracks where you left off, lets you favorite and search like you mean it.
 
-**What it feels like:** Searching for "百合" and seeing all your covers at once. Clicking an author and seeing every book they wrote. Resuming exactly where you stopped. Favoriting the ones that matter. Progress bars that actually mean something.
+**What it feels like:** Searching for 百合 and seeing all your covers at once. Clicking an author and seeing every book they wrote. Resuming exactly where you stopped. Mining vocab from your novels and sending it straight to Anki. Progress bars that actually mean something.
 
-Built with care. Built with Kotlin, React, and the kind of attention to detail that makes your heart smile when you hover over a book title and the preview appears exactly where you need it.
+Built with care. Built with Kotlin, React, and the kind of attention to detail that makes your heart smile when you hover over a cover and everything just... works.
 
-✧  
+✧
 
 <center>
    <img width="1528" height="969" alt="image" src="https://github.com/user-attachments/assets/94598955-eeaa-41dd-ab46-b18c676876f7" />
@@ -20,457 +20,296 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
    <img width="1528" height="620" alt="image" src="https://github.com/user-attachments/assets/041e9663-d643-4e03-a241-23d2a3d62247" />
 </center>
 
-## Important Features
+---
 
-- **BOOKS WITH ANIME ON THE COVER**
-- **Local Yomichan Dictionaries:** Drop Yomichan-format zips into `/dictionaries/`. No internet, no Jisho rate limits, your dictionaries stay yours.
-- **Word Mining With Frequency Filter:** Tokenize your book with Kuromoji, filter by frequency rank from any dictionary source, auto-export to Anki as you mine. 1000 words per API call — mine whole novels in seconds.
-- **Anki Integration (AnkiConnect):** Mining results stream into Anki on your LAN. Default deck + Lapis template support.
+## The Good Stuff ♡
 
-## Not-So-Important Features
-- **Smart Indexing:** Type detection from directory patterns, author extraction
-- **Reading Status Tracking:** In Progress, Favorites, Hidden tabs
-- **Author Search & Favorites:** Find books by author with autocomplete, favorite authors
-- **Reading Progress:** Pie chart visualization + character position tracking
-- **Smart Filtering:** All/Favorites/In Progress tabs with smart lazy-loading
-- **REST API:** Search by title/genre/type/author with pagination, bulk filtering
-- **SQLite Database:** Local, file-based persistence with author relationships
-- **Mobile Reader UI:** Responsive reader optimized for small screens with compact controls, stacked progress counter, centered buttons, remove bookmark feature
-- **Bookmark Management:** Save/restore reading position, remove bookmark, jump to bookmark with progress indicator
-- **Reading Modes:** Vertical (縦書き) and horizontal (横書き) text orientation with persistent preference
-- **Mobile Reading:** Full LAN access from phone, responsive reader UI
-- **Proportional Swipe Navigation:** Scroll distance adapts to swipe gesture magnitude
-- **Custom CSS Editor:** Live preview, validation, per-user styling of the reader
-- **Unified Settings Modal:** CSS editor + frequency filter in one place
+- **Books. With anime on the cover.** That's the whole pitch.
+- **Local Yomichan Dictionaries** — Drop zips into `/dictionaries/`. No internet, no Jisho rate limits, no one knowing what words you're looking up at 2am.
+- **Word Mining with Frequency Filtering** — Tokenize your novel with Kuromoji, filter by frequency rank, auto-export to Anki as you read. 1000 words per batch — mine entire novels in seconds.
+- **Personal Dictionary** — Every word you mine and send to Anki gets saved locally (IndexedDB, so no size limits). Searchable, sortable, yours forever.
+- **Anki Integration (AnkiConnect)** — Mining results stream into Anki on your LAN. Works with Lapis template.
+- **Vertical + Horizontal Reading** — 縦書き and 横書き, with persistent preference per session.
+- **Custom CSS Editor** — Live validation + preview. Style the reader however you want.
+
+## The Rest of the Stuff
+
+- Smart auto-indexing from directory structure (title, type, author extraction)
+- Reading status: In Progress, Favorites, Hidden
+- Bookmark save/restore with jump-to and progress percent display
+- Pie chart progress visualization
+- Author search with autocomplete + author favorites
+- Bulk lazy-loading for favorites/in-progress (server-side, not client-side filtering)
+- Mobile-optimized reader: compact controls, stacked layout, centered progress, swipe navigation
+- Proportional swipe: swipe harder, scroll further
+- REST API for everything (see below)
+- SQLite for local, no-setup persistence
+
+---
 
 ## Documentation
 
-- [Architecture Deep Dive](docs/ARCHITECTURE.md) — full tech reference + API schemas
+- [Architecture Deep Dive](docs/ARCHITECTURE.md) — tech reference, DB schema, full API tables
 - [Roadmap](docs/ROADMAP.md) — what's built, what's next
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker & Docker Compose (recommended for easiest setup)
+- Docker & Docker Compose ← the easy path
 - OR: Java 17+, Node 18+, Gradle 8.4+
 
-### Option 1: Docker (Recommended)
+### Option 1: Docker (Recommended ~)
 
-**First time setup:**
 ```bash
 # Copy environment template
 cp .env.example .env
 
-# Edit .env to point to your books directory
-# Example: BOOKS_MOUNT=/path/to/your/books
+# Point it at your books
+# BOOKS_MOUNT=/path/to/your/books
 
-# For LAN access (phone/tablet), set your machine's IP:
-# LAN_IP=192.168.100.60
-# CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://192.168.100.60:5173
-```
+# For phone/tablet LAN access, set your IP too:
+# LAN_IP=192.168.x.x
+# CORS_ALLOWED_ORIGINS=http://localhost:5173,http://192.168.x.x:5173
 
-**Start services:**
-```bash
 docker-compose up --build
 ```
 
-- Backend API: http://localhost:8080
-- Frontend: http://localhost:5173 (or http://YOUR_LAN_IP:5173 on phone)
-- File server (for EPUB reading): http://localhost:8888
+- Backend API: `http://localhost:8080`
+- Frontend: `http://localhost:5173` (or `http://YOUR_LAN_IP:5173` on phone)
+- File server (EPUB reader): `http://localhost:8888`
 
 ### Option 2: Build & Run Locally
 
-**Build both frontend and backend:**
 ```bash
+# Build both frontend and backend
 ./build.sh
-```
+# → frontend/dist/  +  build/libs/yomitori-0.1.0.jar
 
-This produces:
-- `frontend/dist/` (pre-built React app)
-- `build/libs/yomitori-0.1.0.jar` (Spring Boot JAR)
-
-**Then run Docker with pre-built artifacts:**
-```bash
-# Use production frontend (Dockerfile.prod)
-# Edit docker-compose.yml and change:
-# dockerfile: Dockerfile → dockerfile: Dockerfile.prod
-docker-compose up
-```
-
-**OR run locally without Docker:**
-```bash
-# Terminal 1: Backend
+# Run without Docker
+# Terminal 1:
 ./gradlew bootRun
-
-# Terminal 2: Frontend
+# Terminal 2:
 cd frontend && npm install && npm run dev
 ```
 
-### First Run / Indexing
+### First Run
 
-1. Application starts (backend at 8080, frontend at 5173)
-2. Crawler runs automatically on schedule (default: every hour)
-3. **To index immediately for testing:**
+1. App starts (backend :8080, frontend :5173)
+2. Crawler runs on schedule (default: every hour)
+3. To index immediately:
    ```bash
    curl -X POST http://localhost:8080/api/books/crawler/run
    ```
-4. Crawler scans books directory and indexes all files
-5. For 40,000+ files, indexing takes 2-5 minutes depending on system speed
+4. For 40k+ files, expect 2-5 minutes on first pass.
 
-## API Endpoints
+---
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full API schema with request/response tables.
+## Dictionaries & Word Mining ♡
+
+Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yomichan/Yomitan, just served locally from your backend.
+
+**Setup:**
+1. Get a Yomichan dictionary zip (definition dict + frequency dict)
+2. Drop **definition dicts** into `./dictionaries/`
+3. Drop **frequency dicts** into `./dictionaries/frequency/`
+4. Restart backend — imports happen on startup, check logs for progress
+
+**Mining:**
+1. Open a book in the reader
+2. (Optional) Settings → Frequency Filter → pick source + rank range
+3. Hit the 🎓 mine button — it's a toggle; hit it again to stop + clear queue
+4. Words auto-export to Anki (requires AnkiConnect + Anki running)
+5. Every exported word also lands in your **Personal Dictionary** (accessible from the homepage)
+
+---
+
+## API Reference
+
+Full schema with request/response tables: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ### Quick Reference
 
 **Books:**
-- `GET /api/books/search?title=...&genre=...&type=...&author=...&page=0&pageSize=20`
-- `POST /api/books/search/bulk` — Search by ID list
-- `GET /api/books/{id}` | `/cover` | `/file`
-- `POST /api/books/{id}/tag` — Update genre/type
+```
+GET  /api/books/search?title=&genre=&type=&author=&page=0&pageSize=20
+POST /api/books/search/bulk          { ids: string[] }
+GET  /api/books/{id}
+GET  /api/books/{id}/cover
+GET  /api/books/{id}/file
+POST /api/books/{id}/tag             { genre, type }
+GET  /api/books/genres | /types | /stats
+```
 
 **Authors:**
-- `GET /api/authors/autocomplete?query=...`
-- `GET /api/authors/{id}`
+```
+GET /api/authors/autocomplete?query=
+GET /api/authors/{id}
+```
 
 **Dictionary:**
-- `GET /api/dictionary/lookup?word=...` — Single word
-- `POST /api/dictionary/batch-lookup` — `{ words: string[] }`, returns `{ [word]: DictionaryEntryDto[] }`
-- `GET /api/dictionary/frequency-sources` — List frequency dicts
-
-**Metadata:**
-- `GET /api/books/genres` | `/types` | `/stats`
+```
+GET  /api/dictionary/lookup?word=
+POST /api/dictionary/batch-lookup    { words: string[] }  → { [word]: entry[] }
+GET  /api/dictionary/frequency-sources
+```
 
 **Admin:**
-- `POST /api/books/crawler/run` — Trigger crawler
-- `POST /api/books/admin/extract-authors` — Retroactive author extraction
+```
+POST /api/books/crawler/run
+POST /api/books/admin/extract-authors
+```
 
-**Proxy (for browser CORS workaround):**
-- `GET /api/proxy/jisho?word=...` (legacy)
-- `POST /api/proxy/anki` — Forward to AnkiConnect
+**Proxy:**
+```
+POST /api/proxy/anki                 (forwards to AnkiConnect)
+GET  /api/proxy/jisho?word=          (legacy)
+```
 
-## Dictionaries & Word Mining
-
-Yomitori uses local **Yomichan-format dictionaries** (no internet required after import).
-
-**Setup:**
-1. Download a Yomichan dictionary zip (e.g., from [Yomichan Dictionaries](https://learnjapanese.moe/resources/) or similar)
-2. Drop the zip in `./dictionaries/`
-3. Drop frequency dictionary zips in `./dictionaries/frequency/`
-4. Restart backend — dictionaries import on startup (check logs)
-
-**Mining:**
-1. Open a book in the reader
-2. (Optional) Settings → Frequency Filter → pick source + min/max rank
-3. Click the 🎓 mine button
-4. Words auto-queue to Anki (requires AnkiConnect + Anki running on LAN)
+---
 
 ## Configuration
 
-### Environment Variables (.env)
-
-Create a `.env` file in the project root (copy from `.env.example`):
+### .env (Copy from `.env.example`)
 
 ```bash
-# Path to your book collection on the host machine
-# Can be relative (./books) or absolute (/path/to/books)
-BOOKS_MOUNT=./books
-
-# Internal container path (usually no change needed)
-BOOKS_PATH=/app/data/books
-
-# Frontend port
+BOOKS_MOUNT=./books          # Path to your book collection
+BOOKS_PATH=/app/data/books   # Internal container path (usually don't change)
 FRONTEND_PORT=5173
-
-# Backend port
 BACKEND_PORT=8080
 ```
 
-### Docker Compose Services
-
-The `docker-compose.yml` defines three services:
-
-1. **backend** (Spring Boot + Kotlin)
-   - Exposes: `SPRING_PROFILES_ACTIVE=dev`
-   - Database: SQLite at `/app/data/yomitori.db` (persisted via volume)
-   - Books mount: Read-only access to `BOOKS_MOUNT`
-
-2. **frontend** (React + Vite dev server)
-   - Runs development server on port 5173
-   - Connected to backend via bridge network
-
-3. **file-server** (Python HTTP server)
-   - Serves books for the EPUB reader
-   - Mounts books directory at `/books`
-   - Port: 8888
-
-### Spring Boot Configuration
-
-Edit `src/main/resources/application.properties` for advanced tuning:
+### application.properties (Advanced)
 
 ```properties
 # Database
 spring.datasource.url=jdbc:sqlite:/app/data/yomitori.db
-spring.jpa.hibernate.ddl-auto=update                   # auto, create, create-drop, update, validate
 
-# Crawler settings
-yomitori.crawler.enabled=true                          # Enable/disable automatic crawling
-yomitori.crawler.schedule=0 */1 * * * ?                # Cron expression (default: every hour)
-yomitori.crawler.books-path=/app/data/books            # Books directory inside container
-yomitori.crawler.covers-path=/app/data/covers          # Cover cache directory
-yomitori.crawler.batch-size=100                        # Batch size for database inserts
+# Crawler
+yomitori.crawler.enabled=true
+yomitori.crawler.schedule=0 */1 * * * ?   # every hour
+yomitori.crawler.books-path=/app/data/books
+yomitori.crawler.batch-size=100
 
 # Logging
-logging.level.com.yomitori=DEBUG                       # Yomitori app logs
-logging.level.org.springframework.web=WARN             # Spring framework logs
+logging.level.com.yomitori=DEBUG
 ```
 
-**Crawler Schedule Format (Cron):**
-- `0 0 * * * ?` - Every day at midnight UTC
-- `0 */1 * * * ?` - Every hour (used in Docker by default)
-- `0 */15 * * * ?` - Every 15 minutes
-- `0 9-17 * * MON-FRI ?` - Weekdays 9am-5pm
-
-### Environment Variables in Docker
-
-The backend container receives these environment variables (set in `docker-compose.yml`):
-
-```bash
-SPRING_PROFILES_ACTIVE=dev                             # Development profile
-SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/yomitori.db
-YOMITORI_CRAWLER_ENABLED=true
-YOMITORI_CRAWLER_SCHEDULE=0 */1 * * * ?                # Run every hour
-YOMITORI_CRAWLER_BOOKS_PATH=/app/data/books            # Internal path
-YOMITORI_CRAWLER_COVERS_PATH=/app/data/covers
+**Cron schedule examples:**
+```
+0 0 * * * ?        — midnight daily
+0 */1 * * * ?      — every hour (default)
+0 */15 * * * ?     — every 15 min
 ```
 
-To override at runtime:
-```bash
-docker-compose run -e YOMITORI_CRAWLER_SCHEDULE="0 0 * * * ?" backend
-```
+### Docker Services
+
+| Service | Base | Port | Notes |
+|---------|------|------|-------|
+| backend | eclipse-temurin:17 | 8080 | Spring Boot + SQLite |
+| frontend | node:20-alpine | 5173 | Vite dev server |
+| file-server | python | 8888 | Serves books for reader |
+
+---
 
 ## Database
 
-**SQLite** with persistent storage via Docker named volume `yomitori-db:/app`.
+**SQLite** persisted via Docker named volume `yomitori-db:/app`.
 
-### Architecture Notes
+**Note on IDs:** SQLite JDBC doesn't support `getGeneratedKeys()`, so all IDs are application-generated UUIDs. Never use `@GeneratedValue` with SQLite — it breaks silently. All entities use `@Id val id: String = UUID.randomUUID().toString()`.
 
-- **ID Generation:** Uses application-generated UUIDs (String type) instead of auto-increment integers
-  - Reason: SQLite JDBC driver doesn't support `getGeneratedKeys()`, which breaks Hibernate's auto-increment ID generation
-  - All IDs are generated in code (`@Id val id: String = UUID.randomUUID().toString()`)
-  - Never use `@GeneratedValue` annotations with SQLite
-
-### Connecting from IDE
-
-The database is persistent but stored in Docker's named volume:
-
+**Access the DB from your IDE:**
 ```bash
-# Extract DB to host for IDE access
 docker cp yomitori-backend-1:/app/yomitori.db ./yomitori.db
+# Then connect with driver: SQLite, file: ./yomitori.db, no credentials
 ```
 
-Then configure your IDE (IntelliJ, DataGrip, etc.) to use the local `yomitori.db` file:
-- **Driver:** SQLite
-- **File:** `./yomitori.db`
-- **No credentials needed** (SQLite is file-based)
-
-## Build Artifacts
-
-### Using `./build.sh`
-
-The build script compiles both frontend and backend into artifacts ready for Docker:
-
-```bash
-./build.sh
-```
-
-**Output:**
-- `frontend/dist/` - Pre-built React application (static files)
-- `build/libs/yomitori-0.1.0.jar` - Spring Boot JAR with all dependencies
-
-**Why build locally?**
-- Docker builds can be slow for 40k+ file indexing
-- Pre-built JAR reduces container image size
-- Faster iteration during development
-
-### Docker Stages
-
-1. **Dockerfile** (production runtime)
-   - Base: `eclipse-temurin:17-jdk-jammy` (Eclipse Temurin JDK 17)
-   - Expects pre-built JAR at `build/libs/yomitori-0.1.0.jar`
-   - Minimal size, optimized for runtime only
-
-2. **Dockerfile.build** (optional: build inside container)
-   - Base: `gradle:8.4-jdk17`
-   - Builds JAR from source
-   - Use only if you don't want to build locally
-
-3. **frontend/Dockerfile** (development mode)
-   - Base: `node:20-alpine`
-   - Runs Vite dev server on port 5173
-   - Watches for file changes (live reload)
-
-4. **frontend/Dockerfile.prod** (production mode)
-   - Base: `node:20-alpine`
-   - Serves pre-built `frontend/dist/` with http-server
-   - Smaller, no build step in container
-
-### Using Dockerfile.prod
-
-For production deployments, use the pre-built frontend:
-
-```bash
-# 1. Build locally
-./build.sh
-
-# 2. Edit docker-compose.yml
-# Change: dockerfile: Dockerfile → dockerfile: Dockerfile.prod
-
-# 3. Build and run
-docker-compose up --build
-```
-
-### Docker Cache Optimization
-
-The Dockerfile uses layer caching for faster rebuilds:
-
-```dockerfile
-# Copies build/libs/yomitori-0.1.0.jar from host
-COPY build/libs/yomitori-0.1.0.jar /app/app.jar
-```
-
-**Before rebuilding:**
-```bash
-# Clear Docker cache if needed
-docker system prune
-```
+---
 
 ## Project Structure
 
 ```
 yomitori/
-├── src/
-│   └── main/
-│       ├── kotlin/com/yomitori/
-│       │   ├── api/               # REST endpoints
-│       │   ├── service/           # Business logic
-│       │   ├── model/             # JPA entities
-│       │   └── repository/        # Database access
-│       └── resources/
-│           ├── application.properties    # Spring config
-│           └── db/migration/            # Flyway migrations
-├── frontend/
-│   ├── src/
-│   │   ├── components/            # React components
-│   │   ├── api/                   # API client
-│   │   ├── types/                 # TypeScript types
-│   │   └── styles/                # CSS
-│   ├── Dockerfile                 # Dev mode (Vite)
-│   ├── Dockerfile.prod            # Production (http-server)
-│   └── package.json
-├── build.sh                        # Build script (frontend + backend)
-├── Dockerfile                      # Backend production image
-├── Dockerfile.build               # Optional: build inside container
-├── docker-compose.yml             # Orchestration config
-├── .env.example                   # Environment template
-├── build.gradle.kts              # Gradle build config
-└── README.md                      # This file
+├── src/main/kotlin/com/yomitori/
+│   ├── api/               REST endpoints
+│   ├── service/           Business logic
+│   ├── model/             JPA entities
+│   └── repository/        Database access
+├── frontend/src/
+│   ├── components/        Shared React components
+│   ├── views/             Page-level views
+│   ├── reader/            Reader + mining + settings
+│   ├── api/               API + Anki clients
+│   └── services/          IndexedDB, Anki queue
+├── dictionaries/          Drop your Yomichan zips here
+├── docs/                  Architecture + Roadmap
+├── build.sh               Builds frontend + backend
+├── docker-compose.yml
+└── .env.example
 ```
+
+---
 
 ## Tech Stack
 
-- **Backend:** Kotlin, Spring Boot 3.2, Spring Data JPA, Quartz
-- **Database:** SQLite, Flyway migrations
-- **Frontend:** React 18, TypeScript, Vite
-- **Cover Extraction:** Apache PDFBox 3.0
-- **Build:** Gradle
+| Layer | Tech |
+|-------|------|
+| Backend | Kotlin, Spring Boot 3.2, Spring Data JPA |
+| Database | SQLite, Flyway migrations |
+| NLP | Kuromoji tokenizer |
+| EPWING/Yomichan | Custom parser (zip → SQLite) |
+| Frontend | React 18, TypeScript, Vite |
+| Client Storage | IndexedDB via `idb` |
+| Covers | Apache PDFBox 3.0 |
+| Build | Gradle (backend), Vite (frontend) |
+
+---
 
 ## Troubleshooting
 
-### Docker Issues
-
-**"No space left on device"**
+**Books not appearing?**
 ```bash
-# Docker images and volumes accumulate over time
-docker system prune -a
-docker volume prune
+docker-compose logs backend | grep -i crawler
+curl -X POST http://localhost:8080/api/books/crawler/run
 ```
 
-**Backend failing to start after rebuild**
+**Backend won't start?**
 ```bash
-# Clear cached images and rebuild from scratch
 docker-compose down
 docker rmi yomitori-backend yomitori-frontend
 docker-compose up --build
 ```
 
-**Books not appearing in search**
+**No space left on device?**
 ```bash
-# Check crawler logs
-docker-compose logs backend | grep -i crawler
-
-# Manually trigger crawler
-curl -X POST http://localhost:8080/api/books/crawler/run
+docker system prune -a
+docker volume prune
 ```
 
-**Port already in use**
+**Port conflict?**
 ```bash
-# Check what's using port 8080, 5173, or 8888
-lsof -i :8080
-lsof -i :5173
-
-# Or change ports in .env and docker-compose.yml
+lsof -i :8080  # or 5173, 8888
+# or just change ports in .env
 ```
 
-### Performance
-
-**Slow crawler on first run?**
-- Indexing 40,000+ files takes 2-5 minutes depending on disk speed
-- Watch progress: `docker-compose logs backend | grep "Indexed"`
-- Adjust batch size in `application.properties` (yomitori.crawler.batch-size)
-
-**Out of memory?**
+**Slow first run?** Normal for 40k+ files. Watch progress:
 ```bash
-# Increase Docker memory allocation
-# (Edit Docker Desktop settings or docker-compose.yml)
-
-# Or limit from Java side:
-# Add to Dockerfile ENTRYPOINT:
-# -Xmx2g -Xms512m (sets max heap to 2GB)
+docker-compose logs backend | grep "Indexed"
 ```
 
-## Testing
+---
 
-**Backend:**
-```bash
-./gradlew test
-```
+## Known Limitations
 
-**Frontend:**
-```bash
-cd frontend
-npm test
-```
+- Cover extraction: solid for ePub; PDF/CBR/CBZ is stubbed
+- No book summaries (Phase 2 plan)
+- No user ratings or annotations yet
+- No cross-device sync
+- SQLite JDBC `getGeneratedKeys()` limitation: all IDs are UUIDs, not auto-increment (by design)
 
-## Known Limitations (MVP)
+---
 
-- Cover extraction works reliably for ePub; PDF/CBR/CBZ support is stub
-- No book summaries (Phase 2)
-- No user ratings/annotations
-- No sync across devices
-- File links use `file://` URLs (works on Linux/Mac, needs adjustment for Windows)
-- **SQLite JDBC limitation:** SQLite JDBC driver doesn't support `getGeneratedKeys()`, so all IDs are application-generated UUIDs (not auto-increment). This is by design; see Database section for details.
-
-## Future Enhancements
-
-- Add summaries (batch LLM processing)
-- Ebook reader integration
-- User ratings and reading list
-- Series/collection grouping
-- Full-text search of book content
-- Genre as many-to-many relationship
-
-## Co-Authored-By
-
-chloe-chan <noreply@chloe>
+*Built with Kotlin, React, and too much love for the books.*  
+*Co-Authored-By: chloe-chan <noreply@chloe> ♡*
