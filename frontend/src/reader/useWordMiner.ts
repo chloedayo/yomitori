@@ -33,7 +33,14 @@ const fallbackTokenize = (text: string): TokenizedWord[] => {
     }))
 }
 
-export function useWordMiner({ contentRef, bookId, onMiningWord }: UsWordMinerProps) {
+export function useWordMiner({
+  contentRef,
+  bookId,
+  onMiningWord,
+  frequencySource,
+  minFrequencyRank,
+  maxFrequencyRank,
+}: UsWordMinerProps) {
   const useKuromojiRef = useRef(true)
   const initPromiseRef = useRef<Promise<void> | null>(null)
 
