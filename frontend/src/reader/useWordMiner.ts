@@ -126,51 +126,58 @@ export function useWordMiner({
       deckName: string
     ): Promise<MinedWord[]> => {
       const minedWords: MinedWord[] = []
+      const wordKeys = Array.from(words.keys())
+      const BATCH_SIZE = 1000
 
-      for (const [key, { word, count }] of words) {
-        const displayWord = word.reading ? `${word.surface} (${word.reading})` : word.surface
-        onMiningWord?.(displayWord)
-        const dictionaryResults = await batchLookup([key])
-        const entry = dictionaryResults.get(key)
+      // Process words in batches
+      for (let i = 0; i < wordKeys.length; i += BATCH_SIZE) {
+        const batch = wordKeys.slice(i, i + BATCH_SIZE)
+        onMiningWord?.(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}...`)
 
-        if (entry) {
-          // Filter by frequency range if specified
-          if (frequencySource) {
-            const freq = entry.frequencies?.find(f => f.sourceName === frequencySource)
-            if (!freq) {
-              console.log(`Skipping ${entry.expression} - no frequency data from ${frequencySource}`)
-              continue
+        // Single API call for entire batch
+        const dictionaryResults = await batchLookup(batch)
+
+        for (const key of batch) {
+          const { word, count } = words.get(key)!
+          const entry = dictionaryResults.get(key)
+
+          if (entry) {
+            // Filter by frequency range if specified
+            if (frequencySource) {
+              const freq = entry.frequencies?.find(f => f.sourceName === frequencySource)
+              if (!freq) {
+                console.log(`Skipping ${entry.expression} - no frequency data from ${frequencySource}`)
+                continue
+              }
+
+              const inRange = (
+                (minFrequencyRank === null || minFrequencyRank === undefined || freq.frequency >= minFrequencyRank) &&
+                (maxFrequencyRank === null || maxFrequencyRank === undefined || freq.frequency <= maxFrequencyRank)
+              )
+
+              if (!inRange) {
+                console.log(`Skipping ${entry.expression} - frequency ${freq.frequency} outside range [${minFrequencyRank}, ${maxFrequencyRank}]`)
+                continue
+              }
             }
 
-            const inRange = (
-              (minFrequencyRank === null || minFrequencyRank === undefined || freq.frequency >= minFrequencyRank) &&
-              (maxFrequencyRank === null || maxFrequencyRank === undefined || freq.frequency <= maxFrequencyRank)
-            )
-
-            if (!inRange) {
-              console.log(`Skipping ${entry.expression} - frequency ${freq.frequency} outside range [${minFrequencyRank}, ${maxFrequencyRank}]`)
-              continue
+            const minedWord: MinedWord = {
+              surface: entry.expression,
+              reading: entry.reading,
+              baseForm: entry.expression,
+              frequency: count,
+              definitions: entry.definitions,
+              frequencies: entry.frequencies || [],
+              addedToAnki: false,
+              bookId,
+              minedAt: Date.now(),
             }
-          }
 
-          const minedWord: MinedWord = {
-            surface: entry.expression,
-            reading: entry.reading,
-            baseForm: entry.expression,
-            frequency: count,
-            definitions: entry.definitions,
-            frequencies: entry.frequencies || [],
-            addedToAnki: false,
-            bookId,
-            minedAt: Date.now(),
+            minedWords.push(minedWord)
+            console.log('Queueing word to Anki:', minedWord.surface)
+            ankiQueue.addToQueue(minedWord, deckName)
           }
-
-          minedWords.push(minedWord)
-          console.log('Queueing word to Anki:', minedWord.surface)
-          ankiQueue.addToQueue(minedWord, deckName)
         }
-
-        await new Promise(resolve => setTimeout(resolve, 500))
       }
 
       return minedWords.sort((a, b) => b.frequency - a.frequency)
