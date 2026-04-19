@@ -8,7 +8,6 @@
     "dev": "node src/server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "kuromoji": "*"
+    "express": "^4.18.2"
   }
 }
