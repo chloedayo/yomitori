@@ -5,22 +5,36 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 let tokenizer = null;
+let initPromise = null;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 
-// Initialize tokenizer on startup
-async function initializeTokenizer() {
-  if (tokenizer) return;
+// Initialize tokenizer on startup (callback-based)
+function initializeTokenizer() {
+  if (tokenizer) return Promise.resolve();
+  if (initPromise) return initPromise;
 
-  try {
-    const builder = kuromoji.builder({ dicPath: 'node_modules/kuromoji/dict' });
-    tokenizer = await builder.build();
-    console.log('✓ Kuromoji tokenizer initialized');
-  } catch (err) {
-    console.error('✗ Failed to initialize kuromoji:', err.message);
-    throw err;
-  }
+  initPromise = new Promise((resolve, reject) => {
+    try {
+      const builder = kuromoji.builder({ dicPath: '/app/node_modules/kuromoji/dict' });
+      builder.build(function(err, built) {
+        if (err) {
+          console.error('✗ Failed to initialize kuromoji:', err.message);
+          reject(err);
+        } else {
+          tokenizer = built;
+          console.log('✓ Kuromoji tokenizer initialized');
+          resolve();
+        }
+      });
+    } catch (err) {
+      console.error('✗ Error building tokenizer:', err.message);
+      reject(err);
+    }
+  });
+
+  return initPromise;
 }
 
 // Health check
@@ -37,6 +51,7 @@ app.post('/tokenize', async (req, res) => {
       return res.status(400).json({ error: 'Invalid input: text required' });
     }
 
+    // Ensure tokenizer is initialized
     if (!tokenizer) {
       await initializeTokenizer();
     }
@@ -66,7 +81,9 @@ app.post('/tokenize', async (req, res) => {
 // Start server
 async function start() {
   try {
-    await initializeTokenizer();
+    // Initialize tokenizer (will log success)
+    initializeTokenizer();
+
     app.listen(PORT, () => {
       console.log(`🚀 Middleware service listening on port ${PORT}`);
     });
