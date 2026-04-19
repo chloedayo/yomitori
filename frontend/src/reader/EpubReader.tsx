@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react'
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle, memo } from 'react'
 import { useSwipeGesture } from './useSwipeGesture'
 import { parseEpub } from './EpubParser'
 
@@ -16,7 +16,7 @@ export interface EpubReaderHandle {
   scrollToCharPos: (charPos: number) => void
 }
 
-export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function EpubReader(
+export const EpubReader = memo(forwardRef<EpubReaderHandle, EpubReaderProps>(function EpubReader(
   {
     file,
     fontSize,
@@ -207,4 +207,4 @@ export const EpubReader = forwardRef<EpubReaderHandle, EpubReaderProps>(function
       }}
     />
   )
-})
+}))

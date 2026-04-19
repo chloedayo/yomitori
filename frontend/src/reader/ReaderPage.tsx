@@ -129,8 +129,6 @@ export function ReaderPage() {
         }
 
         const blob = await response.blob()
-        console.log('📖 Loading EPUB:', { bookId })
-
         setFile(blob)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
@@ -144,7 +142,6 @@ export function ReaderPage() {
 
   const handleSaveBookmark = () => {
     if (bookId) {
-      console.log('💾 Save bookmark:', { bookId, currentCharPos, totalChars })
       saveBookmark(bookId, currentCharPos, totalChars)
       setBookmarkPos(currentCharPos)
     }
