@@ -29,11 +29,14 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
   const initializeTokenizer = useCallback(async () => {
     if (tokenizerRef.current) return
     try {
-      const builder = (kuromoji as any).builder()
-      tokenizerRef.current = await builder.build()
-    } catch (err) {
-      console.warn('Failed to initialize kuromoji:', err)
-      throw err
+      tokenizerRef.current = await (kuromoji as any).builder({ dicPath: '/node_modules/kuromoji/dict' }).build()
+    } catch {
+      try {
+        tokenizerRef.current = await (kuromoji as any).builder({ dicPath: 'node_modules/kuromoji/dict' }).build()
+      } catch (err) {
+        console.error('Failed to load kuromoji dictionary:', err)
+        throw err
+      }
     }
   }, [])
 
