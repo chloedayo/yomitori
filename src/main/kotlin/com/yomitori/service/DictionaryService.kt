@@ -54,4 +54,10 @@ class DictionaryService(
 
         return results
     }
+
+    fun batchLookup(words: List<String>): Map<String, List<DictionaryLookupResult>> {
+        return words.associate { word ->
+            word to lookup(word)
+        }
+    }
 }
