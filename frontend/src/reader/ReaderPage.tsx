@@ -210,7 +210,6 @@ export function ReaderPage() {
       if (bookId) {
         localStorage.setItem(`yomitori-mined-words-${bookId}`, JSON.stringify(words))
       }
-      setShowWordMiner(true)
     } catch (err) {
       console.error('Mining failed:', err)
     } finally {
@@ -324,6 +323,7 @@ export function ReaderPage() {
         onToggleFavorite={handleToggleFavorite}
         onGoBack={handleGoBack}
         onMineWords={handleToggleMining}
+        onShowWordMiner={() => setShowWordMiner(true)}
         isMining={isMining}
         minedWordCount={minedWords.length}
         currentMiningWord={currentMiningWord}

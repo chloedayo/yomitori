@@ -29,7 +29,8 @@ export function WordMinerPanel({
   })
 
   return (
-    <div className="word-miner-panel">
+    <div className="word-miner-overlay" onClick={onClose}>
+    <div className="word-miner-panel" onClick={(e) => e.stopPropagation()}>
       <div className="panel-header">
         <h2>Word Miner</h2>
         <button className="close-btn" onClick={onClose}>✕</button>
@@ -60,6 +61,7 @@ export function WordMinerPanel({
           </div>
         ))}
       </div>
+    </div>
     </div>
   )
 }

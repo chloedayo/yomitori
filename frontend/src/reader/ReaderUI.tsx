@@ -10,6 +10,7 @@ import FormatPaintIcon from '@mui/icons-material/FormatPaint'
 import HomeIcon from '@mui/icons-material/Home'
 import SchoolIcon from '@mui/icons-material/School'
 import StopIcon from '@mui/icons-material/Stop'
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'
 
 interface ReaderUIProps {
   currentCharPos: number
@@ -25,6 +26,7 @@ interface ReaderUIProps {
   onToggleFavorite: () => void
   onGoBack: () => void
   onMineWords?: () => void
+  onShowWordMiner?: () => void
   isMining?: boolean
   minedWordCount?: number
   currentMiningWord?: string | null
@@ -47,6 +49,7 @@ export function ReaderUI({
   onToggleFavorite,
   onGoBack,
   onMineWords,
+  onShowWordMiner,
   isMining = false,
   minedWordCount = 0,
   currentMiningWord = null,
@@ -161,6 +164,16 @@ export function ReaderUI({
           {isMining ? <StopIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
           {minedWordCount > 0 && <span className="btn-label">{minedWordCount}</span>}
         </button>
+        {minedWordCount > 0 && (
+          <button
+            className="font-size-btn word-miner-btn"
+            onClick={onShowWordMiner}
+            title={`Show ${minedWordCount} mined words`}
+            aria-label="Show mined words"
+          >
+            <FormatListBulletedIcon fontSize="small" />
+          </button>
+        )}
       </div>
     </div>
   )
