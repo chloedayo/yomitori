@@ -154,9 +154,7 @@
   flex-shrink: 0;
 
   @media (max-width: 600px) {
-    gap: $spacing-sm;
-    flex: 1;
-    justify-content: space-between;
+    display: none;
   }
 }
 
