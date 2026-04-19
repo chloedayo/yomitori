@@ -56,9 +56,7 @@ export function useWordMiner({
       try {
         const url = useMiddlewareProxy('/health')
         const response = await fetch(url)
-        if (response.ok) {
-          console.log('✓ Connected to middleware tokenizer')
-        } else {
+        if (!response.ok) {
           throw new Error('Middleware not ready')
         }
       } catch (err) {
@@ -154,7 +152,6 @@ export function useWordMiner({
             if (frequencySource) {
               const freq = entry.frequencies?.find(f => f.sourceName === frequencySource)
               if (!freq) {
-                console.log(`Skipping ${entry.expression} - no frequency data from ${frequencySource}`)
                 continue
               }
 
@@ -164,7 +161,6 @@ export function useWordMiner({
               )
 
               if (!inRange) {
-                console.log(`Skipping ${entry.expression} - frequency ${freq.frequency} outside range [${minFrequencyRank}, ${maxFrequencyRank}]`)
                 continue
               }
             }
@@ -182,7 +178,6 @@ export function useWordMiner({
             }
 
             minedWords.push(minedWord)
-            console.log('Queueing word to Anki:', minedWord.surface)
             ankiQueue.addToQueue(minedWord, deckName)
           }
         }
@@ -201,12 +196,6 @@ export function useWordMiner({
       // Get default deck for auto-queuing
       const decks = (await getDeckNames()) || []
       const defaultDeck = decks.find(d => d === '自動') || decks[0] || 'Default'
-      console.log('Mining to deck:', defaultDeck)
-
-      if (frequencySource) {
-        console.log(`Frequency filtering: source=${frequencySource}, range=[${minFrequencyRank}, ${maxFrequencyRank}]`)
-      }
-
       const text = extractText()
       if (!text.trim()) throw new Error('No text found in reader')
 
@@ -215,8 +204,6 @@ export function useWordMiner({
 
       const deduped = dedupeAndCount(tokens)
       const enriched = await enrichWithDefinitions(deduped, defaultDeck)
-      console.log('Mined words:', enriched)
-
       return enriched
     } catch (err) {
       console.error('Mining error:', err)

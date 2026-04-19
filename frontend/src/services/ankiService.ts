@@ -26,7 +26,6 @@ interface AnkiRequest {
 }
 
 async function invoke(action: string, params: Record<string, any> = {}): Promise<any> {
-  console.log('AnkiConnect invoke:', action, params)
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 5000)
 
@@ -79,7 +78,6 @@ export async function getDeckNames(): Promise<string[]> {
 
 export async function addNote(word: MinedWord, deckName: string): Promise<number> {
   const tags = [`yomitori-${word.bookId}`]
-  console.log('Adding note to Anki:', word, tags)
 
   return await invoke('addNote', {
     note: {

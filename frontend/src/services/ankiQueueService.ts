@@ -123,7 +123,6 @@ class AnkiQueueService {
       this.queue.shift()
       this.saveQueue()
 
-      console.log(`✓ Added to Anki: ${item.word.surface}`)
     } catch (err) {
       console.error('Failed to add word to Anki:', err, item.word)
       // Don't retry, just discard on error
