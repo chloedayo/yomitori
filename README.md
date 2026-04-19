@@ -23,8 +23,6 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 ## Important Features
 
 - **BOOKS WITH ANIME ON THE COVER**
-- **Mobile Reading:** Full LAN access from phone, responsive reader UI
-- **Proportional Swipe Navigation:** Scroll distance adapts to swipe gesture magnitude
 - **Yomitan Support:** Now you can be more dekiru by the day!
 
 ## Not-So-Important Features 
@@ -38,6 +36,8 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 - **Mobile Reader UI:** Responsive reader optimized for small screens with compact controls, stacked progress counter, centered buttons, remove bookmark feature
 - **Bookmark Management:** Save/restore reading position, remove bookmark, jump to bookmark with progress indicator
 - **Reading Modes:** Vertical (縦書き) and horizontal (横書き) text orientation with persistent preference
+- **Mobile Reading:** Full LAN access from phone, responsive reader UI
+- **Proportional Swipe Navigation:** Scroll distance adapts to swipe gesture magnitude
 
 ## Quick Start
 
