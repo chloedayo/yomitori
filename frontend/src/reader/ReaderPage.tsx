@@ -7,6 +7,7 @@ import { useCustomCSS } from './useCustomCSS'
 import { useWordMiner } from './useWordMiner'
 import { useLibrary } from '../hooks/useLibrary'
 import { useProxy } from '../hooks/useProxy'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 import { MinedWord } from '../services/ankiService'
 import { ankiQueue } from '../services/ankiQueueService'
 import './reader.css'
@@ -32,9 +33,9 @@ export function ReaderPage() {
   const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
   const { getBookmark, saveBookmark, clearBookmark, toggleFavorite, isFavorite } = useLibrary()
   const [currentMiningWord, setCurrentMiningWord] = useState<string | null>(null)
-  const [frequencySource, setFrequencySource] = useState<string | null>(null)
-  const [minFrequencyRank, setMinFrequencyRank] = useState<number | null>(null)
-  const [maxFrequencyRank, setMaxFrequencyRank] = useState<number | null>(null)
+  const [frequencySource, setFrequencySource] = useLocalStorage<string | null>('yomitori-frequency-source', null)
+  const [minFrequencyRank, setMinFrequencyRank] = useLocalStorage<number | null>('yomitori-frequency-min', null)
+  const [maxFrequencyRank, setMaxFrequencyRank] = useLocalStorage<number | null>('yomitori-frequency-max', null)
   const { mineWords, cancelMining } = useWordMiner({
     contentRef,
     bookId: bookId || '',
