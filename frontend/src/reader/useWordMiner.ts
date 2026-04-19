@@ -1,7 +1,7 @@
-import { useRef, useCallback } from 'react'
-import * as kuromoji from 'kuromoji'
+import { useRef, useCallback, useEffect } from 'react'
 import { batchLookup } from '../api/jishoClient'
 import { MinedWord } from '../services/ankiService'
+import TokenizerWorker from './tokenizer.worker?worker'
 
 export interface UsWordMinerProps {
   contentRef: React.RefObject<HTMLDivElement>
@@ -23,24 +23,59 @@ const JLPT_LEVELS: Record<string, string | null> = {
   '5': 'N5',
 }
 
+const fallbackTokenize = (text: string): TokenizedWord[] => {
+  const words = text.match(/[\p{L}\p{N}]+/gu) || []
+  return words
+    .filter(w => w.length > 1)
+    .map(word => ({
+      surface: word,
+      baseForm: word,
+      partOfSpeech: 'unknown',
+      reading: undefined,
+    }))
+}
+
 export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
-  const tokenizerRef = useRef<any | null>(null)
-  const useKuromorjiRef = useRef(true)
+  const workerRef = useRef<Worker | null>(null)
+  const useKuromojiRef = useRef(true)
+  const initPromiseRef = useRef<Promise<void> | null>(null)
 
   const initializeTokenizer = useCallback(async () => {
-    if (tokenizerRef.current) return
-    try {
-      const builder = (kuromoji as any).builder({ dicPath: '/node_modules/kuromoji/dict/' })
-      tokenizerRef.current = await builder.build()
-    } catch (err1) {
+    if (initPromiseRef.current) return initPromiseRef.current
+
+    initPromiseRef.current = (async () => {
       try {
-        const builder = (kuromoji as any).builder({ dicPath: 'node_modules/kuromoji/dict/' })
-        tokenizerRef.current = await builder.build()
-      } catch (err2) {
-        console.warn('Kuromoji unavailable in browser, using simple tokenizer')
-        useKuromorjiRef.current = false
+        workerRef.current = new TokenizerWorker()
+
+        return new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Tokenizer initialization timeout'))
+          }, 30000)
+
+          const handleMessage = (event: MessageEvent) => {
+            if (event.data.type === 'init-success') {
+              clearTimeout(timeout)
+              workerRef.current?.removeEventListener('message', handleMessage)
+              console.log('Kuromoji tokenizer initialized in worker')
+              resolve()
+            } else if (event.data.type === 'error') {
+              clearTimeout(timeout)
+              workerRef.current?.removeEventListener('message', handleMessage)
+              reject(new Error(event.data.error))
+            }
+          }
+
+          workerRef.current!.addEventListener('message', handleMessage)
+          workerRef.current!.postMessage({ type: 'init' })
+        })
+      } catch (err) {
+        console.error('Failed to initialize tokenizer worker:', err)
+        console.warn('Kuromoji unavailable, using simple tokenizer')
+        useKuromojiRef.current = false
       }
-    }
+    })()
+
+    return initPromiseRef.current
   }, [])
 
   const extractText = useCallback(() => {
@@ -54,32 +89,48 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
   }, [contentRef])
 
   const tokenizeText = useCallback(
-    (text: string): TokenizedWord[] => {
-      if (useKuromorjiRef.current && tokenizerRef.current) {
-        const tokens = tokenizerRef.current.tokenize(text)
-        return tokens
-          .filter((token: any) => {
-            const pos = token.pos[0]
-            return (pos === '名詞' || pos === '動詞' || pos === '形容詞') && token.surface.length > 1
-          })
-          .map((token: any) => ({
-            surface: token.surface,
-            baseForm: token.basic_form || token.surface,
-            partOfSpeech: token.pos[0],
-            reading: token.reading_form,
-          }))
+    async (text: string): Promise<TokenizedWord[]> => {
+      if (!useKuromojiRef.current || !workerRef.current) {
+        return fallbackTokenize(text)
       }
 
-      // Fallback: simple tokenizer (split on whitespace + punctuation)
-      const words = text.match(/[\p{L}\p{N}]+/gu) || []
-      return words
-        .filter(w => w.length > 1)
-        .map(word => ({
-          surface: word,
-          baseForm: word,
-          partOfSpeech: 'unknown',
-          reading: undefined,
-        }))
+      try {
+        return await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Tokenization timeout'))
+          }, 30000)
+
+          const handleMessage = (event: MessageEvent) => {
+            if (event.data.type === 'tokenize-success') {
+              clearTimeout(timeout)
+              workerRef.current?.removeEventListener('message', handleMessage)
+              const tokens = event.data.tokens
+              const filtered = tokens
+                .filter((token: any) => {
+                  const pos = token.pos[0]
+                  return (pos === '名詞' || pos === '動詞' || pos === '形容詞') && token.surface.length > 1
+                })
+                .map((token: any) => ({
+                  surface: token.surface,
+                  baseForm: token.basic_form || token.surface,
+                  partOfSpeech: token.pos[0],
+                  reading: token.reading_form,
+                }))
+              resolve(filtered)
+            } else if (event.data.type === 'error') {
+              clearTimeout(timeout)
+              workerRef.current?.removeEventListener('message', handleMessage)
+              reject(new Error(event.data.error))
+            }
+          }
+
+          workerRef.current!.addEventListener('message', handleMessage)
+          workerRef.current!.postMessage({ type: 'tokenize', text })
+        })
+      } catch (err) {
+        console.error('Worker tokenization failed, falling back:', err)
+        return fallbackTokenize(text)
+      }
     },
     []
   )
@@ -141,11 +192,12 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
       const text = extractText()
       if (!text.trim()) throw new Error('No text found in reader')
 
-      const tokens = tokenizeText(text)
+      const tokens = await tokenizeText(text)
       if (tokens.length === 0) throw new Error('No words could be tokenized')
 
       const deduped = dedupeAndCount(tokens)
       const enriched = await enrichWithDefinitions(deduped)
+      console.log('Mined words:', enriched)
 
       return enriched
     } catch (err) {
@@ -153,6 +205,15 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
       throw err
     }
   }, [initializeTokenizer, extractText, tokenizeText, dedupeAndCount, enrichWithDefinitions])
+
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate()
+        workerRef.current = null
+      }
+    }
+  }, [])
 
   return { mineWords }
 }
