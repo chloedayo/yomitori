@@ -9,7 +9,7 @@ import jakarta.persistence.*
 ])
 data class DictionaryEntry(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long? = null,
 
     @Column(nullable = false)
