@@ -30,6 +30,7 @@ interface ReaderUIProps {
   currentMiningWord?: string | null
   isFavorited: boolean
   hasBookmark: boolean
+  bookTitle?: string | null
 }
 
 export function ReaderUI({
@@ -51,6 +52,7 @@ export function ReaderUI({
   currentMiningWord = null,
   isFavorited,
   hasBookmark,
+  bookTitle = null,
 }: ReaderUIProps) {
   const bookmarkPercent = bookmarkPos !== null
     ? Math.abs(Math.round(-1 * (bookmarkPos / (totalChars || 1)) * 100))
@@ -58,6 +60,8 @@ export function ReaderUI({
 
   return (
     <div className="reader-ui">
+      {bookTitle && <div className="reader-book-title">{bookTitle}</div>}
+
       <div className="progress-section">
         <div className="progress-text">
           {isVertical

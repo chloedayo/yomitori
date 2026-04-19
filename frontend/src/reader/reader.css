@@ -147,6 +147,25 @@ body {
   color: #e05050 !important;
 }
 
+.reader-book-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #707070;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40%;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .reader-book-title {
+    display: none;
+  }
+}
+
 .progress-section {
   display: flex;
   align-items: center;
@@ -181,6 +200,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  position: relative;
 }
 
 @media (max-width: 480px) {
