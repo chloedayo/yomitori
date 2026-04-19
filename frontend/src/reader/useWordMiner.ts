@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react'
-import { batchLookup } from '../api/jishoClient'
+import { batchLookup, DictionaryEntry } from '../api/dictionaryClient'
 import { MinedWord, getDeckNames } from '../services/ankiService'
 import { ankiQueue } from '../services/ankiQueueService'
 import { useMiddlewareProxy } from '../hooks/useProxy'
@@ -17,13 +17,6 @@ interface TokenizedWord {
   reading?: string
 }
 
-const JLPT_LEVELS: Record<string, string | null> = {
-  '1': 'N1',
-  '2': 'N2',
-  '3': 'N3',
-  '4': 'N4',
-  '5': 'N5',
-}
 
 const fallbackTokenize = (text: string): TokenizedWord[] => {
   const words = text.match(/[\p{L}\p{N}]+/gu) || []
@@ -127,34 +120,24 @@ export function useWordMiner({ contentRef, bookId, onMiningWord }: UsWordMinerPr
       for (const [key, { word, count }] of words) {
         const displayWord = word.reading ? `${word.surface} (${word.reading})` : word.surface
         onMiningWord?.(displayWord)
-        const jishoResults = await batchLookup([key])
-        const entry = jishoResults.get(key)
+        const dictionaryResults = await batchLookup([key])
+        const entry = dictionaryResults.get(key)
 
         if (entry) {
-          const jlptTag = entry?.jlpt?.[0]
-          const jlptLevel = jlptTag ? JLPT_LEVELS[jlptTag] : null
-          const definitions =
-            entry?.senses?.[0]?.english_definitions?.slice(0, 3) || ['No definition found']
-
-          // Create card for each Japanese variant
-          const japaneseVariants = entry?.japanese || []
-          for (const variant of japaneseVariants) {
-            const minedWord: MinedWord = {
-              surface: variant?.word || '',
-              reading: variant.reading || '',
-              baseForm: variant?.word || '',
-              frequency: count,
-              jlptLevel,
-              definitions,
-              addedToAnki: false,
-              bookId,
-              minedAt: Date.now(),
-            }
-
-            minedWords.push(minedWord)
-            console.log('Queueing word to Anki:', minedWord.surface)
-            ankiQueue.addToQueue(minedWord, deckName)
+          const minedWord: MinedWord = {
+            surface: entry.expression,
+            reading: entry.reading,
+            baseForm: entry.expression,
+            frequency: count,
+            definitions: entry.definitions,
+            addedToAnki: false,
+            bookId,
+            minedAt: Date.now(),
           }
+
+          minedWords.push(minedWord)
+          console.log('Queueing word to Anki:', minedWord.surface)
+          ankiQueue.addToQueue(minedWord, deckName)
         }
 
         await new Promise(resolve => setTimeout(resolve, 500))
