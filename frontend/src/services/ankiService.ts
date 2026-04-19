@@ -77,7 +77,7 @@ export async function getDeckNames(): Promise<string[]> {
 }
 
 export async function addNote(word: MinedWord, deckName: string): Promise<number> {
-  const tags = [`yomitori-${word.bookId}`]
+  const tags = [`yomitori`]
 
   return await invoke('addNote', {
     note: {
@@ -88,24 +88,37 @@ export async function addNote(word: MinedWord, deckName: string): Promise<number
         ExpressionFurigana: word.reading,
         ExpressionReading: word.reading,
         MainDefinition: word.definitions.length > 0 ? word.definitions.join('<br>') : 'No definition found',
+        Frequency: word.frequency.toString(),
       },
       tags,
     },
   })
 }
 
-export async function addNotes(words: MinedWord[], deckName: string): Promise<number[]> {
+export async function addNotes(words: MinedWord[], deckName: string): Promise<(number | null)[]> {
+  const tags = [`yomitori`];
+
   const notes = words.map((word) => ({
     deckName,
     modelName: 'Lapis',
     fields: {
-      Front: `${word.surface}${word.reading ? ` (${word.reading})` : ''}`,
-      Back: word.definitions.length > 0 ? word.definitions.join('<br>') : 'No definition found',
+      Expression: word.surface,
+      ExpressionFurigana: word.reading,
+      ExpressionReading: word.reading,
+      MainDefinition: word.definitions.length > 0 ? word.definitions.join('<br>') : 'No definition found',
+      Frequency: word.frequency.toString(),
     },
-    tags: [
-      `yomitori-${word.bookId}`,
-    ],
+    tags,
   }))
 
-  return await invoke('addNotes', { notes })
+  try {
+    return await invoke('addNotes', { notes })
+  } catch (err: any) {
+    // AnkiConnect returns top-level error (result: null) when ALL notes are duplicates
+    // instead of [null, null, ...] — treat as all-duplicate, not a real failure
+    if (err?.message?.includes('cannot create note because it is a duplicate')) {
+      return new Array(words.length).fill(null)
+    }
+    throw err
+  }
 }
