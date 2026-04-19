@@ -3,19 +3,21 @@ import { SearchForm } from './components/SearchForm/SearchForm';
 import { HomePage } from './views/HomePage/HomePage';
 import { TitlesView } from './views/TitlesView/TitlesView';
 import { AuthorsView } from './views/AuthorsView/AuthorsView';
+import { DictionaryView } from './views/DictionaryView/DictionaryView';
 import { bookClient } from './api/bookClient';
 import { SearchParams, SearchResponse } from './types/book';
 import { APP_TITLE, APP_SUBTITLE, FOOTER_TEXT, ERROR_MESSAGES, NAV_LABELS, NAV_TITLES, DEFAULT_PAGE_SIZE } from './constants';
 import HomeIcon from '@mui/icons-material/Home';
 import ListIcon from '@mui/icons-material/List';
 import PeopleIcon from '@mui/icons-material/People';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import './styles/global.scss';
 import './App.scss';
 
 function App() {
-  const [activePage, setActivePage] = useState<'home' | 'titles' | 'authors'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'titles' | 'authors' | 'dictionary'>('home');
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -94,6 +96,12 @@ function App() {
       icon: PeopleIcon,
       title: NAV_TITLES.AUTHORS,
     },
+    {
+      id: 'dictionary',
+      label: NAV_LABELS.DICTIONARY,
+      icon: MenuBookIcon,
+      title: NAV_TITLES.DICTIONARY,
+    },
   ] as const;
 
   return (
@@ -156,6 +164,8 @@ function App() {
         {activePage === 'titles' && <TitlesView />}
 
         {activePage === 'authors' && <AuthorsView />}
+
+        {activePage === 'dictionary' && <DictionaryView />}
 
         {activePage === 'home' && (
           <HomePage
