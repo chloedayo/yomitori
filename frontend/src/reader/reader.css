@@ -132,12 +132,16 @@ body {
   }
 }
 
-.word-miner-btn {
-  @media (max-width: 600px) {
+.word-miner-btn {}
+
+@media (max-width: 600px) {
+  .word-miner-btn {
     display: none;
   }
+}
 
-  @media (pointer: coarse) {
+@media (pointer: coarse) {
+  .word-miner-btn {
     display: none;
   }
 }
