@@ -29,7 +29,7 @@ dependencies {
     implementation("org.apache.pdfbox:pdfbox:3.0.0")
     implementation("org.apache.pdfbox:pdfbox-io:3.0.0")
 
-    implementation("io.github.eb4j:eb4j:2.3.1")
+    implementation("tokyo.northside:eb4j:4.1.0")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
