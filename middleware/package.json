@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "express": "^4.18.2",
-    "kuromoji": "^0.4.2"
+    "kuromoji": "*"
   }
 }
