@@ -31,10 +31,29 @@ export async function lookupWord(word: string): Promise<DictionaryEntry | null> 
 }
 
 export async function batchLookup(words: string[]): Promise<Map<string, DictionaryEntry | null>> {
-  const results = new Map<string, DictionaryEntry | null>()
-  for (const word of words) {
-    results.set(word, await lookupWord(word))
-    await new Promise(r => setTimeout(r, 100))
+  try {
+    const url = useProxy('/api/dictionary/batch-lookup')
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words })
+    })
+    if (!response.ok) throw new Error(`Batch lookup failed: ${response.statusText}`)
+
+    const data: Record<string, DictionaryEntry[]> = await response.json()
+    const results = new Map<string, DictionaryEntry | null>()
+
+    for (const word of words) {
+      results.set(word, data[word]?.[0] ?? null)
+    }
+
+    return results
+  } catch (err) {
+    console.error('Batch lookup error:', err)
+    const results = new Map<string, DictionaryEntry | null>()
+    for (const word of words) {
+      results.set(word, null)
+    }
+    return results
   }
-  return results
 }

@@ -23,6 +23,10 @@ data class FrequencySourceDto(
     val name: String
 )
 
+data class BatchLookupRequest(
+    val words: List<String>
+)
+
 @RestController
 @RequestMapping("/api/dictionary")
 class DictionaryController(
@@ -57,6 +61,33 @@ class DictionaryController(
                     )
                 }
             )
+        }
+
+        return ResponseEntity.ok(dtos)
+    }
+
+    @PostMapping("/batch-lookup")
+    fun batchLookup(@RequestBody request: BatchLookupRequest): ResponseEntity<Map<String, List<DictionaryEntryDto>>> {
+        if (request.words.isEmpty()) {
+            return ResponseEntity.badRequest().build()
+        }
+
+        val results = dictionaryService.batchLookup(request.words)
+        val dtos = results.mapValues { (_, entries) ->
+            entries.map { result ->
+                DictionaryEntryDto(
+                    expression = result.expression,
+                    reading = result.reading,
+                    definitions = result.definitions,
+                    dictionaryName = result.dictionaryName,
+                    frequencies = result.frequencies.map { freq ->
+                        WordFrequencyDto(
+                            sourceName = freq.sourceName,
+                            frequency = freq.frequency
+                        )
+                    }
+                )
+            }
         }
 
         return ResponseEntity.ok(dtos)
