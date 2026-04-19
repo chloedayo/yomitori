@@ -143,6 +143,8 @@ export function useWordMiner({
         // Single API call for entire batch
         const dictionaryResults = await batchLookup(batch)
 
+        if (cancelledRef.current) break
+
         for (const key of batch) {
           const { count } = words.get(key)!
           const entry = dictionaryResults.get(key)
