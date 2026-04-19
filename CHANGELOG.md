@@ -2,6 +2,26 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.2.3] - 2026-04-19
+
+### Added
+- **LAN Access Support**
+  - Expose Docker container to local network (configurable via .env)
+  - Environment-driven CORS configuration
+  - Dynamic HMR host for Vite dev server (phone hot reload)
+  - Global CORS config via Spring WebConfig (replaces per-controller decorators)
+
+- **Reader UX Improvements**
+  - Proportional swipe scrolling based on gesture distance (distance × 0.6)
+  - Small swipes = small scrolls, large swipes = large scrolls
+  - Tighter horizontal mode margins: 40px → 8px left/right (desktop), 4px (mobile)
+  - Maximize screen space for reading
+
+### Fixed
+- Firefox Android viewport width detection (responsive design works with Chrome)
+- Mobile breakpoint now 600px (catches wider phones like Samsung S23)
+- Improved tablet layout: minmax 150px → 140px cards, better spacing
+
 ## [0.2.2] - 2026-04-19
 
 ### Added
