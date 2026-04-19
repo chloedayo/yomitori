@@ -19,6 +19,7 @@ interface AnkiRequest {
 }
 
 async function invoke(action: string, params: Record<string, any> = {}): Promise<any> {
+  console.log('AnkiConnect invoke:', action, params)
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 5000)
 
