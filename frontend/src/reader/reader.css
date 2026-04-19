@@ -40,7 +40,7 @@ body {
   scroll-behavior: smooth;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .reader-text {
     padding: 20px 16px;
     font-size: 16px;
@@ -49,6 +49,10 @@ body {
   .reader-text.vertical-mode {
     padding: 40px 16px;
   }
+
+  .reader-text.horizontal-mode {
+    padding: 20px 12px;
+  }
 }
 
 .reader-text::-webkit-scrollbar {
@@ -56,7 +60,7 @@ body {
   height: 8px;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .reader-text::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -83,6 +87,7 @@ body {
 .reader-text.horizontal-mode {
   writing-mode: horizontal-tb;
   direction: ltr;
+  padding: 40px 16px;
 }
 
 .reader-text.horizontal-mode::-webkit-scrollbar {
