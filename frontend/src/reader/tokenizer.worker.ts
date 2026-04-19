@@ -11,22 +11,24 @@ class CachingDictionaryLoader {
     this.basePath = basePath
   }
 
-  async load(file: string, callback: (data: ArrayBuffer) => void) {
+  loadArrayBuffer(path: string, callback: (data: ArrayBuffer | null) => void) {
+    this.loadWithCache(path).then(callback).catch((err) => {
+      console.error(`Failed to load ${path}:`, err)
+      callback(null)
+    })
+  }
+
+  private async loadWithCache(file: string): Promise<ArrayBuffer> {
     const cachedData = await this.getFromCache(file)
     if (cachedData) {
-      callback(cachedData)
-      return
+      return cachedData
     }
 
     const url = `${this.basePath}${file}`
-    try {
-      const response = await fetch(url)
-      const data = await response.arrayBuffer()
-      await this.saveToCache(file, data)
-      callback(data)
-    } catch (err) {
-      throw new Error(`Failed to load dictionary file ${file}: ${err}`)
-    }
+    const response = await fetch(url)
+    const data = await response.arrayBuffer()
+    await this.saveToCache(file, data)
+    return data
   }
 
   private async getFromCache(file: string): Promise<ArrayBuffer | null> {
