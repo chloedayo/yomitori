@@ -1,5 +1,6 @@
 import BookmarkIcon from '@mui/icons-material/Bookmark'
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'
+import ClearIcon from '@mui/icons-material/Clear'
 import KeyboardDoubleArrowUpIcon from '@mui/icons-material/KeyboardDoubleArrowUp'
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import FavoriteIcon from '@mui/icons-material/Favorite'
@@ -16,6 +17,7 @@ interface ReaderUIProps {
   onToggleOrientation: () => void
   onOpenCSSModal: () => void
   onSaveBookmark: () => void
+  onRemoveBookmark: () => void
   onJumpToBookmark: () => void
   onJumpToBeginning: () => void
   onToggleFavorite: () => void
@@ -32,6 +34,7 @@ export function ReaderUI({
   onToggleOrientation,
   onOpenCSSModal,
   onSaveBookmark,
+  onRemoveBookmark,
   onJumpToBookmark,
   onJumpToBeginning,
   onToggleFavorite,
@@ -88,6 +91,16 @@ export function ReaderUI({
         >
           <BookmarkBorderIcon fontSize="small" />
         </button>
+        {hasBookmark && (
+          <button
+            className="font-size-btn"
+            onClick={onRemoveBookmark}
+            title="Remove bookmark"
+            aria-label="Remove bookmark"
+          >
+            <ClearIcon fontSize="small" />
+          </button>
+        )}
         <button
           className="font-size-btn"
           onClick={onToggleFavorite}

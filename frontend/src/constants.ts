@@ -1,8 +1,14 @@
 // Page sizes
-export const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE_SIZE = 24;
 
 // Navigation
 export const NAV_LABELS = {
+  HOME: 'Home',
+  TITLES: 'Titles',
+  AUTHORS: 'Authors',
+} as const;
+
+export const NAV_TITLES = {
   HOME: 'Home',
   TITLES: 'Titles',
   AUTHORS: 'Authors',

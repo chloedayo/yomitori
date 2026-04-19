@@ -45,6 +45,38 @@
         width: 100%;
       }
     }
+
+    @media (max-width: 480px) {
+      flex: 1;
+      width: auto;
+
+      .search-field {
+        flex-direction: row;
+        margin-bottom: 0;
+      }
+
+      .search-input {
+        width: auto;
+        flex: 1;
+      }
+
+      .search-button {
+        width: auto;
+        padding: $spacing-sm;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+
+        .button-text {
+          display: none;
+        }
+
+        svg {
+          margin: 0;
+        }
+      }
+    }
   }
 }
 
@@ -62,4 +94,9 @@
 
 .search-button {
   @include button-primary;
+
+  .search-icon {
+    font-size: 20px;
+    color: white;
+  }
 }

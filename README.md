@@ -33,6 +33,9 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 - **Smart Filtering:** All/Favorites/In Progress tabs with smart lazy-loading
 - **REST API:** Search by title/genre/type/author with pagination, bulk filtering
 - **SQLite Database:** Local, file-based persistence with author relationships
+- **Mobile Reader UI:** Responsive reader optimized for small screens with compact controls, stacked progress counter, centered buttons, remove bookmark feature
+- **Bookmark Management:** Save/restore reading position, remove bookmark, jump to bookmark with progress indicator
+- **Reading Modes:** Vertical (縦書き) and horizontal (横書き) text orientation with persistent preference
 
 ## Quick Start
 

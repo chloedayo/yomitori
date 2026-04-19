@@ -6,6 +6,11 @@
   flex-direction: column;
   height: 100%;
   flex: 1;
+  overflow-y: auto;
+
+  @media (max-width: 480px) {
+    padding-top: 60px;
+  }
 }
 
 .header {
@@ -13,8 +18,18 @@
   align-items: center;
   padding: $spacing-lg;
   border-bottom: 1px solid $border-primary;
-  background: #0a0a0a;
+  background: $bg-dark;
   gap: $spacing-md;
+
+  @media (max-width: 480px) {
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    padding: $spacing-md;
+    gap: $spacing-sm;
+    z-index: 50;
+  }
 }
 
 .back-button {
@@ -32,18 +47,121 @@
   font-size: 18px;
 }
 
+.search-bar-wrapper {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  background: $bg-dark;
+  z-index: 50;
+
+  @media (max-width: 480px) {
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    gap: $spacing-sm;
+    padding: $spacing-md;
+    border-bottom: 1px solid $border-primary;
+    background: $bg-dark;
+  }
+}
+
+.search-bar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: $text-primary;
+  cursor: pointer;
+  padding: $spacing-md;
+  margin: 0;
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    padding: 0;
+  }
+}
+
 .search-bar {
   padding: $spacing-lg;
   border-bottom: 1px solid $border-primary;
-  background: #0a0a0a;
+  background: transparent;
   display: flex;
   align-items: center;
   gap: $spacing-md;
+  flex: 1;
+
+  @media (max-width: 480px) {
+    padding: 0;
+    border-bottom: none;
+    gap: $spacing-sm;
+    flex: 1;
+    background: transparent;
+  }
+}
+
+.search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 200;
+}
+
+.search-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: none;
+  border-radius: $border-radius-md;
+  padding: $spacing-2xl;
+  z-index: 201;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.search-modal-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -$spacing-lg;
+}
+
+.search-modal-close {
+  background: transparent;
+  border: none;
+  color: $text-primary;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-modal-input {
+  padding: $spacing-md;
+  border: none;
+  border-radius: $border-radius-sm;
+  background: transparent;
+  color: $text-primary;
+  font-size: $font-size-2xl;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+  }
 }
 
 .search-input {
-  width: 100%;
-  max-width: 300px;
+  width: 250px;
   padding: $spacing-sm $spacing-md;
   border-radius: $border-radius-sm;
   border: 1px solid $border-primary;
@@ -51,19 +169,32 @@
   color: $text-primary;
   font-size: $font-size-base;
   font-family: inherit;
+  flex-shrink: 0;
 
   &:focus {
     outline: none;
     border-color: $accent;
+  }
+
+  @media (max-width: 480px) {
+    width: auto;
+    flex-shrink: 1;
   }
 }
 
 .filter-buttons {
   display: flex;
   gap: $spacing-sm;
+  flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    gap: $spacing-sm;
+    flex: 1;
+    justify-content: space-between;
+  }
 }
 
-.filter-button {
+.authors-filter-button {
   padding: 6px 14px;
   background: $bg-darker;
   border: 1px solid $border-primary;
@@ -77,17 +208,27 @@
     border-color: $border-secondary;
   }
 
-  &.filter-button-active {
+  &.authors-filter-button-active {
     background: $accent;
     border-color: $accent;
     color: $text-primary;
+  }
+
+  @media (max-width: 480px) {
+    flex: 1;
+    padding: $spacing-sm $spacing-xs;
+    font-size: 12px;
+    text-align: center;
   }
 }
 
 .list-container {
   flex: 1;
-  overflow-y: auto;
   padding: $spacing-lg;
+
+  @media (max-width: 480px) {
+    padding: $spacing-md;
+  }
 }
 
 .author-row {
@@ -97,6 +238,11 @@
   justify-content: space-between;
   align-items: center;
   gap: $spacing-md;
+
+  @media (max-width: 480px) {
+    padding: $spacing-sm;
+    gap: $spacing-sm;
+  }
 }
 
 .author-name {
@@ -108,6 +254,10 @@
 
   &:hover {
     color: $accent;
+  }
+
+  @media (max-width: 480px) {
+    font-size: $font-size-base;
   }
 }
 

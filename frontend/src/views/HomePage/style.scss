@@ -12,8 +12,23 @@
   margin-bottom: $spacing-3xl;
   gap: 0;
 
+  @media (max-width: 480px) {
+    position: fixed;
+    top: 68px;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: $bg-dark;
+    width: 100%;
+  }
+
   .tabs-group {
     display: flex;
+    flex: 1;
+
+    @media (max-width: 480px) {
+      width: 100%;
+    }
   }
 }
 
@@ -31,6 +46,13 @@
 
   &:hover {
     color: $text-primary;
+  }
+
+  @media (max-width: 480px) {
+    flex: 1;
+    padding: $spacing-sm $spacing-sm;
+    font-size: $font-size-base;
+    text-align: center;
   }
 }
 

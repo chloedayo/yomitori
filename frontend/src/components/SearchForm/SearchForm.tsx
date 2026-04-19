@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SearchParams } from '../../types/book';
 import { SEARCH_FORM_LABELS } from './constants';
+import SearchIcon from '@mui/icons-material/Search';
 import './style.scss';
 
 interface SearchFormProps {
@@ -42,7 +43,10 @@ export function SearchForm({ onSearch, isLoading, className }: SearchFormProps) 
           disabled={isLoading || query.trim().length === 0}
           className="search-button"
         >
-          {isLoading ? SEARCH_FORM_LABELS.BUTTON_TEXT_LOADING : SEARCH_FORM_LABELS.BUTTON_TEXT}
+          <SearchIcon className="search-icon" />
+          <span className="button-text">
+            {isLoading ? SEARCH_FORM_LABELS.BUTTON_TEXT_LOADING : SEARCH_FORM_LABELS.BUTTON_TEXT}
+          </span>
         </button>
       </div>
     </div>
