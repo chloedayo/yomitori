@@ -44,6 +44,23 @@ export function ReaderPage() {
   const [minedWords, setMinedWords] = useState<MinedWord[]>([])
   const [showWordMiner, setShowWordMiner] = useState(false)
   const [isMining, setIsMining] = useState(false)
+  const [frequencySources, setFrequencySources] = useState<Array<{ id: number; name: string }>>([])
+
+  useEffect(() => {
+    const fetchFrequencySources = async () => {
+      try {
+        const url = useProxy('/api/dictionary/frequency-sources')
+        const response = await fetch(url)
+        if (response.ok) {
+          const sources = await response.json()
+          setFrequencySources(sources)
+        }
+      } catch (err) {
+        console.error('Error fetching frequency sources:', err)
+      }
+    }
+    fetchFrequencySources()
+  }, [])
 
   useEffect(() => {
     if (!bookId) return
@@ -301,18 +318,19 @@ export function ReaderPage() {
         onSave={handleSaveCSS}
         onReset={handleReset}
         error={cssError}
+        frequencySource={frequencySource}
+        onFrequencySourceChange={setFrequencySource}
+        minFrequencyRank={minFrequencyRank}
+        onMinFrequencyRankChange={setMinFrequencyRank}
+        maxFrequencyRank={maxFrequencyRank}
+        onMaxFrequencyRankChange={setMaxFrequencyRank}
+        frequencySources={frequencySources}
       />
       {showWordMiner && bookId && (
         <WordMinerPanel
           words={minedWords}
           onClose={() => setShowWordMiner(false)}
           bookId={bookId}
-          frequencySource={frequencySource}
-          onFrequencySourceChange={setFrequencySource}
-          minFrequencyRank={minFrequencyRank}
-          onMinFrequencyRankChange={setMinFrequencyRank}
-          maxFrequencyRank={maxFrequencyRank}
-          onMaxFrequencyRankChange={setMaxFrequencyRank}
         />
       )}
       </div>

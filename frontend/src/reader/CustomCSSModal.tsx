@@ -1,5 +1,10 @@
 import { useRef, useState, useEffect } from 'react'
 
+interface FrequencySource {
+  id: number
+  name: string
+}
+
 interface CustomCSSModalProps {
   isOpen: boolean
   onClose: () => void
@@ -7,6 +12,13 @@ interface CustomCSSModalProps {
   onSave: (css: string) => boolean
   onReset: () => void
   error: string | null
+  frequencySource: string | null
+  onFrequencySourceChange: (source: string | null) => void
+  minFrequencyRank: number | null
+  onMinFrequencyRankChange: (rank: number | null) => void
+  maxFrequencyRank: number | null
+  onMaxFrequencyRankChange: (rank: number | null) => void
+  frequencySources: FrequencySource[]
 }
 
 export function CustomCSSModal({
@@ -16,10 +28,17 @@ export function CustomCSSModal({
   onSave,
   onReset,
   error,
+  frequencySource,
+  onFrequencySourceChange,
+  minFrequencyRank,
+  onMinFrequencyRankChange,
+  maxFrequencyRank,
+  onMaxFrequencyRankChange,
+  frequencySources,
 }: CustomCSSModalProps) {
   const [css, setCSS] = useState(currentCSS)
   const [liveError, setLiveError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'textarea' | 'upload'>('textarea')
+  const [activeTab, setActiveTab] = useState<'textarea' | 'upload' | 'frequency'>('textarea')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<number | null>(null)
 
@@ -118,6 +137,15 @@ export function CustomCSSModal({
           >
             Upload File
           </button>
+          <button
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'frequency' ? styles.tabActive : {}),
+            }}
+            onClick={() => setActiveTab('frequency')}
+          >
+            Frequency Filter
+          </button>
         </div>
 
         <div style={styles.content}>
@@ -129,6 +157,51 @@ export function CustomCSSModal({
               placeholder="Enter custom CSS here..."
               spellCheck="false"
             />
+          ) : activeTab === 'frequency' ? (
+            <div style={styles.frequencySettings}>
+              <div style={styles.settingGroup}>
+                <label style={styles.label}>Frequency Dictionary Source</label>
+                <select
+                  value={frequencySource || ''}
+                  onChange={(e) => onFrequencySourceChange(e.target.value || null)}
+                  style={styles.select}
+                >
+                  <option value="">No filter</option>
+                  {frequencySources.map((source) => (
+                    <option key={source.id} value={source.name}>{source.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {frequencySource && (
+                <div style={styles.settingGroup}>
+                  <label style={styles.label}>Frequency Range</label>
+                  <div style={styles.rangeInputs}>
+                    <div>
+                      <label style={styles.rangeLabel}>Min Rank</label>
+                      <input
+                        type="number"
+                        value={minFrequencyRank ?? ''}
+                        onChange={(e) => onMinFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
+                        style={styles.numberInput}
+                        placeholder="Leave empty for no minimum"
+                      />
+                    </div>
+                    <div>
+                      <label style={styles.rangeLabel}>Max Rank</label>
+                      <input
+                        type="number"
+                        value={maxFrequencyRank ?? ''}
+                        onChange={(e) => onMaxFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
+                        style={styles.numberInput}
+                        placeholder="Leave empty for no maximum"
+                      />
+                    </div>
+                  </div>
+                  <p style={styles.hint}>Lower frequency rank = more common word. Leave either field empty to skip that bound.</p>
+                </div>
+              )}
+            </div>
           ) : (
             <div style={styles.uploadArea}>
               <input
@@ -353,5 +426,54 @@ const styles = {
     cursor: 'pointer',
     fontSize: '13px',
     transition: 'background-color 0.2s',
+  },
+  frequencySettings: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '20px',
+  },
+  settingGroup: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '8px',
+  },
+  label: {
+    color: '#a8a8a8',
+    fontSize: '13px',
+    fontWeight: 500,
+  },
+  select: {
+    padding: '8px 12px',
+    backgroundColor: '#2d2d2d',
+    color: '#e8e8e8',
+    border: '1px solid #404040',
+    borderRadius: '4px',
+    fontSize: '13px',
+    cursor: 'pointer',
+  },
+  rangeInputs: {
+    display: 'flex',
+    gap: '16px',
+  },
+  rangeLabel: {
+    color: '#808080',
+    fontSize: '12px',
+    display: 'block',
+    marginBottom: '4px',
+  },
+  numberInput: {
+    width: '100%',
+    padding: '8px',
+    backgroundColor: '#2d2d2d',
+    color: '#e8e8e8',
+    border: '1px solid #404040',
+    borderRadius: '4px',
+    fontSize: '13px',
+  },
+  hint: {
+    color: '#808080',
+    fontSize: '12px',
+    margin: '8px 0 0 0',
+    fontStyle: 'italic' as const,
   },
 }

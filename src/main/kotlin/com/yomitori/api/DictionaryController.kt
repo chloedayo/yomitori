@@ -1,6 +1,7 @@
 package com.yomitori.api
 
 import com.yomitori.service.DictionaryService
+import com.yomitori.repository.FrequencySourceRepository
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -17,9 +18,24 @@ data class DictionaryEntryDto(
     val frequencies: List<WordFrequencyDto> = emptyList()
 )
 
+data class FrequencySourceDto(
+    val id: Long,
+    val name: String
+)
+
 @RestController
 @RequestMapping("/api/dictionary")
-class DictionaryController(private val dictionaryService: DictionaryService) {
+class DictionaryController(
+    private val dictionaryService: DictionaryService,
+    private val frequencySourceRepository: FrequencySourceRepository
+) {
+
+    @GetMapping("/frequency-sources")
+    fun getFrequencySources(): ResponseEntity<List<FrequencySourceDto>> {
+        val sources = frequencySourceRepository.findAll()
+        val dtos = sources.map { FrequencySourceDto(it.id!!, it.name) }
+        return ResponseEntity.ok(dtos)
+    }
 
     @GetMapping("/lookup")
     fun lookup(@RequestParam word: String): ResponseEntity<List<DictionaryEntryDto>> {
