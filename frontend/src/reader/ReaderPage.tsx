@@ -33,6 +33,19 @@ export function ReaderPage() {
   const [showWordMiner, setShowWordMiner] = useState(false)
   const [isMining, setIsMining] = useState(false)
 
+  useEffect(() => {
+    if (!bookId) return
+    const stored = localStorage.getItem(`yomitori-mined-words-${bookId}`)
+    if (stored) {
+      try {
+        const words = JSON.parse(stored) as MinedWord[]
+        setMinedWords(words)
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, [bookId])
+
   const handleToggleOrientation = () => {
     const newMode = !isVertical
     setIsVertical(newMode)
@@ -145,6 +158,9 @@ export function ReaderPage() {
     try {
       const words = await mineWords()
       setMinedWords(words)
+      if (bookId) {
+        localStorage.setItem(`yomitori-mined-words-${bookId}`, JSON.stringify(words))
+      }
       setShowWordMiner(true)
     } catch (err) {
       console.error('Mining failed:', err)
