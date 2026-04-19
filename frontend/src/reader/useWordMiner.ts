@@ -29,10 +29,11 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
   const initializeTokenizer = useCallback(async () => {
     if (tokenizerRef.current) return
     try {
-      tokenizerRef.current = await (kuromoji as any).default.builder({ dicPath: '/kuromoji/dict' }).build()
+      const builder = (kuromoji as any).builder()
+      tokenizerRef.current = await builder.build()
     } catch (err) {
-      console.warn('Failed to load kuromoji dict from /kuromoji/dict, trying relative path', err)
-      tokenizerRef.current = await (kuromoji as any).default.builder().build()
+      console.warn('Failed to initialize kuromoji:', err)
+      throw err
     }
   }, [])
 
