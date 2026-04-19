@@ -8,7 +8,7 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: "1"
     ports:
-      - "8080:8080"
+      - "0.0.0.0:8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/yomitori.db
@@ -16,6 +16,8 @@ services:
       - YOMITORI_CRAWLER_SCHEDULE=0 */1 * * * ?
       - YOMITORI_CRAWLER_BOOKS_PATH=${BOOKS_PATH:-/app/data/books}
       - YOMITORI_CRAWLER_COVERS_PATH=/app/data/covers
+      - SERVER_ADDRESS=0.0.0.0
+      - YOMITORI_CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
     volumes:
       - ${BOOKS_MOUNT:-./.books}:/app/data/books:ro
       - yomitori-data:/app/data
@@ -29,9 +31,10 @@ services:
       # Use Dockerfile.prod for serving pre-built dist/ (run ./build.sh first)
       # dockerfile: Dockerfile.prod
     ports:
-      - "5173:5173"
+      - "0.0.0.0:5173:5173"
     environment:
       - DOCKER_ENV=true
+      - LAN_IP=${LAN_IP:-localhost}
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public

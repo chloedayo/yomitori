@@ -21,7 +21,7 @@ export default defineConfig({
       }
     },
     hmr: process.env.DOCKER_ENV ? {
-      host: 'localhost',
+      host: process.env.LAN_IP || 'localhost',
       port: 5173,
       protocol: 'ws',
     } : undefined,

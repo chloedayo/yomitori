@@ -10,7 +10,7 @@
   gap: $spacing-lg;
   height: 60px;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     height: 80px;
   }
 }
@@ -48,7 +48,7 @@
     color: $accent;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     font-size: 13px;
     white-space: normal;
     line-height: 1.3;
@@ -144,7 +144,7 @@
     border-color: $border-secondary;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     background: transparent;
     border: none;
     padding: $spacing-sm;

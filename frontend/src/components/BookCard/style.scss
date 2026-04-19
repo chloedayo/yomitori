@@ -9,7 +9,7 @@
   height: 420px;
   position: relative;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     height: 360px;
   }
 }
@@ -33,7 +33,7 @@
     object-fit: cover;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     height: 180px;
   }
 }
@@ -44,7 +44,7 @@
   width: 100%;
   background: linear-gradient(135deg, $bg-light-dark 0%, $bg-darker 100%);
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     height: 180px;
   }
 }
@@ -73,7 +73,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     -webkit-line-clamp: 2;
   }
 }
