@@ -1,5 +1,5 @@
 import { MinedWord } from './ankiService'
-import { checkConnection, addNote } from './ankiService'
+import { checkConnection, addNotes } from './ankiService'
 import { upsertWord } from './dictionaryStore'
 
 const STATS_KEY = 'yomitori-stats'
@@ -13,6 +13,8 @@ interface QueueItem {
   word: MinedWord
   deckName: string
 }
+
+const BATCH_SIZE = 50
 
 class AnkiQueueService {
   private queue: QueueItem[] = []
@@ -83,51 +85,60 @@ class AnkiQueueService {
 
   private async processNext() {
     if (this.queue.length === 0) return
-
     this.processing = true
-    const item = this.queue[0]
+
+    const batch = this.queue.splice(0, BATCH_SIZE)
+    this.saveQueue()
 
     try {
       const connected = await checkConnection()
       if (!connected) {
-        console.warn('Anki not connected, discarding word:', item.word.surface)
-        this.queue.shift()
-        this.saveQueue()
+        console.warn('Anki not connected, discarding batch of', batch.length)
         this.processing = false
         return
       }
 
-      await addNote(item.word, item.deckName)
-
-      // Persist to local dictionary
-      upsertWord({
-        baseForm: item.word.baseForm,
-        surface: item.word.surface,
-        reading: item.word.reading,
-        definitions: item.word.definitions,
-        frequencies: item.word.frequencies,
-        bookId: item.word.bookId,
-        minedAt: item.word.minedAt,
-      }).catch(() => {})
-
-      // Update stats
-      const bookIdx = this.stats.books.findIndex(b => b.bookId === item.word.bookId)
-      if (bookIdx >= 0) {
-        this.stats.books[bookIdx].minedCount++
-      } else {
-        this.stats.books.push({ bookId: item.word.bookId, minedCount: 1 })
+      const byDeck = new Map<string, QueueItem[]>()
+      for (const item of batch) {
+        const group = byDeck.get(item.deckName) ?? []
+        group.push(item)
+        byDeck.set(item.deckName, group)
       }
+
+      for (const [deckName, items] of byDeck) {
+        let results: (number | null)[]
+        try {
+          results = await addNotes(items.map(i => i.word), deckName)
+        } catch {
+          continue
+        }
+
+        for (let i = 0; i < items.length; i++) {
+          const { word } = items[i]
+          upsertWord({
+            baseForm: word.baseForm,
+            surface: word.surface,
+            reading: word.reading,
+            definitions: word.definitions,
+            frequencies: word.frequencies,
+            bookId: word.bookId,
+            minedAt: word.minedAt,
+          }).catch(() => {})
+
+          if (results[i] !== null) {
+            const bookIdx = this.stats.books.findIndex(b => b.bookId === word.bookId)
+            if (bookIdx >= 0) {
+              this.stats.books[bookIdx].minedCount++
+            } else {
+              this.stats.books.push({ bookId: word.bookId, minedCount: 1 })
+            }
+          }
+        }
+      }
+
       this.saveStats()
-
-      // Remove from queue
-      this.queue.shift()
-      this.saveQueue()
-
-    } catch (err) {
-      console.error('Failed to add word to Anki:', err, item.word)
-      // Don't retry, just discard on error
-      this.queue.shift()
-      this.saveQueue()
+    } catch {
+      // unexpected error — batch already removed from queue, discard
     }
 
     this.processing = false
