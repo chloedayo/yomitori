@@ -23,7 +23,6 @@ class CrawlerServiceTest {
         mockExtractor = mock()
         mockCoverExtractor = mock()
         mockConfig = mock {
-            on { enabled } doReturn true
             on { booksPath } doReturn "/books"
             on { batchSize } doReturn 100
         }

@@ -5,7 +5,7 @@ interface FrequencySource {
   name: string
 }
 
-interface CustomCSSModalProps {
+interface SettingsModalProps {
   isOpen: boolean
   onClose: () => void
   currentCSS: string
@@ -21,7 +21,7 @@ interface CustomCSSModalProps {
   frequencySources: FrequencySource[]
 }
 
-export function CustomCSSModal({
+export function SettingsModal({
   isOpen,
   onClose,
   currentCSS,
@@ -35,7 +35,7 @@ export function CustomCSSModal({
   maxFrequencyRank,
   onMaxFrequencyRankChange,
   frequencySources,
-}: CustomCSSModalProps) {
+}: SettingsModalProps) {
   const [css, setCSS] = useState(currentCSS)
   const [liveError, setLiveError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'textarea' | 'upload' | 'frequency'>('textarea')
