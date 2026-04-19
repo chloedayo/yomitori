@@ -21,7 +21,7 @@ services:
       - ANKI_CONNECT_URL=${ANKI_CONNECT_URL:-http://localhost:8765}
     volumes:
       - ${BOOKS_MOUNT:-./.books}:/app/data/books:ro
-      - ${DICTIONARIES_MOUNT:-./.dictionaries}:/app/data/dictionaries:ro
+      - ${DICTIONARIES_MOUNT:-./dictionaries}:/app/data/dictionaries:ro
       - yomitori-data:/app/data
 
   middleware:

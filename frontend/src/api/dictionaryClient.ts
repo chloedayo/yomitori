@@ -1,10 +1,16 @@
 import { useProxy } from '../hooks/useProxy'
 
+export interface WordFrequency {
+  sourceName: string
+  frequency: number
+}
+
 export interface DictionaryEntry {
   expression: string
   reading: string
   definitions: string[]
   dictionaryName: string
+  frequencies: WordFrequency[]
 }
 
 async function dictionaryLookup(word: string): Promise<DictionaryEntry | null> {
