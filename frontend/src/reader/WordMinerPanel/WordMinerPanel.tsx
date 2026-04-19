@@ -10,8 +10,6 @@ interface WordMinerPanelProps {
 }
 
 export function WordMinerPanel({ words, onClose, bookId }: WordMinerPanelProps) {
-  const [filterJlpt, setFilterJlpt] = useState<string | null>(null)
-  const [sortBy, setSortBy] = useState<'frequency' | 'jlpt'>('frequency')
   const [minedCount, setMinedCount] = useState(0)
 
   useEffect(() => {
@@ -22,13 +20,8 @@ export function WordMinerPanel({ words, onClose, bookId }: WordMinerPanelProps) 
     return () => clearInterval(interval)
   }, [bookId])
 
-  const filteredWords = words.filter(
-    (w) => !filterJlpt || w.jlptLevel === filterJlpt
-  )
-
-  const sortedWords = [...filteredWords].sort((a, b) => {
-    if (sortBy === 'frequency') return b.frequency - a.frequency
-    return (a.jlptLevel || 'Z').localeCompare(b.jlptLevel || 'Z')
+  const sortedWords = [...words].sort((a, b) => {
+    return b.frequency - a.frequency
   })
 
   return (
@@ -40,23 +33,7 @@ export function WordMinerPanel({ words, onClose, bookId }: WordMinerPanelProps) 
 
       <div className="controls">
         <div className="filter-group">
-          <label>Filter JLPT:</label>
-          <select value={filterJlpt || ''} onChange={(e) => setFilterJlpt(e.target.value || null)}>
-            <option value="">All</option>
-            <option value="N1">N1</option>
-            <option value="N2">N2</option>
-            <option value="N3">N3</option>
-            <option value="N4">N4</option>
-            <option value="N5">N5</option>
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label>Sort by:</label>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as 'frequency' | 'jlpt')}>
-            <option value="frequency">Frequency</option>
-            <option value="jlpt">JLPT Level</option>
-          </select>
+          <label>Sorted by frequency</label>
         </div>
       </div>
 
@@ -72,7 +49,6 @@ export function WordMinerPanel({ words, onClose, bookId }: WordMinerPanelProps) 
               <div className="word-header">
                 <strong>{word.surface}</strong>
                 {word.reading && <span className="reading">({word.reading})</span>}
-                {word.jlptLevel && <span className={`jlpt jlpt-${word.jlptLevel}`}>{word.jlptLevel}</span>}
               </div>
               <div className="word-definition">{word.definitions[0]}</div>
               <div className="word-meta">Freq: {word.frequency}</div>

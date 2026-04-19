@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react'
-import { batchLookup, DictionaryEntry } from '../api/dictionaryClient'
+import { batchLookup } from '../api/dictionaryClient'
 import { MinedWord, getDeckNames } from '../services/ankiService'
 import { ankiQueue } from '../services/ankiQueueService'
 import { useMiddlewareProxy } from '../hooks/useProxy'
