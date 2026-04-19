@@ -51,7 +51,7 @@ body {
   }
 
   .reader-text.horizontal-mode {
-    padding: 20px 12px;
+    padding: 20px 4px;
   }
 }
 
@@ -87,7 +87,7 @@ body {
 .reader-text.horizontal-mode {
   writing-mode: horizontal-tb;
   direction: ltr;
-  padding: 40px 16px;
+  padding: 40px 8px;
 }
 
 .reader-text.horizontal-mode::-webkit-scrollbar {
