@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react'
 import { MinedWord } from '../../services/ankiService'
-import { ankiQueue } from '../../services/ankiQueueService'
 import './style.scss'
 
 interface WordMinerPanelProps {
@@ -12,17 +10,7 @@ interface WordMinerPanelProps {
 export function WordMinerPanel({
   words,
   onClose,
-  bookId,
 }: WordMinerPanelProps) {
-  const [minedCount, setMinedCount] = useState(0)
-
-  useEffect(() => {
-    setMinedCount(ankiQueue.getMinedCount(bookId))
-    const interval = setInterval(() => {
-      setMinedCount(ankiQueue.getMinedCount(bookId))
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [bookId])
 
   const sortedWords = [...words].sort((a, b) => {
     return b.frequency - a.frequency
@@ -44,7 +32,6 @@ export function WordMinerPanel({
 
       <div className="word-count">
         {sortedWords.length} found
-        <span className="mined-indicator">✓ {minedCount} queued</span>
       </div>
 
       <div className="word-list">
