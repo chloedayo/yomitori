@@ -101,6 +101,7 @@ function App() {
       label: NAV_LABELS.DICTIONARY,
       icon: MenuBookIcon,
       title: NAV_TITLES.DICTIONARY,
+      mobileHidden: true,
     },
   ] as const;
 
@@ -118,7 +119,7 @@ function App() {
               return (
                 <button
                   key={btn.id}
-                  className={`nav-button ${activePage === btn.id ? 'nav-button-active' : ''}`}
+                  className={`nav-button ${activePage === btn.id ? 'nav-button-active' : ''}${'mobileHidden' in btn && btn.mobileHidden ? ' nav-button-mobile-hidden' : ''}`}
                   onClick={() => setActivePage(btn.id as any)}
                   title={btn.title}
                 >
@@ -144,7 +145,7 @@ function App() {
               return (
                 <button
                   key={btn.id}
-                  className={`mobile-nav-button ${activePage === btn.id ? 'mobile-nav-button-active' : ''}`}
+                  className={`mobile-nav-button ${activePage === btn.id ? 'mobile-nav-button-active' : ''}${'mobileHidden' in btn && btn.mobileHidden ? ' nav-button-mobile-hidden' : ''}`}
                   onClick={() => {
                     setActivePage(btn.id as any);
                     setMobileMenuOpen(false);

@@ -123,6 +123,12 @@
   }
 }
 
+@media (max-width: 600px), (pointer: coarse) {
+  .nav-button-mobile-hidden {
+    display: none !important;
+  }
+}
+
 .mobile-menu-toggle {
   display: none;
   background: transparent;
