@@ -36,14 +36,15 @@ class DictionaryParserService(
                     name = dictName,
                     path = zipPath.toString()
                 ))
-                logger.info("Registered dictionary: {} — entry parsing deferred (requires eb4j API finalization)", dictName)
+                logger.info("Registered dictionary: {}", dictName)
+                logger.warn("Entry parsing deferred: requires eb4j 4.1.0 API study (Book/searchWord API not matching expected signature)")
                 return true
             } catch (e: Exception) {
                 logger.error("Error registering dictionary {}: {}", zipPath.name, e.message, e)
                 return false
             }
         } catch (e: Exception) {
-            logger.error("Error importing dictionary {}: {}", zipPath.name, e.message, e)
+            logger.error("Error importing {}: {}", zipPath.name, e.message, e)
             return false
         }
     }
