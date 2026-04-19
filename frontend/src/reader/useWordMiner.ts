@@ -30,12 +30,14 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
   const initializeTokenizer = useCallback(async () => {
     if (tokenizerRef.current) return
     try {
-      tokenizerRef.current = await (kuromoji as any).builder({ dicPath: '/node_modules/kuromoji/dict' }).build()
-    } catch {
+      const builder = (kuromoji as any).builder({ dicPath: '/node_modules/kuromoji/dict/' })
+      tokenizerRef.current = await builder.build()
+    } catch (err1) {
       try {
-        tokenizerRef.current = await (kuromoji as any).builder({ dicPath: 'node_modules/kuromoji/dict' }).build()
-      } catch (err) {
-        console.warn('Kuromoji unavailable in browser, using simple tokenizer:', err)
+        const builder = (kuromoji as any).builder({ dicPath: 'node_modules/kuromoji/dict/' })
+        tokenizerRef.current = await builder.build()
+      } catch (err2) {
+        console.warn('Kuromoji unavailable in browser, using simple tokenizer')
         useKuromorjiRef.current = false
       }
     }
