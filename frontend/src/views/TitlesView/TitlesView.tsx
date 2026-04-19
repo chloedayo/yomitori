@@ -15,6 +15,7 @@ export function TitlesView() {
   const [isLoading, setIsLoading] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'favorites' | 'in-progress'>('all');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isSwitchingFilter, setIsSwitchingFilter] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { getFavorites, getInProgress } = useLibrary();
 
@@ -94,19 +95,31 @@ export function TitlesView() {
           </button>
           <div className="filter-buttons">
             <button
-              onClick={() => setFilterMode('all')}
+              onClick={() => {
+                setFilterMode('all');
+                setIsSwitchingFilter(true);
+                setTimeout(() => setIsSwitchingFilter(false), 500);
+              }}
               className={`titles-filter-button ${filterMode === 'all' ? 'titles-filter-button-active' : ''}`}
             >
               All
             </button>
             <button
-              onClick={() => setFilterMode('favorites')}
+              onClick={() => {
+                setFilterMode('favorites');
+                setIsSwitchingFilter(true);
+                setTimeout(() => setIsSwitchingFilter(false), 500);
+              }}
               className={`titles-filter-button ${filterMode === 'favorites' ? 'titles-filter-button-active' : ''}`}
             >
               Favorites
             </button>
             <button
-              onClick={() => setFilterMode('in-progress')}
+              onClick={() => {
+                setFilterMode('in-progress');
+                setIsSwitchingFilter(true);
+                setTimeout(() => setIsSwitchingFilter(false), 500);
+              }}
               className={`titles-filter-button ${filterMode === 'in-progress' ? 'titles-filter-button-active' : ''}`}
             >
               In Progress
@@ -140,7 +153,7 @@ export function TitlesView() {
       )}
 
       <div className="list-container">
-        {filteredItems.length === 0 && !isLoading && (
+        {filteredItems.length === 0 && !isLoading && !isSwitchingFilter && (
           <div className="empty-message">No titles found</div>
         )}
 
@@ -148,7 +161,7 @@ export function TitlesView() {
           <BookListRow key={book.id} book={book} />
         ))}
 
-        {isLoading && (
+        {(isLoading || isSwitchingFilter) && (
           <div className="loading-message">Loading...</div>
         )}
 
