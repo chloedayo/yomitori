@@ -3,6 +3,8 @@ import { Book } from '../../types/book';
 import { bookClient } from '../../api/bookClient';
 import { useLibrary } from '../../hooks/useLibrary';
 import { BookListRow } from '../../components/BookListRow/BookListRow';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import './style.scss';
 
 export function TitlesView() {
@@ -12,6 +14,7 @@ export function TitlesView() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'favorites' | 'in-progress'>('all');
+  const [searchOpen, setSearchOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { getFavorites, getInProgress } = useLibrary();
 
@@ -80,35 +83,61 @@ export function TitlesView() {
 
   return (
     <div className="titles-container">
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search titles..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="search-input"
-        />
-        <div className="filter-buttons">
+      <div className="search-bar-wrapper">
+        <div className="search-bar">
           <button
-            onClick={() => setFilterMode('all')}
-            className={`filter-button ${filterMode === 'all' ? 'filter-button-active' : ''}`}
+            className="search-bar-toggle"
+            onClick={() => setSearchOpen(true)}
+            title="Search titles"
           >
-            All
+            <SearchIcon sx={{ fontSize: '20px' }} />
           </button>
-          <button
-            onClick={() => setFilterMode('favorites')}
-            className={`filter-button ${filterMode === 'favorites' ? 'filter-button-active' : ''}`}
-          >
-            Favorites
-          </button>
-          <button
-            onClick={() => setFilterMode('in-progress')}
-            className={`filter-button ${filterMode === 'in-progress' ? 'filter-button-active' : ''}`}
-          >
-            In Progress
-          </button>
+          <div className="filter-buttons">
+            <button
+              onClick={() => setFilterMode('all')}
+              className={`titles-filter-button ${filterMode === 'all' ? 'titles-filter-button-active' : ''}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilterMode('favorites')}
+              className={`titles-filter-button ${filterMode === 'favorites' ? 'titles-filter-button-active' : ''}`}
+            >
+              Favorites
+            </button>
+            <button
+              onClick={() => setFilterMode('in-progress')}
+              className={`titles-filter-button ${filterMode === 'in-progress' ? 'titles-filter-button-active' : ''}`}
+            >
+              In Progress
+            </button>
+          </div>
         </div>
       </div>
+
+      {searchOpen && (
+        <>
+          <div className="search-overlay" onClick={() => setSearchOpen(false)} />
+          <div className="search-modal">
+            <div className="search-modal-header">
+              <button
+                className="search-modal-close"
+                onClick={() => setSearchOpen(false)}
+              >
+                <CloseIcon sx={{ fontSize: '24px' }} />
+              </button>
+            </div>
+            <input
+              type="text"
+              placeholder="Search titles..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="search-modal-input"
+              autoFocus
+            />
+          </div>
+        </>
+      )}
 
       <div className="list-container">
         {filteredItems.length === 0 && !isLoading && (

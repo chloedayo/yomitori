@@ -6,6 +6,8 @@ import { useLibrary } from '../../hooks/useLibrary';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import './style.scss';
 
 type ViewMode = 'list' | 'author-books';
@@ -21,6 +23,7 @@ export function AuthorsView() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [filterMode, setFilterMode] = useState<AuthorFilterMode>('all');
+  const [searchOpen, setSearchOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { isFavoriteAuthor, toggleFavoriteAuthor, getFavoriteAuthors } = useLibrary();
 
@@ -146,29 +149,55 @@ export function AuthorsView() {
 
   return (
     <div className="authors-container">
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search authors..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="search-input"
-        />
-        <div className="filter-buttons">
+      <div className="search-bar-wrapper">
+        <div className="search-bar">
           <button
-            onClick={() => setFilterMode('all')}
-            className={`filter-button ${filterMode === 'all' ? 'filter-button-active' : ''}`}
+            className="search-bar-toggle"
+            onClick={() => setSearchOpen(true)}
+            title="Search authors"
           >
-            All
+            <SearchIcon sx={{ fontSize: '20px' }} />
           </button>
-          <button
-            onClick={() => setFilterMode('favorites')}
-            className={`filter-button ${filterMode === 'favorites' ? 'filter-button-active' : ''}`}
-          >
-            Favorites
-          </button>
+          <div className="filter-buttons">
+            <button
+              onClick={() => setFilterMode('all')}
+              className={`authors-filter-button ${filterMode === 'all' ? 'authors-filter-button-active' : ''}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilterMode('favorites')}
+              className={`authors-filter-button ${filterMode === 'favorites' ? 'authors-filter-button-active' : ''}`}
+            >
+              Favorites
+            </button>
+          </div>
         </div>
       </div>
+
+      {searchOpen && (
+        <>
+          <div className="search-overlay" onClick={() => setSearchOpen(false)} />
+          <div className="search-modal">
+            <div className="search-modal-header">
+              <button
+                className="search-modal-close"
+                onClick={() => setSearchOpen(false)}
+              >
+                <CloseIcon sx={{ fontSize: '24px' }} />
+              </button>
+            </div>
+            <input
+              type="text"
+              placeholder="Search authors..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="search-modal-input"
+              autoFocus
+            />
+          </div>
+        </>
+      )}
 
       <div className="list-container">
         {filteredAuthors.length === 0 && !isLoading && (

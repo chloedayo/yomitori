@@ -24,7 +24,7 @@ export function ReaderPage() {
   const [showRestorePrompt, setShowRestorePrompt] = useState(false)
   const [bookmarkPos, setBookmarkPos] = useState<number | null>(null)
   const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
-  const { getBookmark, saveBookmark, toggleFavorite, isFavorite } = useLibrary()
+  const { getBookmark, saveBookmark, clearBookmark, toggleFavorite, isFavorite } = useLibrary()
 
   const handleToggleOrientation = () => {
     const newMode = !isVertical
@@ -113,6 +113,13 @@ export function ReaderPage() {
   const handleJumpToBeginning = () => {
     if (readerRef.current) {
       readerRef.current.scrollToCharPos(0)
+    }
+  }
+
+  const handleRemoveBookmark = () => {
+    if (bookId) {
+      clearBookmark(bookId)
+      setBookmarkPos(null)
     }
   }
 
@@ -224,6 +231,7 @@ export function ReaderPage() {
         onToggleOrientation={handleToggleOrientation}
         onOpenCSSModal={() => setIsModalOpen(true)}
         onSaveBookmark={handleSaveBookmark}
+        onRemoveBookmark={handleRemoveBookmark}
         onJumpToBookmark={handleJumpToBookmark}
         onJumpToBeginning={handleJumpToBeginning}
         onToggleFavorite={handleToggleFavorite}
@@ -263,6 +271,7 @@ const styles = {
     borderRadius: '8px',
     padding: '32px',
     maxWidth: '400px',
+    width: '90%',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
   },
   promptTitle: {
@@ -289,6 +298,7 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     transition: 'background-color 0.2s',
+    flex: 1,
   },
   btnPrimary: {
     padding: '10px 20px',
@@ -299,5 +309,6 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     transition: 'background-color 0.2s',
+    flex: 1,
   },
 }

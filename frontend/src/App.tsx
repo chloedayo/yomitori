@@ -5,11 +5,12 @@ import { TitlesView } from './views/TitlesView/TitlesView';
 import { AuthorsView } from './views/AuthorsView/AuthorsView';
 import { bookClient } from './api/bookClient';
 import { SearchParams, SearchResponse } from './types/book';
-import { APP_TITLE, APP_SUBTITLE, FOOTER_TEXT, ERROR_MESSAGES } from './constants';
-import { APP_NAV_LABELS, APP_NAV_TITLES } from './App.constants';
+import { APP_TITLE, APP_SUBTITLE, FOOTER_TEXT, ERROR_MESSAGES, NAV_LABELS, NAV_TITLES, DEFAULT_PAGE_SIZE } from './constants';
 import HomeIcon from '@mui/icons-material/Home';
 import ListIcon from '@mui/icons-material/List';
 import PeopleIcon from '@mui/icons-material/People';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import './styles/global.scss';
 import './App.scss';
 
@@ -19,6 +20,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const loadInitialBooks = async () => {
@@ -26,7 +28,7 @@ function App() {
       setError(null);
 
       try {
-        const results = await bookClient.search({ title: '', page: 0, pageSize: 20 });
+        const results = await bookClient.search({ title: '', page: 0, pageSize: DEFAULT_PAGE_SIZE });
         setSearchResults(results);
       } catch (err) {
         setError(`${ERROR_MESSAGES.LOAD_BOOKS}: ${err}`);
@@ -39,6 +41,7 @@ function App() {
   }, []);
 
   const handleSearch = async (params: SearchParams) => {
+    setActivePage('home');
     setIsLoading(true);
     setError(null);
     setCurrentPage(0);
@@ -61,7 +64,7 @@ function App() {
     try {
       const results = await bookClient.search({
         page: newPage,
-        pageSize: 20,
+        pageSize: DEFAULT_PAGE_SIZE,
       });
       setSearchResults(results);
       setCurrentPage(newPage);
@@ -75,21 +78,21 @@ function App() {
   const navButtons = [
     {
       id: 'home',
-      label: APP_NAV_LABELS.HOME,
+      label: NAV_LABELS.HOME,
       icon: HomeIcon,
-      title: APP_NAV_TITLES.HOME,
+      title: NAV_TITLES.HOME,
     },
     {
       id: 'titles',
-      label: APP_NAV_LABELS.TITLES,
+      label: NAV_LABELS.TITLES,
       icon: ListIcon,
-      title: APP_NAV_TITLES.TITLES,
+      title: NAV_TITLES.TITLES,
     },
     {
       id: 'authors',
-      label: APP_NAV_LABELS.AUTHORS,
+      label: NAV_LABELS.AUTHORS,
       icon: PeopleIcon,
-      title: APP_NAV_TITLES.AUTHORS,
+      title: NAV_TITLES.AUTHORS,
     },
   ] as const;
 
@@ -117,8 +120,36 @@ function App() {
               );
             })}
           </div>
+          <button
+            className="mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            title="Menu"
+          >
+            {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
         </div>
-        <SearchForm onSearch={handleSearch} isLoading={isLoading} className="search-form-header" />
+        {activePage === 'home' && <SearchForm onSearch={handleSearch} isLoading={isLoading} className="search-form-header" />}
+        {mobileMenuOpen && (
+          <div className="mobile-nav-menu">
+            {navButtons.map((btn) => {
+              const IconComponent = btn.icon;
+              return (
+                <button
+                  key={btn.id}
+                  className={`mobile-nav-button ${activePage === btn.id ? 'mobile-nav-button-active' : ''}`}
+                  onClick={() => {
+                    setActivePage(btn.id as any);
+                    setMobileMenuOpen(false);
+                  }}
+                  title={btn.title}
+                >
+                  <IconComponent sx={{ fontSize: '20px', marginRight: '8px' }} />
+                  {btn.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </header>
 
       <main className="app-main">

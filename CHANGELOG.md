@@ -2,6 +2,28 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.2.2] - 2026-04-19
+
+### Added
+- **Mobile Reader UI Optimization**
+  - Responsive padding adjustment (40px desktop → 16-20px mobile)
+  - Smaller scrollbar width on mobile (8px → 6px)
+  - Compact button styling with reduced padding and min-height
+  - Stacked progress counter on top of controls (mobile only)
+  - Centered control buttons with flex-wrap support
+  - Responsive font sizes (18px → 16px on mobile)
+  - Special vertical mode padding to prevent text clipping (40px top on mobile)
+
+- **Bookmark Management**
+  - Remove bookmark button with clear icon
+  - Only displays when active bookmark exists
+  - Clears bookmark and updates UI immediately
+
+### Fixed
+- Text cutoff at top of vertical reading mode on mobile
+- Reader UI controls overflow on small screens
+- Ruby text sizing (1em for ruby, 0.5em for rt)
+
 ## [0.2.1] - 2026-04-19
 
 ### Added

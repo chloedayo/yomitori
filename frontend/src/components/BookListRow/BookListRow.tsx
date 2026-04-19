@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Book } from '../../types/book';
 import { useLibrary } from '../../hooks/useLibrary';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
@@ -23,19 +23,19 @@ export function BookListRow({ book, onRead }: BookListRowProps) {
     ? Math.min(100, (Math.abs(bookProgress.progress) / bookProgress.totalChars) * 100)
     : 0;
 
-  const handleRead = () => {
+  const handleRead = useCallback(() => {
     if (onRead) {
       onRead(book.id);
     } else {
       window.open(`/reader.html?id=${book.id}`, '_blank');
     }
-  };
+  }, [book.id, onRead]);
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = useCallback(() => {
     toggleFavorite(book.id);
-  };
+  }, [book.id, toggleFavorite]);
 
-  const handleTitleMouseEnter = () => {
+  const handleTitleMouseEnter = useCallback(() => {
     if (titleButtonRef.current) {
       const rect = titleButtonRef.current.getBoundingClientRect();
       const previewHeight = 400;
@@ -57,7 +57,8 @@ export function BookListRow({ book, onRead }: BookListRowProps) {
       });
     }
     setHoveredBookId(book.id);
-  };
+  }, [book.id]);
+
 
   useEffect(() => {
     if (previewRef.current && titleButtonRef.current && hoveredBookId === book.id) {
@@ -79,10 +80,10 @@ export function BookListRow({ book, onRead }: BookListRowProps) {
     }
   }, [hoveredBookId, book.id]);
 
-  const handleTitleMouseLeave = () => {
+  const handleTitleMouseLeave = useCallback(() => {
     setHoveredBookId(null);
     setPreviewPos(null);
-  };
+  }, []);
 
   return (
     <div className="book-list-row">
@@ -112,6 +113,7 @@ export function BookListRow({ book, onRead }: BookListRowProps) {
               left: previewPos.left,
             }}
           >
+            <div className="cover-format-badge">{book.fileFormat.toUpperCase()}</div>
             <img
               src={`/api/books/cover-file/${book.id}`}
               alt={book.title}
@@ -127,7 +129,6 @@ export function BookListRow({ book, onRead }: BookListRowProps) {
             </div>
             <div className="cover-title">
               <div style={{ marginBottom: '6px' }}>{book.title}</div>
-              <div style={{ fontSize: '11px', color: '#808080' }}>{book.fileFormat}</div>
             </div>
           </div>
         )}
@@ -136,11 +137,11 @@ export function BookListRow({ book, onRead }: BookListRowProps) {
       <div className="actions-section">
         <button
           onClick={handleRead}
-          className="read-button"
+          className="list-row-read-button"
           title="Read book"
         >
           <MenuBookIcon sx={{ color: '#ffffff', fontSize: '20px', marginRight: '8px' }} />
-          Read
+          <span>Read</span>
         </button>
 
         <button
