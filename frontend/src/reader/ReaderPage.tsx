@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { EpubReader, type EpubReaderHandle } from './EpubReader'
 import { ReaderUI } from './ReaderUI'
-import { CustomCSSModal } from './CustomCSSModal'
+import { SettingsModal } from './SettingsModal'
 import { WordMinerPanel } from './WordMinerPanel/WordMinerPanel'
 import { useCustomCSS } from './useCustomCSS'
 import { useWordMiner } from './useWordMiner'
@@ -311,7 +311,7 @@ export function ReaderPage() {
         isFavorited={bookId ? isFavorite(bookId) : false}
         hasBookmark={bookmarkPos !== null}
       />
-      <CustomCSSModal
+      <SettingsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         currentCSS={css}
