@@ -162,7 +162,6 @@ export function ReaderUI({
           aria-label={isMining ? 'Stop mining' : 'Mine vocabulary'}
         >
           {isMining ? <StopIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
-          {minedWordCount > 0 && <span className="btn-label">{minedWordCount}</span>}
         </button>
         {minedWordCount > 0 && (
           <button
