@@ -136,13 +136,13 @@ body {
 
 @media (max-width: 600px) {
   .word-miner-btn {
-    display: none;
+    display: none !important;
   }
 }
 
 @media (pointer: coarse) {
   .word-miner-btn {
-    display: none;
+    display: none !important;
   }
 }
 
