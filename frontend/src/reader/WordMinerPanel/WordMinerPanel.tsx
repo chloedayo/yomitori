@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { MinedWord } from '../../services/ankiService'
 import { checkConnection, getDeckNames, addNotes } from '../../services/ankiService'
 import './style.scss'
@@ -9,7 +9,7 @@ interface WordMinerPanelProps {
   bookId: string
 }
 
-export function WordMinerPanel({ words, onClose, bookId }: WordMinerPanelProps) {
+export function WordMinerPanel({ words, onClose }: WordMinerPanelProps) {
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set())
   const [filterJlpt, setFilterJlpt] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'frequency' | 'jlpt'>('frequency')

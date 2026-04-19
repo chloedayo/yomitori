@@ -19,19 +19,36 @@ interface AnkiRequest {
 }
 
 async function invoke(action: string, params: Record<string, any> = {}): Promise<any> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 5000)
+
   try {
     const response = await fetch(ANKI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, version: 6, params } as AnkiRequest),
+      signal: controller.signal,
     })
     if (!response.ok) throw new Error(`AnkiConnect error: ${response.statusText}`)
     const result = await response.json()
     if (result.error) throw new Error(result.error)
     return result.result
-  } catch (err) {
+  } catch (err: any) {
+    const message = err?.message || String(err)
+    if (message.includes('AbortError') || message.includes('timeout')) {
+      const error = new Error('AnkiConnect not found. Is Anki running with AnkiConnect add-on?')
+      console.error('AnkiConnect timeout:', err)
+      throw error
+    }
+    if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
+      const error = new Error('AnkiConnect not found. Is Anki running with AnkiConnect add-on?')
+      console.error('AnkiConnect network error:', err)
+      throw error
+    }
     console.error('AnkiConnect invoke error:', err)
     throw err
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
