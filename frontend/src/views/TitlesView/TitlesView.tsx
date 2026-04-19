@@ -7,6 +7,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import './style.scss';
 
+const PAGE_SIZE = 50;
+
 export function TitlesView() {
   const [items, setItems] = useState<Book[]>([]);
   const [query, setQuery] = useState('');
@@ -25,7 +27,7 @@ export function TitlesView() {
         const results = await bookClient.search({
           title: query,
           page: pageNum,
-          pageSize: 50,
+          pageSize: PAGE_SIZE,
         });
 
         if (resetList) {
@@ -45,20 +47,57 @@ export function TitlesView() {
     [query]
   );
 
+  const fetchBulkPage = useCallback(
+    async (ids: string[], pageNum: number, resetList: boolean = false) => {
+      if (ids.length === 0) {
+        setItems([]);
+        setHasMore(false);
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const results = await bookClient.searchBulk(ids, pageNum, PAGE_SIZE);
+        if (resetList) {
+          setItems(results.content);
+        } else {
+          setItems((prev) => [...prev, ...results.content]);
+        }
+        setHasMore(!results.last);
+        setPage(pageNum);
+      } catch (err) {
+        console.error('Failed to fetch bulk titles:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     setItems([]);
     setPage(0);
     setHasMore(true);
-    fetchPage(0, true);
-  }, [query, fetchPage]);
+    if (filterMode === 'all') {
+      fetchPage(0, true);
+    } else if (filterMode === 'favorites') {
+      fetchBulkPage(getFavorites(), 0, true);
+    } else if (filterMode === 'in-progress') {
+      fetchBulkPage(getInProgress(), 0, true);
+    }
+  }, [query, filterMode, fetchPage, fetchBulkPage, getFavorites, getInProgress]);
 
   useEffect(() => {
     if (!sentinelRef.current) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoading && hasMore && filterMode === 'all') {
+        if (!entries[0].isIntersecting || isLoading || !hasMore) return;
+        if (filterMode === 'all') {
           fetchPage(page + 1, false);
+        } else if (filterMode === 'favorites') {
+          fetchBulkPage(getFavorites(), page + 1, false);
+        } else if (filterMode === 'in-progress') {
+          fetchBulkPage(getInProgress(), page + 1, false);
         }
       },
       { threshold: 0.1 }
@@ -66,20 +105,7 @@ export function TitlesView() {
 
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [page, isLoading, hasMore, fetchPage, filterMode]);
-
-  const favorites = getFavorites();
-  const inProgress = getInProgress();
-
-  const filteredItems = items.filter((book) => {
-    if (filterMode === 'favorites') {
-      return favorites.includes(book.id);
-    }
-    if (filterMode === 'in-progress') {
-      return inProgress.includes(book.id);
-    }
-    return true;
-  });
+  }, [page, isLoading, hasMore, fetchPage, fetchBulkPage, filterMode, getFavorites, getInProgress]);
 
   return (
     <div className="titles-container">
@@ -140,11 +166,11 @@ export function TitlesView() {
       )}
 
       <div className="list-container">
-        {filteredItems.length === 0 && !isLoading && (
+        {items.length === 0 && !isLoading && (
           <div className="empty-message">No titles found</div>
         )}
 
-        {filteredItems.map((book) => (
+        {items.map((book) => (
           <BookListRow key={book.id} book={book} />
         ))}
 
