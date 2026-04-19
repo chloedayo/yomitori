@@ -1,0 +1,14 @@
+{
+  "name": "yomitori-middleware",
+  "version": "0.1.0",
+  "description": "Yomitori middleware service (tokenization, NLP, etc)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "kuromoji": "^0.4.2"
+  }
+}

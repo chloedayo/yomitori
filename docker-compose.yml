@@ -24,6 +24,18 @@ services:
     networks:
       - yomitori-network
 
+  middleware:
+    build:
+      context: middleware
+      dockerfile: Dockerfile
+    ports:
+      - "0.0.0.0:3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    networks:
+      - yomitori-network
+
   frontend:
     build:
       context: frontend
@@ -45,6 +57,7 @@ services:
       - ./frontend/tsconfig.node.json:/app/tsconfig.node.json
     depends_on:
       - backend
+      - middleware
     networks:
       - yomitori-network
 
