@@ -23,9 +23,11 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 ## Important Features
 
 - **BOOKS WITH ANIME ON THE COVER**
-- **Yomitan Support:** Now you can be more dekiru by the day!
+- **Local Yomichan Dictionaries:** Drop Yomichan-format zips into `/dictionaries/`. No internet, no Jisho rate limits, your dictionaries stay yours.
+- **Word Mining With Frequency Filter:** Tokenize your book with Kuromoji, filter by frequency rank from any dictionary source, auto-export to Anki as you mine. 1000 words per API call — mine whole novels in seconds.
+- **Anki Integration (AnkiConnect):** Mining results stream into Anki on your LAN. Default deck + Lapis template support.
 
-## Not-So-Important Features 
+## Not-So-Important Features
 - **Smart Indexing:** Type detection from directory patterns, author extraction
 - **Reading Status Tracking:** In Progress, Favorites, Hidden tabs
 - **Author Search & Favorites:** Find books by author with autocomplete, favorite authors
@@ -38,6 +40,13 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 - **Reading Modes:** Vertical (縦書き) and horizontal (横書き) text orientation with persistent preference
 - **Mobile Reading:** Full LAN access from phone, responsive reader UI
 - **Proportional Swipe Navigation:** Scroll distance adapts to swipe gesture magnitude
+- **Custom CSS Editor:** Live preview, validation, per-user styling of the reader
+- **Unified Settings Modal:** CSS editor + frequency filter in one place
+
+## Documentation
+
+- [Architecture Deep Dive](docs/ARCHITECTURE.md) — full tech reference + API schemas
+- [Roadmap](docs/ROADMAP.md) — what's built, what's next
 
 ## Quick Start
 
@@ -111,22 +120,51 @@ cd frontend && npm install && npm run dev
 
 ## API Endpoints
 
-### Book Search & Filtering
-- `GET /api/books/search?title=...&genre=...&type=...&author=...` - Search books (supports pagination: `page=0&pageSize=20`)
-- `POST /api/books/bulk-search` - Search with multiple status filters (In Progress, Favorites, Hidden)
-- `GET /api/books/{id}` - Get book details
-- `POST /api/books/{id}/tag` - Update genre/type (manual override)
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full API schema with request/response tables.
 
-### Browse & Metadata
-- `GET /api/books/genres` - List available genres
-- `GET /api/books/types` - List available types
-- `GET /api/books/stats` - Collection statistics
-- `GET /api/authors/autocomplete?q=...` - Author search with autocomplete
-- `GET /api/authors/{id}` - Get author details
+### Quick Reference
 
-### Admin & Management
-- `POST /api/books/crawler/run` - Manually trigger the book crawler (useful for testing)
-- `POST /api/admin/authors/extract` - Retroactively extract authors from entire collection
+**Books:**
+- `GET /api/books/search?title=...&genre=...&type=...&author=...&page=0&pageSize=20`
+- `POST /api/books/search/bulk` — Search by ID list
+- `GET /api/books/{id}` | `/cover` | `/file`
+- `POST /api/books/{id}/tag` — Update genre/type
+
+**Authors:**
+- `GET /api/authors/autocomplete?query=...`
+- `GET /api/authors/{id}`
+
+**Dictionary:**
+- `GET /api/dictionary/lookup?word=...` — Single word
+- `POST /api/dictionary/batch-lookup` — `{ words: string[] }`, returns `{ [word]: DictionaryEntryDto[] }`
+- `GET /api/dictionary/frequency-sources` — List frequency dicts
+
+**Metadata:**
+- `GET /api/books/genres` | `/types` | `/stats`
+
+**Admin:**
+- `POST /api/books/crawler/run` — Trigger crawler
+- `POST /api/books/admin/extract-authors` — Retroactive author extraction
+
+**Proxy (for browser CORS workaround):**
+- `GET /api/proxy/jisho?word=...` (legacy)
+- `POST /api/proxy/anki` — Forward to AnkiConnect
+
+## Dictionaries & Word Mining
+
+Yomitori uses local **Yomichan-format dictionaries** (no internet required after import).
+
+**Setup:**
+1. Download a Yomichan dictionary zip (e.g., from [Yomichan Dictionaries](https://learnjapanese.moe/resources/) or similar)
+2. Drop the zip in `./dictionaries/`
+3. Drop frequency dictionary zips in `./dictionaries/frequency/`
+4. Restart backend — dictionaries import on startup (check logs)
+
+**Mining:**
+1. Open a book in the reader
+2. (Optional) Settings → Frequency Filter → pick source + min/max rank
+3. Click the 🎓 mine button
+4. Words auto-queue to Anki (requires AnkiConnect + Anki running on LAN)
 
 ## Configuration
 
