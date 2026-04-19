@@ -132,6 +132,16 @@ body {
   }
 }
 
+.word-miner-btn {
+  @media (max-width: 600px) {
+    display: none;
+  }
+
+  @media (pointer: coarse) {
+    display: none;
+  }
+}
+
 .reader-ui {
   background-color: #1a1a1a;
   border-top: 1px solid #404040;

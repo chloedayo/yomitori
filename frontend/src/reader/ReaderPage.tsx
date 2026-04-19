@@ -2,8 +2,11 @@ import { useEffect, useState, useRef } from 'react'
 import { EpubReader, type EpubReaderHandle } from './EpubReader'
 import { ReaderUI } from './ReaderUI'
 import { CustomCSSModal } from './CustomCSSModal'
+import { WordMinerPanel } from './WordMinerPanel/WordMinerPanel'
 import { useCustomCSS } from './useCustomCSS'
+import { useWordMiner } from './useWordMiner'
 import { useLibrary } from '../hooks/useLibrary'
+import { MinedWord } from '../services/ankiService'
 import './reader.css'
 
 export function ReaderPage() {
@@ -25,6 +28,10 @@ export function ReaderPage() {
   const [bookmarkPos, setBookmarkPos] = useState<number | null>(null)
   const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
   const { getBookmark, saveBookmark, clearBookmark, toggleFavorite, isFavorite } = useLibrary()
+  const { mineWords } = useWordMiner({ contentRef, bookId: bookId || '' })
+  const [minedWords, setMinedWords] = useState<MinedWord[]>([])
+  const [showWordMiner, setShowWordMiner] = useState(false)
+  const [isMining, setIsMining] = useState(false)
 
   const handleToggleOrientation = () => {
     const newMode = !isVertical
@@ -133,6 +140,19 @@ export function ReaderPage() {
     window.location.href = '/'
   }
 
+  const handleMineWords = async () => {
+    setIsMining(true)
+    try {
+      const words = await mineWords()
+      setMinedWords(words)
+      setShowWordMiner(true)
+    } catch (err) {
+      console.error('Mining failed:', err)
+    } finally {
+      setIsMining(false)
+    }
+  }
+
   if (loading) {
     return (
       <div
@@ -236,6 +256,9 @@ export function ReaderPage() {
         onJumpToBeginning={handleJumpToBeginning}
         onToggleFavorite={handleToggleFavorite}
         onGoBack={handleGoBack}
+        onMineWords={handleMineWords}
+        isMining={isMining}
+        minedWordCount={minedWords.length}
         isFavorited={bookId ? isFavorite(bookId) : false}
         hasBookmark={bookmarkPos !== null}
       />
@@ -247,6 +270,13 @@ export function ReaderPage() {
         onReset={handleReset}
         error={cssError}
       />
+      {showWordMiner && bookId && (
+        <WordMinerPanel
+          words={minedWords}
+          onClose={() => setShowWordMiner(false)}
+          bookId={bookId}
+        />
+      )}
       </div>
     </>
   )
