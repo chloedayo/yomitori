@@ -1,10 +1,8 @@
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback } from 'react'
 import { batchLookup } from '../api/jishoClient'
 import { MinedWord } from '../services/ankiService'
 
-const createTokenizerWorker = () => {
-  return new Worker(new URL('./tokenizer.worker.ts', import.meta.url), { type: 'module' })
-}
+const MIDDLEWARE_URL = 'http://localhost:3000'
 
 export interface UsWordMinerProps {
   contentRef: React.RefObject<HTMLDivElement>
@@ -39,7 +37,6 @@ const fallbackTokenize = (text: string): TokenizedWord[] => {
 }
 
 export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
-  const workerRef = useRef<Worker | null>(null)
   const useKuromojiRef = useRef(true)
   const initPromiseRef = useRef<Promise<void> | null>(null)
 
@@ -48,32 +45,14 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
 
     initPromiseRef.current = (async () => {
       try {
-        workerRef.current = createTokenizerWorker()
-
-        return new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Tokenizer initialization timeout'))
-          }, 30000)
-
-          const handleMessage = (event: MessageEvent) => {
-            if (event.data.type === 'init-success') {
-              clearTimeout(timeout)
-              workerRef.current?.removeEventListener('message', handleMessage)
-              console.log('Kuromoji tokenizer initialized in worker')
-              resolve()
-            } else if (event.data.type === 'error') {
-              clearTimeout(timeout)
-              workerRef.current?.removeEventListener('message', handleMessage)
-              reject(new Error(event.data.error))
-            }
-          }
-
-          workerRef.current!.addEventListener('message', handleMessage)
-          workerRef.current!.postMessage({ type: 'init' })
-        })
+        const response = await fetch(`${MIDDLEWARE_URL}/health`)
+        if (response.ok) {
+          console.log('✓ Connected to middleware tokenizer')
+        } else {
+          throw new Error('Middleware not ready')
+        }
       } catch (err) {
-        console.error('Failed to initialize tokenizer worker:', err)
-        console.warn('Kuromoji unavailable, using simple tokenizer')
+        console.warn('Middleware unavailable, using fallback regex tokenizer')
         useKuromojiRef.current = false
       }
     })()
@@ -93,45 +72,25 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
 
   const tokenizeText = useCallback(
     async (text: string): Promise<TokenizedWord[]> => {
-      if (!useKuromojiRef.current || !workerRef.current) {
+      if (!useKuromojiRef.current) {
         return fallbackTokenize(text)
       }
 
       try {
-        return await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('Tokenization timeout'))
-          }, 30000)
-
-          const handleMessage = (event: MessageEvent) => {
-            if (event.data.type === 'tokenize-success') {
-              clearTimeout(timeout)
-              workerRef.current?.removeEventListener('message', handleMessage)
-              const tokens = event.data.tokens
-              const filtered = tokens
-                .filter((token: any) => {
-                  const pos = token.pos[0]
-                  return (pos === '名詞' || pos === '動詞' || pos === '形容詞') && token.surface.length > 1
-                })
-                .map((token: any) => ({
-                  surface: token.surface,
-                  baseForm: token.basic_form || token.surface,
-                  partOfSpeech: token.pos[0],
-                  reading: token.reading_form,
-                }))
-              resolve(filtered)
-            } else if (event.data.type === 'error') {
-              clearTimeout(timeout)
-              workerRef.current?.removeEventListener('message', handleMessage)
-              reject(new Error(event.data.error))
-            }
-          }
-
-          workerRef.current!.addEventListener('message', handleMessage)
-          workerRef.current!.postMessage({ type: 'tokenize', text })
+        const response = await fetch(`${MIDDLEWARE_URL}/tokenize`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
         })
+
+        if (!response.ok) {
+          throw new Error(`Middleware error: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        return data.tokens || []
       } catch (err) {
-        console.error('Worker tokenization failed, falling back:', err)
+        console.error('Middleware tokenization failed, falling back:', err)
         return fallbackTokenize(text)
       }
     },
@@ -208,15 +167,6 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
       throw err
     }
   }, [initializeTokenizer, extractText, tokenizeText, dedupeAndCount, enrichWithDefinitions])
-
-  useEffect(() => {
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate()
-        workerRef.current = null
-      }
-    }
-  }, [])
 
   return { mineWords }
 }
