@@ -23,6 +23,8 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 ## Important Features
 
 - **BOOKS WITH ANIME ON THE COVER**
+- **Mobile Reading:** Full LAN access from phone, responsive reader UI
+- **Proportional Swipe Navigation:** Scroll distance adapts to swipe gesture magnitude
 - **Yomitan Support:** Now you can be more dekiru by the day!
 
 ## Not-So-Important Features 
@@ -53,6 +55,10 @@ cp .env.example .env
 
 # Edit .env to point to your books directory
 # Example: BOOKS_MOUNT=/path/to/your/books
+
+# For LAN access (phone/tablet), set your machine's IP:
+# LAN_IP=192.168.100.60
+# CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://192.168.100.60:5173
 ```
 
 **Start services:**
@@ -61,7 +67,7 @@ docker-compose up --build
 ```
 
 - Backend API: http://localhost:8080
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:5173 (or http://YOUR_LAN_IP:5173 on phone)
 - File server (for EPUB reading): http://localhost:8888
 
 ### Option 2: Build & Run Locally
