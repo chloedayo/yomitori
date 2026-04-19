@@ -1,5 +1,4 @@
 import * as kuromoji from '@patdx/kuromoji'
-import BrowserDictionaryLoader from '@patdx/kuromoji/browser'
 
 let tokenizer: any = null
 const CACHE_KEY = 'yomitori-kuromoji-dict'
@@ -7,7 +6,6 @@ const CACHE_VERSION = '1'
 
 class CachingDictionaryLoader {
   private basePath: string
-  private cache: Map<string, ArrayBuffer> = new Map()
 
   constructor(basePath: string) {
     this.basePath = basePath

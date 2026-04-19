@@ -1,7 +1,10 @@
 import { useRef, useCallback, useEffect } from 'react'
 import { batchLookup } from '../api/jishoClient'
 import { MinedWord } from '../services/ankiService'
-import TokenizerWorker from './tokenizer.worker?worker'
+
+const createTokenizerWorker = () => {
+  return new Worker(new URL('./tokenizer.worker.ts', import.meta.url), { type: 'module' })
+}
 
 export interface UsWordMinerProps {
   contentRef: React.RefObject<HTMLDivElement>
@@ -45,7 +48,7 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
 
     initPromiseRef.current = (async () => {
       try {
-        workerRef.current = new TokenizerWorker()
+        workerRef.current = createTokenizerWorker()
 
         return new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
