@@ -1,7 +1,10 @@
 package com.yomitori.config
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.client.RestTemplate
 import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -13,6 +16,9 @@ class WebConfig(
     @Value("\${yomitori.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
     private val allowedOrigins: String
 ) : WebMvcConfigurer {
+  @Bean
+  fun restTemplate(builder: RestTemplateBuilder): RestTemplate = builder.build()
+
   override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
     registry
       .addResourceHandler("/books/**")
