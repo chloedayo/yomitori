@@ -7,9 +7,25 @@ interface WordMinerPanelProps {
   words: MinedWord[]
   onClose: () => void
   bookId: string
+  frequencySource: string | null
+  onFrequencySourceChange: (source: string | null) => void
+  minFrequencyRank: number | null
+  onMinFrequencyRankChange: (rank: number | null) => void
+  maxFrequencyRank: number | null
+  onMaxFrequencyRankChange: (rank: number | null) => void
 }
 
-export function WordMinerPanel({ words, onClose, bookId }: WordMinerPanelProps) {
+export function WordMinerPanel({
+  words,
+  onClose,
+  bookId,
+  frequencySource,
+  onFrequencySourceChange,
+  minFrequencyRank,
+  onMinFrequencyRankChange,
+  maxFrequencyRank,
+  onMaxFrequencyRankChange,
+}: WordMinerPanelProps) {
   const [minedCount, setMinedCount] = useState(0)
 
   useEffect(() => {
@@ -32,6 +48,35 @@ export function WordMinerPanel({ words, onClose, bookId }: WordMinerPanelProps) 
       </div>
 
       <div className="controls">
+        <div className="filter-group">
+          <label>Frequency filtering</label>
+          <select value={frequencySource || ''} onChange={(e) => onFrequencySourceChange(e.target.value || null)}>
+            <option value="">No filter</option>
+            {[...new Set(words.flatMap(w => w.frequencies.map(f => f.sourceName)))].map(source => (
+              <option key={source} value={source}>{source}</option>
+            ))}
+          </select>
+        </div>
+        {frequencySource && (
+          <div className="filter-group">
+            <label>Frequency range</label>
+            <div className="range-inputs">
+              <input
+                type="number"
+                placeholder="Min"
+                value={minFrequencyRank ?? ''}
+                onChange={(e) => onMinFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
+              />
+              <span>to</span>
+              <input
+                type="number"
+                placeholder="Max"
+                value={maxFrequencyRank ?? ''}
+                onChange={(e) => onMaxFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
+              />
+            </div>
+          </div>
+        )}
         <div className="filter-group">
           <label>Sorted by frequency</label>
         </div>
