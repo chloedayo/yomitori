@@ -106,7 +106,7 @@ export function useWordMiner({
     []
   )
 
-  const isKanaOnly = (str: string) => /^[\u3041-\u3096]+$/.test(str)
+  const isKanaOnly = (str: string) => /^[\u3041-\u30FF\u30FC]+$/.test(str)
 
   const dedupeAndCount = useCallback(
     (words: TokenizedWord[]): Map<string, { word: TokenizedWord; count: number }> => {
