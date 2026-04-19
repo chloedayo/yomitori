@@ -1,5 +1,6 @@
 import { MinedWord } from './ankiService'
 import { checkConnection, addNote } from './ankiService'
+import { upsertWord } from './dictionaryStore'
 
 const STATS_KEY = 'yomitori-stats'
 const QUEUE_KEY = 'yomitori-anki-queue'
@@ -97,6 +98,17 @@ class AnkiQueueService {
       }
 
       await addNote(item.word, item.deckName)
+
+      // Persist to local dictionary
+      upsertWord({
+        baseForm: item.word.baseForm,
+        surface: item.word.surface,
+        reading: item.word.reading,
+        definitions: item.word.definitions,
+        frequencies: item.word.frequencies,
+        bookId: item.word.bookId,
+        minedAt: item.word.minedAt,
+      }).catch(() => {})
 
       // Update stats
       const bookIdx = this.stats.books.findIndex(b => b.bookId === item.word.bookId)

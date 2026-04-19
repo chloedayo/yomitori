@@ -6,12 +6,14 @@ export const NAV_LABELS = {
   HOME: 'Home',
   TITLES: 'Titles',
   AUTHORS: 'Authors',
+  DICTIONARY: 'Dictionary',
 } as const;
 
 export const NAV_TITLES = {
   HOME: 'Home',
   TITLES: 'Titles',
   AUTHORS: 'Authors',
+  DICTIONARY: 'Dictionary',
 } as const;
 
 // Tabs
