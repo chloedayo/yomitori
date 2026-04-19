@@ -2,6 +2,7 @@ package com.yomitori.api
 
 import com.yomitori.service.DictionaryService
 import com.yomitori.repository.FrequencySourceRepository
+import com.fasterxml.jackson.annotation.JsonCreator
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -23,7 +24,7 @@ data class FrequencySourceDto(
     val name: String
 )
 
-data class BatchLookupRequest(
+data class BatchLookupRequest @JsonCreator constructor(
     val words: List<String>
 )
 
