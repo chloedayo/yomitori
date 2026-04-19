@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react'
 import { batchLookup } from '../api/jishoClient'
-import { MinedWord } from '../services/ankiService'
+import { MinedWord, getDeckNames } from '../services/ankiService'
+import { ankiQueue } from '../services/ankiQueueService'
 
 const MIDDLEWARE_URL = 'http://localhost:3000'
 
@@ -116,7 +117,8 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
 
   const enrichWithDefinitions = useCallback(
     async (
-      words: Map<string, { word: TokenizedWord; count: number }>
+      words: Map<string, { word: TokenizedWord; count: number }>,
+      deckName: string
     ): Promise<MinedWord[]> => {
       const wordKeys = Array.from(words.keys())
       const jishoResults = await batchLookup(wordKeys)
@@ -129,7 +131,7 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
         const definitions =
           entry?.senses?.[0]?.english_definitions?.slice(0, 3) || ['No definition found']
 
-        minedWords.push({
+        const minedWord: MinedWord = {
           surface: word.surface,
           reading: word.reading || '',
           baseForm: word.baseForm,
@@ -139,7 +141,11 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
           addedToAnki: false,
           bookId,
           minedAt: Date.now(),
-        })
+        }
+
+        minedWords.push(minedWord)
+        // Auto-queue to Anki immediately after Jisho lookup
+        ankiQueue.addToQueue(minedWord, deckName)
       })
 
       return minedWords.sort((a, b) => b.frequency - a.frequency)
@@ -151,6 +157,10 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
     try {
       await initializeTokenizer()
 
+      // Get default deck for auto-queuing
+      const decks = await getDeckNames()
+      const defaultDeck = decks[0] || 'Default'
+
       const text = extractText()
       if (!text.trim()) throw new Error('No text found in reader')
 
@@ -158,7 +168,7 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
       if (tokens.length === 0) throw new Error('No words could be tokenized')
 
       const deduped = dedupeAndCount(tokens)
-      const enriched = await enrichWithDefinitions(deduped)
+      const enriched = await enrichWithDefinitions(deduped, defaultDeck)
       console.log('Mined words:', enriched)
 
       return enriched

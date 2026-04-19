@@ -2,19 +2,19 @@
   "name": "yomitori-middleware",
   "version": "0.1.0",
   "description": "Yomitori middleware service",
+  "type": "module",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "NODE_OPTIONS=--max-old-space-size=8192 tsc",
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts"
   },
   "dependencies": {
-    "restify": "^11.1.0",
-    "restify-cors-middleware": "^1.1.1"
+    "@patdx/kuromoji": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/restify": "^8.5.11",
+    "@types/restify": "^8.5.12",
     "typescript": "^5.0.0"
   }
 }
