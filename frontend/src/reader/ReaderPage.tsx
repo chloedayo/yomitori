@@ -6,6 +6,7 @@ import { WordMinerPanel } from './WordMinerPanel/WordMinerPanel'
 import { useCustomCSS } from './useCustomCSS'
 import { useWordMiner } from './useWordMiner'
 import { useLibrary } from '../hooks/useLibrary'
+import { useProxy } from '../hooks/useProxy'
 import { MinedWord } from '../services/ankiService'
 import './reader.css'
 
@@ -28,7 +29,8 @@ export function ReaderPage() {
   const [bookmarkPos, setBookmarkPos] = useState<number | null>(null)
   const { css, error: cssError, scopeCSS, handleSaveCSS, handleReset } = useCustomCSS()
   const { getBookmark, saveBookmark, clearBookmark, toggleFavorite, isFavorite } = useLibrary()
-  const { mineWords } = useWordMiner({ contentRef, bookId: bookId || '' })
+  const [currentMiningWord, setCurrentMiningWord] = useState<string | null>(null)
+  const { mineWords } = useWordMiner({ contentRef, bookId: bookId || '', onMiningWord: setCurrentMiningWord })
   const [minedWords, setMinedWords] = useState<MinedWord[]>([])
   const [showWordMiner, setShowWordMiner] = useState(false)
   const [isMining, setIsMining] = useState(false)
@@ -83,7 +85,8 @@ export function ReaderPage() {
         }
 
         // Fetch file from API endpoint (CORS-safe via proxy)
-        const response = await fetch(`/api/books/${id}/file`)
+        const url = useProxy(`/api/books/${id}/file`)
+        const response = await fetch(url)
         if (!response.ok) {
           throw new Error(`Failed to fetch book: ${response.status}`)
         }
@@ -155,6 +158,7 @@ export function ReaderPage() {
 
   const handleMineWords = async () => {
     setIsMining(true)
+    setCurrentMiningWord(null)
     try {
       const words = await mineWords()
       setMinedWords(words)
@@ -166,6 +170,7 @@ export function ReaderPage() {
       console.error('Mining failed:', err)
     } finally {
       setIsMining(false)
+      setCurrentMiningWord(null)
     }
   }
 
@@ -275,6 +280,7 @@ export function ReaderPage() {
         onMineWords={handleMineWords}
         isMining={isMining}
         minedWordCount={minedWords.length}
+        currentMiningWord={currentMiningWord}
         isFavorited={bookId ? isFavorite(bookId) : false}
         hasBookmark={bookmarkPos !== null}
       />

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -7,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         BUILDKIT_INLINE_CACHE: "1"
+    network_mode: host
     ports:
       - "0.0.0.0:8080:8080"
     environment:
@@ -18,11 +17,10 @@ services:
       - YOMITORI_CRAWLER_COVERS_PATH=/app/data/covers
       - SERVER_ADDRESS=0.0.0.0
       - YOMITORI_CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      - ANKI_CONNECT_URL=${ANKI_CONNECT_URL:-http://localhost:8765}
     volumes:
       - ${BOOKS_MOUNT:-./.books}:/app/data/books:ro
       - yomitori-data:/app/data
-    networks:
-      - yomitori-network
 
   middleware:
     build:
@@ -54,6 +52,8 @@ services:
     environment:
       - DOCKER_ENV=true
       - LAN_IP=${LAN_IP:-localhost}
+      - VITE_BACKEND_URL=http://localhost:8080
+      - VITE_MIDDLEWARE_URL=http://localhost:3000
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public

@@ -26,6 +26,7 @@ interface ReaderUIProps {
   onMineWords?: () => void
   isMining?: boolean
   minedWordCount?: number
+  currentMiningWord?: string | null
   isFavorited: boolean
   hasBookmark: boolean
 }
@@ -46,6 +47,7 @@ export function ReaderUI({
   onMineWords,
   isMining = false,
   minedWordCount = 0,
+  currentMiningWord = null,
   isFavorited,
   hasBookmark,
 }: ReaderUIProps) {
@@ -151,6 +153,9 @@ export function ReaderUI({
           {minedWordCount > 0 && <span className="btn-label">{minedWordCount}</span>}
         </button>
       </div>
+      {currentMiningWord && isMining && (
+        <div className="mining-status">Mining: {currentMiningWord}</div>
+      )}
     </div>
   )
 }

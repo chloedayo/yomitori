@@ -1,3 +1,5 @@
+import { useProxy } from '../hooks/useProxy';
+
 export interface JishoSearchResult {
   data: JishoEntry[]
 }
@@ -24,7 +26,8 @@ export interface Sense {
 }
 
 async function jishoProxy(word: string): Promise<JishoSearchResult> {
-  const response = await fetch(`/api/proxy/jisho?word=${encodeURIComponent(word)}`)
+  const url = useProxy(`/api/proxy/jisho?word=${encodeURIComponent(word)}`)
+  const response = await fetch(url)
   if (!response.ok) throw new Error(`Jisho lookup failed: ${response.statusText}`)
   return response.json()
 }
