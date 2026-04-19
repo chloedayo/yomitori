@@ -4,8 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.core.type.TypeReference
 import com.yomitori.model.DictionaryEntry
 import com.yomitori.model.DictionaryImport
+import com.yomitori.model.FrequencySource
+import com.yomitori.model.WordFrequency
 import com.yomitori.repository.DictionaryEntryRepository
 import com.yomitori.repository.DictionaryImportRepository
+import com.yomitori.repository.FrequencySourceRepository
+import com.yomitori.repository.WordFrequencyRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,6 +17,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
+import java.time.LocalDateTime
 import java.util.zip.ZipFile
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.name
@@ -21,6 +26,8 @@ import kotlin.io.path.name
 class DictionaryParserService(
     private val importRepository: DictionaryImportRepository,
     private val entryRepository: DictionaryEntryRepository,
+    private val frequencySourceRepository: FrequencySourceRepository,
+    private val wordFrequencyRepository: WordFrequencyRepository,
     private val objectMapper: ObjectMapper
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -185,6 +192,126 @@ class DictionaryParserService(
             }
             is List<*> -> content.forEach { extractTextFromContent(it, sb) }
         }
+    }
+
+    fun loadFrequencyDictionaries() {
+        val frequencyDir = File("/app/data/dictionaries/frequency")
+
+        if (!frequencyDir.exists()) {
+            logger.debug("Frequency dictionary folder not found at {}", frequencyDir.absolutePath)
+            return
+        }
+
+        val freqZipFiles = frequencyDir.listFiles { file ->
+            file.name.endsWith(".zip")
+        }?.sortedBy { it.name } ?: emptyList()
+
+        if (freqZipFiles.isEmpty()) {
+            logger.debug("No frequency zip files found in {}", frequencyDir.absolutePath)
+            return
+        }
+
+        freqZipFiles.forEach { zipFile ->
+            loadFrequencyDictionary(zipFile)
+        }
+    }
+
+    @Transactional
+    private fun loadFrequencyDictionary(zipFile: File) {
+        val dictName = zipFile.name.substringBeforeLast(".zip")
+
+        // Check if already loaded
+        if (frequencySourceRepository.findByName(dictName) != null) {
+            logger.info("Frequency dictionary already loaded: {}", dictName)
+            return
+        }
+
+        logger.info("Loading frequency dictionary: {}", dictName)
+
+        val tempDir = Files.createTempDirectory("yomitori-freq-")
+        try {
+            unzipFile(zipFile, tempDir.toFile())
+
+            // Create frequency source entry
+            val source = frequencySourceRepository.save(FrequencySource(
+                name = dictName,
+                path = zipFile.absolutePath,
+                loadedAt = LocalDateTime.now()
+            ))
+
+            val metaBankFiles = tempDir.toFile().listFiles { file ->
+                file.name.matches(Regex("term_meta_bank_\\d+\\.json"))
+            }?.sortedBy { it.name } ?: emptyList()
+
+            var totalFreq = 0
+            val batchSize = 1000
+            val batch = mutableListOf<WordFrequency>()
+
+            metaBankFiles.forEach { file ->
+                try {
+                    val entries: List<Any> = objectMapper.readValue(file, object : TypeReference<List<Any>>() {})
+                    entries.forEach { entryObj ->
+                        val entry = entryObj as? List<*> ?: return@forEach
+                        if (entry.size >= 2) {
+                            val expression = entry[0] as? String
+                            val mode = entry[1] as? String
+
+                            if (expression != null && mode == "freq") {
+                                val (reading, frequency) = parseFrequencyEntry(entry)
+
+                                if (frequency != null) {
+                                    batch.add(WordFrequency(
+                                        word = expression,
+                                        reading = reading,
+                                        frequency = frequency,
+                                        sourceId = source.id!!
+                                    ))
+                                    totalFreq++
+
+                                    if (batch.size >= batchSize) {
+                                        wordFrequencyRepository.saveAll(batch)
+                                        batch.clear()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Error parsing frequency file {}: {}", file.name, e.message)
+                }
+            }
+
+            if (batch.isNotEmpty()) {
+                wordFrequencyRepository.saveAll(batch)
+            }
+
+            logger.info("Loaded {} frequency entries from {}", totalFreq, dictName)
+        } finally {
+            @OptIn(kotlin.io.path.ExperimentalPathApi::class)
+            tempDir.deleteRecursively()
+        }
+    }
+
+    private fun parseFrequencyEntry(entry: List<*>): Pair<String, Long?> {
+        val freqData = entry.getOrNull(2) as? Map<*, *> ?: return Pair("", null)
+
+        val reading = when {
+            freqData.containsKey("reading") -> (freqData["reading"] as? String) ?: ""
+            else -> ""
+        }
+
+        val frequency = when {
+            freqData.containsKey("frequency") -> {
+                val freqObj = freqData["frequency"] as? Map<*, *>
+                (freqObj?.get("value") as? Number)?.toLong()
+            }
+            freqData.containsKey("value") -> {
+                (freqData["value"] as? Number)?.toLong()
+            }
+            else -> null
+        }
+
+        return Pair(reading, frequency)
     }
 
     private fun hashPath(path: String): String {

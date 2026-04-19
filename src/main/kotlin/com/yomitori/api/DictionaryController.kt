@@ -4,11 +4,17 @@ import com.yomitori.service.DictionaryService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
+data class WordFrequencyDto(
+    val sourceName: String,
+    val frequency: Long
+)
+
 data class DictionaryEntryDto(
     val expression: String,
     val reading: String,
     val definitions: List<String>,
-    val dictionaryName: String
+    val dictionaryName: String,
+    val frequencies: List<WordFrequencyDto> = emptyList()
 )
 
 @RestController
@@ -27,7 +33,13 @@ class DictionaryController(private val dictionaryService: DictionaryService) {
                 expression = result.expression,
                 reading = result.reading,
                 definitions = result.definitions,
-                dictionaryName = result.dictionaryName
+                dictionaryName = result.dictionaryName,
+                frequencies = result.frequencies.map { freq ->
+                    WordFrequencyDto(
+                        sourceName = freq.sourceName,
+                        frequency = freq.frequency
+                    )
+                }
             )
         }
 

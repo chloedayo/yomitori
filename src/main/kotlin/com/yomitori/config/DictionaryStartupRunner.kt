@@ -51,6 +51,10 @@ class DictionaryStartupRunner(
             }
 
             logger.info("Dictionary startup complete: imported {}, skipped {}", importedCount, skippedCount)
+
+            // Load frequency dictionaries
+            logger.info("Loading frequency dictionaries...")
+            parserService.loadFrequencyDictionaries()
         } catch (e: Exception) {
             logger.error("Error during dictionary import: {}", e.message, e)
         }
