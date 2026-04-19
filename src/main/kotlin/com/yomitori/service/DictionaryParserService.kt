@@ -29,7 +29,6 @@ class DictionaryParserService(
             logger.info("Starting import of dictionary: {}", zipPath.name)
 
             val dictName = zipPath.name.substringBeforeLast(".")
-            val entryCount = 0
 
             try {
                 importRepository.save(DictionaryImport(
@@ -37,7 +36,7 @@ class DictionaryParserService(
                     name = dictName,
                     path = zipPath.toString()
                 ))
-                logger.info("Registered dictionary: {} (parsing deferred)", dictName)
+                logger.info("Registered dictionary: {} — entry parsing deferred (requires eb4j API finalization)", dictName)
                 return true
             } catch (e: Exception) {
                 logger.error("Error registering dictionary {}: {}", zipPath.name, e.message, e)
