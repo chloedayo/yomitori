@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/authors")
-@CrossOrigin(origins = ["http://localhost:5173", "http://localhost:3000"])
 class AuthorController(
     private val authorRepository: AuthorRepository,
     private val bookAuthorRepository: BookAuthorRepository

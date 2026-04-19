@@ -28,7 +28,6 @@ data class TagUpdateRequest(
 
 @RestController
 @RequestMapping("/api/books")
-@CrossOrigin(origins = ["http://localhost:5173", "http://localhost:3000"])
 class BookController(
     private val bookService: BookService,
     private val crawlerService: CrawlerService,

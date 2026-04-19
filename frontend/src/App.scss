@@ -16,7 +16,7 @@
   gap: $spacing-xl;
   box-shadow: $shadow-header;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     position: fixed;
     top: 0;
     left: 0;
@@ -33,7 +33,7 @@
     gap: $spacing-xl;
     flex: 0 1 auto;
 
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
       flex: 0 0 auto;
       gap: $spacing-sm;
       order: -2;
@@ -47,7 +47,7 @@
       font-size: $font-size-2xl;
       margin-bottom: 0.25rem;
 
-      @media (max-width: 480px) {
+      @media (max-width: 600px) {
         font-size: $font-size-xl;
       }
     }
@@ -57,7 +57,7 @@
       opacity: 0.9;
       margin: 0;
 
-      @media (max-width: 480px) {
+      @media (max-width: 600px) {
         font-size: $font-size-sm;
       }
     }
@@ -88,7 +88,7 @@
     }
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     flex-direction: row;
 
     .header-wrapper {
@@ -118,7 +118,7 @@
     color: $text-primary;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     display: none;
   }
 }
@@ -133,7 +133,7 @@
   margin-left: auto;
   flex-shrink: 0;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -151,7 +151,7 @@
   flex-direction: column;
   gap: $spacing-sm;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     display: flex;
     position: fixed;
     top: 80px;
@@ -175,7 +175,7 @@
   cursor: pointer;
   transition: $transition;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     font-size: $font-size-sm;
     padding: $spacing-xs $spacing-sm;
   }
@@ -196,7 +196,7 @@
   margin: 0 auto;
   padding: $spacing-3xl $spacing-lg;
 
-  @media (max-width: 480px) {
+  @media (max-width: 600px) {
     padding: $spacing-lg $spacing-md;
     margin-top: 80px;
   }
