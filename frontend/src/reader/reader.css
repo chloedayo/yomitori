@@ -147,6 +147,12 @@ body {
   color: #e05050 !important;
 }
 
+@media (max-width: 600px), (pointer: coarse) {
+  .settings-tab-frequency {
+    display: none !important;
+  }
+}
+
 .reader-book-title {
   position: absolute;
   left: 50%;

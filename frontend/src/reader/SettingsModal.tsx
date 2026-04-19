@@ -138,6 +138,7 @@ export function SettingsModal({
             Upload File
           </button>
           <button
+            className="settings-tab-frequency"
             style={{
               ...styles.tab,
               ...(activeTab === 'frequency' ? styles.tabActive : {}),
