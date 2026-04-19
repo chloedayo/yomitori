@@ -25,6 +25,7 @@ const JLPT_LEVELS: Record<string, string | null> = {
 
 export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
   const tokenizerRef = useRef<any | null>(null)
+  const useKuromorjiRef = useRef(true)
 
   const initializeTokenizer = useCallback(async () => {
     if (tokenizerRef.current) return
@@ -34,8 +35,8 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
       try {
         tokenizerRef.current = await (kuromoji as any).builder({ dicPath: 'node_modules/kuromoji/dict' }).build()
       } catch (err) {
-        console.error('Failed to load kuromoji dictionary:', err)
-        throw err
+        console.warn('Kuromoji unavailable in browser, using simple tokenizer:', err)
+        useKuromorjiRef.current = false
       }
     }
   }, [])
@@ -52,18 +53,30 @@ export function useWordMiner({ contentRef, bookId }: UsWordMinerProps) {
 
   const tokenizeText = useCallback(
     (text: string): TokenizedWord[] => {
-      if (!tokenizerRef.current) return []
-      const tokens = tokenizerRef.current.tokenize(text)
-      return tokens
-        .filter((token: any) => {
-          const pos = token.pos[0]
-          return (pos === '名詞' || pos === '動詞' || pos === '形容詞') && token.surface.length > 1
-        })
-        .map((token: any) => ({
-          surface: token.surface,
-          baseForm: token.basic_form || token.surface,
-          partOfSpeech: token.pos[0],
-          reading: token.reading_form,
+      if (useKuromorjiRef.current && tokenizerRef.current) {
+        const tokens = tokenizerRef.current.tokenize(text)
+        return tokens
+          .filter((token: any) => {
+            const pos = token.pos[0]
+            return (pos === '名詞' || pos === '動詞' || pos === '形容詞') && token.surface.length > 1
+          })
+          .map((token: any) => ({
+            surface: token.surface,
+            baseForm: token.basic_form || token.surface,
+            partOfSpeech: token.pos[0],
+            reading: token.reading_form,
+          }))
+      }
+
+      // Fallback: simple tokenizer (split on whitespace + punctuation)
+      const words = text.match(/[\p{L}\p{N}]+/gu) || []
+      return words
+        .filter(w => w.length > 1)
+        .map(word => ({
+          surface: word,
+          baseForm: word,
+          partOfSpeech: 'unknown',
+          reading: undefined,
         }))
     },
     []
