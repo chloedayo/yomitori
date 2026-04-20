@@ -110,6 +110,8 @@
     padding: 0 $spacing-lg $spacing-md;
     border-bottom: 1px solid $border-primary;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   &__editor-actions {
@@ -229,19 +231,14 @@
     }
   }
 
-  &__split {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
   &__editor-wrap {
     position: relative;
-    height: 120px;
+    height: 260px;
     overflow: hidden;
     border: 1px solid $border-primary;
     border-radius: 4px;
     background: $bg-dark;
+    cursor: text;
   }
 
   &__overlay {
@@ -287,16 +284,13 @@
     }
   }
 
-  &__preview {
-    min-height: 80px;
-    max-height: 160px;
+  &__rendered {
+    height: 100%;
     padding: 8px 10px;
-    background: $bg-dark;
-    border: 1px solid $border-primary;
-    border-radius: 4px;
     overflow-y: auto;
     font-size: 13px;
     line-height: 1.6;
+    box-sizing: border-box;
 
     h1 { color: var(--ap-h1, $text-primary); font-size: 1.2em; margin: 4px 0; }
     h2 { color: var(--ap-h2, $text-primary); font-size: 1.1em; margin: 4px 0; }
@@ -309,7 +303,7 @@
     p { margin: 4px 0; }
   }
 
-  &__preview-placeholder {
+  &__rendered-placeholder {
     color: $text-muted;
     font-style: italic;
     font-size: $font-size-sm;

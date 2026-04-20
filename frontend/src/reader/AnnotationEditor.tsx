@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { AnnotationSettings } from '../hooks/useAnnotationSettings'
 
@@ -47,11 +47,17 @@ export function AnnotationEditor({
 }: AnnotationEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
+  const [isFocused, setIsFocused] = useState(false)
 
   const handleScroll = useCallback(() => {
     if (overlayRef.current && textareaRef.current) {
       overlayRef.current.scrollTop = textareaRef.current.scrollTop
     }
+  }, [])
+
+  const focusEditor = useCallback(() => {
+    setIsFocused(true)
+    setTimeout(() => textareaRef.current?.focus(), 0)
   }, [])
 
   const previewStyle: React.CSSProperties = settings.previewColorsEnabled
@@ -81,34 +87,37 @@ export function AnnotationEditor({
         onChange={e => onTitleChange(e.target.value)}
       />
 
-      <div className="annotation-editor__split">
-        <div className="annotation-editor__editor-wrap">
-          {highlightedHtml !== null && (
-            <div
-              ref={overlayRef}
-              className="annotation-editor__overlay"
-              dangerouslySetInnerHTML={{ __html: highlightedHtml + '\n' }}
-              aria-hidden
+      <div className="annotation-editor__editor-wrap" onClick={!isFocused ? focusEditor : undefined}>
+        {isFocused ? (
+          <>
+            {highlightedHtml !== null && (
+              <div
+                ref={overlayRef}
+                className="annotation-editor__overlay"
+                dangerouslySetInnerHTML={{ __html: highlightedHtml + '\n' }}
+                aria-hidden
+              />
+            )}
+            <textarea
+              ref={textareaRef}
+              className={`annotation-editor__textarea${highlightedHtml !== null ? ' annotation-editor__textarea--highlighted' : ''}`}
+              value={body}
+              onChange={e => onBodyChange(e.target.value)}
+              onScroll={handleScroll}
+              onBlur={() => setIsFocused(false)}
+              placeholder="Write your annotation in markdown..."
+              spellCheck={false}
             />
-          )}
-          <textarea
-            ref={textareaRef}
-            className={`annotation-editor__textarea${highlightedHtml !== null ? ' annotation-editor__textarea--highlighted' : ''}`}
-            value={body}
-            onChange={e => onBodyChange(e.target.value)}
-            onScroll={handleScroll}
-            placeholder="Write your annotation in markdown..."
-            spellCheck={false}
-          />
-        </div>
-
-        <div className="annotation-editor__preview" style={previewStyle}>
-          {body.trim() ? (
-            <ReactMarkdown>{body}</ReactMarkdown>
-          ) : (
-            <span className="annotation-editor__preview-placeholder">Preview</span>
-          )}
-        </div>
+          </>
+        ) : (
+          <div className="annotation-editor__rendered" style={previewStyle}>
+            {body.trim() ? (
+              <ReactMarkdown>{body}</ReactMarkdown>
+            ) : (
+              <span className="annotation-editor__rendered-placeholder">Click to edit…</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
