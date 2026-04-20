@@ -72,6 +72,7 @@ export function ReaderUI({
     <div className="reader-ui">
       {bookTitle && <div className="reader-book-title">{bookTitle}</div>}
 
+      <div className="reader-ui-controls">
       <div className="progress-section">
         <div className="progress-text">
           {isVertical
@@ -92,7 +93,9 @@ export function ReaderUI({
           aria-label="Go back to home"
         >
           <HomeIcon fontSize="small" />
+          <span className="btn-label">Back</span>
         </button>
+
         {hasBookmark && (
           <button
             className="font-size-btn"
@@ -104,6 +107,7 @@ export function ReaderUI({
             <span className="btn-label">{bookmarkPercent}%</span>
           </button>
         )}
+
         <button
           className="font-size-btn"
           onClick={onJumpToBeginning}
@@ -111,7 +115,9 @@ export function ReaderUI({
           aria-label="Jump to beginning"
         >
           <KeyboardDoubleArrowUpIcon fontSize="small" />
+          <span className="btn-label">Top</span>
         </button>
+
         <button
           className="font-size-btn"
           onClick={onSaveBookmark}
@@ -119,7 +125,9 @@ export function ReaderUI({
           aria-label="Save bookmark"
         >
           <BookmarkBorderIcon fontSize="small" />
+          <span className="btn-label">Mark</span>
         </button>
+
         {hasBookmark && (
           <button
             className="font-size-btn"
@@ -128,8 +136,10 @@ export function ReaderUI({
             aria-label="Remove bookmark"
           >
             <ClearIcon fontSize="small" />
+            <span className="btn-label">Unmark</span>
           </button>
         )}
+
         <button
           className="font-size-btn"
           onClick={onToggleFavorite}
@@ -141,7 +151,9 @@ export function ReaderUI({
           ) : (
             <FavoriteBorderIcon fontSize="small" />
           )}
+          <span className="btn-label">{isFavorited ? 'Faved' : 'Fave'}</span>
         </button>
+
         <button
           className="font-size-btn"
           onClick={onToggleOrientation}
@@ -153,15 +165,19 @@ export function ReaderUI({
           ) : (
             <TextRotationDownIcon fontSize="small" />
           )}
+          <span className="btn-label">{isVertical ? '横書き' : '縦書き'}</span>
         </button>
+
         <button
           className="font-size-btn"
           onClick={onOpenCSSModal}
-          title="Customize styles"
-          aria-label="Customize styles"
+          title="Settings"
+          aria-label="Settings"
         >
           <FormatPaintIcon fontSize="small" />
+          <span className="btn-label">Settings</span>
         </button>
+
         <button
           className={`font-size-btn${showAnnotations ? ' word-miner-btn--active' : ''}`}
           onClick={onToggleAnnotations}
@@ -169,10 +185,11 @@ export function ReaderUI({
           aria-label="Toggle annotations"
         >
           <EditNoteIcon fontSize="small" />
-          {annotationCount > 0 && (
-            <span className="btn-label">{annotationCount}</span>
-          )}
+          <span className="btn-label">Notes{annotationCount > 0 ? ` (${annotationCount})` : ''}</span>
         </button>
+
+        <div className="reader-ui-separator" />
+
         <button
           className={`font-size-btn word-miner-btn${isMining ? ' word-miner-btn--active' : ''}`}
           onClick={onMineWords}
@@ -180,7 +197,9 @@ export function ReaderUI({
           aria-label={isMining ? 'Stop mining' : 'Mine vocabulary'}
         >
           {isMining ? <StopIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
+          <span className="btn-label">{isMining ? 'Stop' : 'Mine'}</span>
         </button>
+
         {minedWordCount > 0 && (
           <button
             className="font-size-btn word-miner-btn"
@@ -189,8 +208,10 @@ export function ReaderUI({
             aria-label="Show mined words"
           >
             <FormatListBulletedIcon fontSize="small" />
+            <span className="btn-label">Words ({minedWordCount})</span>
           </button>
         )}
+      </div>
       </div>
     </div>
   )

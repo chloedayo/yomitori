@@ -165,15 +165,12 @@ body {
 }
 
 .reader-book-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
-  color: #707070;
+  font-size: 11px;
+  color: #585858;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 40%;
+  text-align: right;
   pointer-events: none;
 }
 
@@ -212,20 +209,29 @@ body {
 .reader-ui {
   background-color: #1a1a1a;
   border-top: 1px solid #404040;
-  padding: 12px 20px;
+  padding: 8px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reader-ui-controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  position: relative;
 }
 
 @media (max-width: 480px) {
   .reader-ui {
-    padding: 8px 12px;
-    gap: 8px;
+    padding: 6px 12px 10px;
+    gap: 4px;
+  }
+
+  .reader-ui-controls {
     flex-direction: column;
     align-items: center;
+    gap: 8px;
   }
 
   .progress-section {
@@ -302,6 +308,13 @@ body {
   font-size: 12px;
   font-weight: 500;
   color: #b0b0b0;
+}
+
+.reader-ui-separator {
+  width: 1px;
+  height: 24px;
+  background: #404040;
+  flex-shrink: 0;
 }
 
 .font-size-slider {
@@ -387,15 +400,15 @@ rt {
 }
 
 .settings-color-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .settings-color-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
   font-size: 13px;
   color: #b0b0b0;
 }
@@ -408,4 +421,32 @@ rt {
   background: none;
   cursor: pointer;
   padding: 1px;
+}
+
+/* Inline epub annotations — inline span, inherits writing-mode from epub */
+.epub-inline-annotation {
+  color: #818cf8;
+  font-size: 0.85em;
+  font-family: inherit;
+  cursor: default;
+  padding-inline-end: 0.5em;
+}
+
+.epub-inline-annotation__dismiss {
+  background: none;
+  border: none;
+  color: #818cf8;
+  font-size: inherit;
+  cursor: pointer;
+  padding: 0 3px 0 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.epub-inline-annotation:hover .epub-inline-annotation__dismiss {
+  opacity: 1;
+}
+
+.epub-inline-annotation__dismiss:hover {
+  color: #e0e7ff;
 }
