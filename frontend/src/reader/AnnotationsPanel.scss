@@ -238,7 +238,6 @@
     border: 1px solid $border-primary;
     border-radius: 4px;
     background: $bg-dark;
-    cursor: text;
   }
 
   &__overlay {
@@ -284,28 +283,4 @@
     }
   }
 
-  &__rendered {
-    height: 100%;
-    padding: 8px 10px;
-    overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.6;
-    box-sizing: border-box;
-
-    h1 { color: var(--ap-h1, $text-primary); font-size: 1.2em; margin: 4px 0; }
-    h2 { color: var(--ap-h2, $text-primary); font-size: 1.1em; margin: 4px 0; }
-    h3 { color: var(--ap-h3, $text-primary); font-size: 1em; margin: 4px 0; }
-    strong { color: var(--ap-strong, $text-primary); }
-    em { color: var(--ap-em, $text-primary); }
-    code { color: var(--ap-code, $text-primary); font-family: monospace; background: rgba(255,255,255,0.05); padding: 0 3px; border-radius: 2px; }
-    blockquote { color: var(--ap-blockquote, $text-muted); border-left: 3px solid $border-primary; padding-left: 8px; margin: 4px 0; }
-    a { color: var(--ap-a, $accent); }
-    p { margin: 4px 0; }
-  }
-
-  &__rendered-placeholder {
-    color: $text-muted;
-    font-style: italic;
-    font-size: $font-size-sm;
-  }
 }
