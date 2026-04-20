@@ -100,7 +100,7 @@ export function QuizView() {
   const [loading, setLoading] = useState(false)
   const [noWords, setNoWords] = useState(false)
   const [sessionMode, setSessionMode] = useState<QuizMode>('scheduled')
-  const [sessionFilters, setSessionFilters] = useState<QuizSession['filters']>()
+  const [_sessionFilters, setSessionFilters] = useState<QuizSession['filters']>()
   const [isEndless, setIsEndless] = useState(false)
   const [isHardcore, setIsHardcore] = useState(false)
   const [shakeOnWrong, setShakeOnWrong] = useState(() => localStorage.getItem('quiz-shake') !== 'false')
