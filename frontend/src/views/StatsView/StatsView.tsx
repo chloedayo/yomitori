@@ -598,15 +598,11 @@ export function StatsView() {
         // ── Hardcore content ─────────────────────────────────────────────────
         const HardcoreContent = () => {
           const ss           = hardcoreSessions
-          const totalAnswered = ss.reduce((a, x) => a + x.totalCards, 0)
           const totalCorrect  = ss.reduce((a, x) => a + x.correct, 0)
-          const totalWrong    = totalAnswered - totalCorrect
-          const accuracy      = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0
           const topStreak     = Math.max(...ss.map(s => s.bestStreak ?? 0))
           const sessCount     = ss.length
           const avgPerSession = Math.round(totalCorrect / sessCount)
           const bestScore     = Math.max(...ss.map(s => s.correct))
-          const recent        = [...ss].slice(0, 15).reverse()
           return (
             <>
               <div className="endless-grid endless-grid--3">
