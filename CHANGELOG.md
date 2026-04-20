@@ -2,6 +2,36 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.3.2] - 2026-04-21
+
+### Added
+
+- **Inline Annotations**
+  - Select text in reader → "✏ Inline" button in definition popup → floating input appears near selection
+  - Annotation injected inline at exact word position (splits text node, inserts styled `<span>` before the matched character)
+  - Text matching via `collectTextNodes` — concatenates non-rt/rp text across ruby/furigana nodes, handles kanji wrapped in individual `<ruby>` elements
+  - Writing-mode inherits from epub parent — works correctly in both vertical (縦書き) and horizontal (横書き) modes
+  - Dismiss button (×) hover-revealed; click annotation text to edit in-place via same floating input
+  - All annotations persisted to IndexedDB (`yomitori-inline-annotations` DB, `inline-annotations` store, keyed by book)
+  - Re-injected on epub load via `onContentLoaded` callback — survive page navigation
+
+- **InlineAnnotationInput Component**
+  - Floating fixed-position panel, positions itself near selection rect
+  - Pre-fills text when editing existing annotation (`initialText` prop)
+  - Enter saves, Shift+Enter newline, Escape cancels, outside click cancels
+
+### Changed
+
+- **ReaderUI overhaul**
+  - All control buttons now have text labels (Back, Top, Mark, Unmark, Fave/Faved, 縦書き/横書き, Settings, Notes, Mine/Stop, Words)
+  - Separator added before mining section
+  - Two-row layout: book title right-aligned on top row, controls on bottom row (taller panel overall)
+
+- **SettingsModal**
+  - Modal title renamed from "Reader Custom CSS" to "Settings"
+  - "Frequency Filter" tab renamed to "Mining Filter"
+  - Annotation color grid now vertically stacked (label + color input on each row, space-between aligned)
+
 ## [0.3.1] - 2026-04-20
 
 ### Added

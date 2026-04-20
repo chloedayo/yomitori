@@ -30,6 +30,7 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 - **Word Mining with Frequency Filtering** — Tokenize your novel with Kuromoji, filter by frequency rank, auto-export to Anki as you read. Entire pipeline runs in middleware — mine 5000-word novels in seconds.
 - **Personal Dictionary** — Every word you look up or mine gets saved locally (IndexedDB). Searchable, sortable, filterable by kana row or frequency. Yours forever.
 - **Anki Integration (AnkiConnect)** — Mining results stream into Anki on your LAN. Works with Lapis template. Retry queue lives in middleware — survives page reloads.
+- **Inline Annotations** — Select any text → "✏ Inline" → type a note. It's injected right at that word in the flow of the text, in the correct writing direction, styled in indigo so you always know what's yours. Hover to dismiss, click to edit. Persists locally per book, survives page reloads.
 - **Vertical + Horizontal Reading** — 縦書き and 横書き, with persistent preference per session.
 - **Custom CSS Editor** — Live validation + preview. Style the reader however you want.
 - **SRS Quiz System (ARIA)** — Spaced repetition for your mined vocabulary. SM2-extended algorithm with speed weighting, consistency bonus, and difficulty penalty. Scheduled, custom, endless, and hardcore (one mistake ends it) modes. Stats dashboard with accuracy rings, interval histograms, activity heatmap, and per-mode session charts.
@@ -307,7 +308,8 @@ docker-compose logs backend | grep "job-queue\|Crawler done\|Author extraction"
 
 - Cover extraction: solid for ePub; PDF/CBR/CBZ is stubbed
 - No book summaries (Phase 2 plan)
-- No user ratings or annotations yet
+- No user ratings
+- No cross-device sync for inline annotations (IDB-local only)
 - No cross-device sync
 - SQLite JDBC `getGeneratedKeys()` limitation: all IDs are UUIDs, not auto-increment (by design)
 

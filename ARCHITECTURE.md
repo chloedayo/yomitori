@@ -318,19 +318,22 @@ frontend/src/
 ├── components/       Reusable UI (BookCard, BookGrid, SearchForm, CardMenu, TabsMenu)
 ├── hooks/            useLibrary, useProxy, useLocalStorage, useAuthorAutocomplete
 ├── reader/           EPUB reader subsystem
-│   ├── EpubReader.tsx            Renders parsed EPUB chapters; wires useSelectionDefinition
+│   ├── EpubReader.tsx            Renders parsed EPUB chapters; wires useSelectionDefinition; fires onContentLoaded
 │   ├── EpubParser.ts             Parses EPUB zip → HTML chapters
-│   ├── ReaderPage.tsx            Top-level reader page + state; mounts DefinitionPopup
-│   ├── ReaderUI.tsx              Bottom control bar
-│   ├── SettingsModal.tsx         CSS editor + frequency filter settings
-│   ├── DefinitionPopup.tsx       In-reader dictionary popup (select text → deinflect → lookup)
+│   ├── ReaderPage.tsx            Top-level reader page + state; mounts DefinitionPopup + InlineAnnotationInput
+│   ├── ReaderUI.tsx              Bottom control bar (two-row: title + labeled controls, separator before mining)
+│   ├── SettingsModal.tsx         CSS editor + mining filter + annotation color settings
+│   ├── DefinitionPopup.tsx       In-reader dictionary popup; "✏ Inline" button triggers inline annotation
 │   ├── DefinitionPopup.css       Popup styles
-│   ├── useSelectionDefinition.ts mouseup → /deinflect → batchLookup → greedy match
+│   ├── InlineAnnotationInput.tsx Floating input panel for creating/editing inline annotations
+│   ├── InlineAnnotationInput.css Styles for floating input panel
+│   ├── useSelectionDefinition.ts mouseup → /deinflect → batchLookup → greedy match; exposes rawText
 │   ├── WordMinerPanel/           Results panel for bulk-mined words
 │   ├── useCustomCSS.ts           CSS persistence + scoping
 │   ├── useSwipeGesture.ts        Touch navigation
 │   └── useWordMiner.ts           POST /mine-words to middleware (full pipeline)
-├── services/         ankiService, ankiQueueService, dictionaryStore, reviewStore (IndexedDB)
+├── hooks/            useInlineAnnotations (IDB CRUD + DOM inject/remove/edit for inline annotations)
+├── services/         ankiService, ankiQueueService, dictionaryStore, reviewStore, inlineAnnotationStore (IndexedDB)
 ├── views/
 │   ├── QuizView/     SRS quiz UI — config, quiz card, results, session bar
 │   ├── StatsView/    Review stats dashboard + session history
@@ -374,6 +377,12 @@ Adaptive Response Interval Algorithm — extends SM2 with three layers:
 ```ts
 { baseForm, interval, easeFactor, dueDate, streak, correctCount, incorrectCount, recentResults, status, lastReviewed }
 ```
+
+**`inline-annotations` store** (DB: `yomitori-inline-annotations`, key: `id`):
+```ts
+{ id: string, bookId: string, selectedText: string, noteText: string, charPos: number, createdAt: number }
+```
+Index: `bookId` — all annotations for a book loaded on epub open.
 
 **`meta` store** (key: string):
 | Key | Value |
@@ -436,6 +445,30 @@ DefinitionPopup renders: expression, reading, definitions, alternates (see also)
 User clicks +Anki → addNote() via /api/proxy/anki
 User clicks +Dict → upsertWord() into IndexedDB
 User clicks kanji → lookupWord() → inline kanji result
+```
+
+**Inline Annotation Flow:**
+```
+User selects text → DefinitionPopup → clicks "✏ Inline"
+  ↓
+ReaderPage sets pendingInlineAnnotation { rawText, rect }
+  ↓
+InlineAnnotationInput renders (floating, near selection rect)
+  ↓
+User types note → Enter / "Add"
+  ↓
+useInlineAnnotations.createInlineAnnotation()
+  → saveInlineAnnotation() → IndexedDB (yomitori-inline-annotations)
+  → injectInlineAnnotation(epubContentRef, ann, onDismiss, onEdit)
+    collectTextNodes(root) — concatenates non-rt/rp text, skips existing annotation spans
+    find charPos match → targetNode.splitText(localOffset) → afterNode
+    findInlineRoot(afterNode, root) — highest inline ancestor of block parent
+    build <span.epub-inline-annotation>: dismiss button + annotation label
+    insertBefore(marker, insertBefore)
+  ↓
+On epub load: injectAllInlineAnnotations() re-injects all stored annotations (sorted by charPos)
+Click dismiss → marker.remove() + deleteInlineAnnotation(id)
+Click label → onEdit callback → InlineAnnotationInput with initialText → editInlineAnnotation() + DOM patch
 ```
 
 **Anki Queue (middleware):**

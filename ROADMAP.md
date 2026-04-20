@@ -45,7 +45,9 @@
 - [x] Hardcore quiz mode (one strike ends session, 💀 tagged in history)
 - [x] Endless mode + per-mode stats dashboards with animated charts
 - [x] Session history (collapsible, mode-tagged)
-- [ ] Highlight / annotation persistence per book
+- [x] Inline annotation persistence per book (IDB, injected at exact word position, writing-mode aware)
+- [x] Inline annotation editing + dismiss (click to edit, hover to dismiss)
+- [ ] Inline annotation manager UI (list, search, export per book)
 - [ ] Sentence-level context capture for Anki cards
 - [ ] Export annotations to Markdown
 - [ ] Touch / mobile support for definition popup (tap to select)
