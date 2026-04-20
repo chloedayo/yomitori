@@ -145,10 +145,13 @@ class DictionaryParserService(
 
         val definition = definitions
             .mapNotNull { item ->
-                val def = item as? Map<*, *> ?: return@mapNotNull null
-                when (def["type"]) {
-                    "text" -> def["content"] as? String
-                    "structured-content" -> extractStructuredContent(def["content"])
+                when (item) {
+                    is String -> item.takeIf { it.isNotBlank() }
+                    is Map<*, *> -> when (item["type"]) {
+                        "text" -> item["content"] as? String
+                        "structured-content" -> extractStructuredContent(item["content"])
+                        else -> extractStructuredContent(item)
+                    }
                     else -> null
                 }
             }
@@ -173,18 +176,11 @@ class DictionaryParserService(
         when (content) {
             is String -> sb.append(content)
             is Map<*, *> -> {
-                val data = content["data"] as? Map<*, *>
-                val name = data?.get("name") as? String
-                val innerContent = content["content"]
-
-                if (name in listOf("語釈", "見出部", "見出仮名")) {
-                    if (innerContent is String) {
-                        sb.append(innerContent).append(" ")
-                    } else {
-                        extractTextFromContent(innerContent, sb)
-                    }
-                } else if (innerContent != null) {
-                    extractTextFromContent(innerContent, sb)
+                val inner = content["content"]
+                if (inner != null) {
+                    extractTextFromContent(inner, sb)
+                } else {
+                    content.values.forEach { extractTextFromContent(it, sb) }
                 }
             }
             is List<*> -> content.forEach { extractTextFromContent(it, sb) }

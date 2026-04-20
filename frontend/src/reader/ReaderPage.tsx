@@ -22,6 +22,7 @@ function dictWordToMined(w: DictionaryWord, bookId: string): MinedWord {
     baseForm: w.baseForm,
     frequency: w.frequencies[0]?.frequency ?? 0,
     definitions: w.definitions,
+    definitionEntries: w.definitionEntries ?? [],
     frequencies: w.frequencies,
     addedToAnki: false,
     bookId,

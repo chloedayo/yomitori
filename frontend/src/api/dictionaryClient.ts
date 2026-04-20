@@ -1,5 +1,10 @@
 import { useProxy } from '../hooks/useProxy'
 
+export interface DefinitionEntry {
+  dictionaryName: string
+  definition: string
+}
+
 export interface WordFrequency {
   sourceName: string
   frequency: number
@@ -16,6 +21,7 @@ export interface DictionaryEntry {
   expression: string
   reading: string
   definitions: string[]
+  definitionEntries: DefinitionEntry[]
   dictionaryName: string
   frequencies: WordFrequency[]
 }

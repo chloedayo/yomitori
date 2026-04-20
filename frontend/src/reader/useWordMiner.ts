@@ -18,7 +18,8 @@ interface WordEntry {
   expression: string
   reading: string
   definitions: string[]
-  frequencies: { sourceName: string; frequency: number }[]
+  definitionEntries: { dictionaryName: string; definition: string }[]
+  frequencies: { sourceName: string; frequency: number; frequencyTag?: string }[]
   dictionaryName: string
 }
 
@@ -75,6 +76,7 @@ export function useWordMiner({
           ?? entry.frequencies?.[0]?.frequency
           ?? 0,
         definitions: entry.definitions,
+        definitionEntries: entry.definitionEntries ?? [],
         frequencies: entry.frequencies || [],
         addedToAnki: false,
         bookId,
@@ -90,6 +92,7 @@ export function useWordMiner({
             surface: word.surface,
             reading: word.reading,
             definitions: word.definitions,
+            definitionEntries: word.definitionEntries ?? [],
             frequencies: word.frequencies,
             bookId: word.bookId,
             minedAt: word.minedAt,

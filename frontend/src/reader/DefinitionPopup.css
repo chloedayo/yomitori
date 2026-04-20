@@ -411,3 +411,15 @@
   color: #64748b;
   font-size: 12px;
 }
+
+.definition-popup__dict-label {
+  display: inline-block;
+  font-size: 10px;
+  color: #5a9fd4;
+  background: rgba(90, 159, 212, 0.12);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-right: 5px;
+  vertical-align: middle;
+  font-style: normal;
+}

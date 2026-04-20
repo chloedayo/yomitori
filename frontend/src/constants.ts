@@ -7,6 +7,8 @@ export const NAV_LABELS = {
   TITLES: 'Titles',
   AUTHORS: 'Authors',
   DICTIONARY: 'Dictionary',
+  QUIZ: 'Quiz',
+  STATS: 'Stats',
 } as const;
 
 export const NAV_TITLES = {
@@ -14,6 +16,8 @@ export const NAV_TITLES = {
   TITLES: 'Titles',
   AUTHORS: 'Authors',
   DICTIONARY: 'Dictionary',
+  QUIZ: 'Reading Quiz',
+  STATS: 'Word Stats',
 } as const;
 
 // Tabs

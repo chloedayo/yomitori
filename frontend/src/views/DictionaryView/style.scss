@@ -207,3 +207,72 @@
 .dict-freq {
   color: #606060;
 }
+
+.dict-status-filter {
+  display: flex;
+  gap: 4px;
+}
+
+.dict-status-btn {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s;
+  color: #fff;
+
+  &:hover { opacity: 0.75; }
+
+  &--active { opacity: 1 !important; }
+
+  &--new       { background: #4a4a5a; }
+  &--learning  { background: #f59e0b; }
+  &--reviewing { background: #5a9fd4; }
+  &--known     { background: #4caf50; }
+}
+
+.dict-review-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.dict-review-status {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  border-radius: 3px;
+  padding: 1px 5px;
+  line-height: 1.6;
+}
+
+.dict-review-streak,
+.dict-review-accuracy,
+.dict-review-due,
+.dict-review-interval {
+  font-size: 11px;
+  color: #606060;
+}
+
+.dict-review-streak { color: #f59e0b; }
+.dict-review-due    { color: #4a4a5a; }
+
+.dict-def-source {
+  display: inline-block;
+  font-size: 10px;
+  color: #5a9fd4;
+  background: rgba(90, 159, 212, 0.12);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-right: 5px;
+  vertical-align: middle;
+}

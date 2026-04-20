@@ -1,14 +1,15 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb'
 
 export interface DictionaryWord {
-  baseForm: string        // PK — global dedup
+  baseForm: string
   surface: string
   reading: string
   definitions: string[]
+  definitionEntries: Array<{ dictionaryName: string; definition: string }>
   frequencies: Array<{ sourceName: string; frequency: number }>
-  bookIds: string[]       // all books this appeared in
-  minedAt: number         // first mined timestamp
-  lastMinedAt: number     // most recent
+  bookIds: string[]
+  minedAt: number
+  lastMinedAt: number
 }
 
 interface YomitoriDictionaryDB extends DBSchema {
@@ -51,8 +52,8 @@ export async function upsertWord(word: Omit<DictionaryWord, 'bookIds' | 'minedAt
       ...existing,
       bookIds,
       lastMinedAt: word.minedAt,
-      // update definitions/frequencies in case dictionary changed
       definitions: word.definitions,
+      definitionEntries: word.definitionEntries,
       frequencies: word.frequencies,
       surface: word.surface,
       reading: word.reading,
@@ -63,6 +64,7 @@ export async function upsertWord(word: Omit<DictionaryWord, 'bookIds' | 'minedAt
       surface: word.surface,
       reading: word.reading,
       definitions: word.definitions,
+      definitionEntries: word.definitionEntries,
       frequencies: word.frequencies,
       bookIds: [word.bookId],
       minedAt: word.minedAt,
@@ -106,4 +108,14 @@ export async function getWord(baseForm: string): Promise<DictionaryWord | undefi
 export async function clearDictionary(): Promise<void> {
   const db = await getDB()
   await db.clear('words')
+}
+
+export async function exportDictionaryData(): Promise<DictionaryWord[]> {
+  return getAllWords()
+}
+
+export async function importDictionaryData(words: DictionaryWord[]): Promise<void> {
+  const db = await getDB()
+  await db.clear('words')
+  for (const word of words) await db.put('words', word)
 }

@@ -4,6 +4,8 @@ import { HomePage } from './views/HomePage/HomePage';
 import { TitlesView } from './views/TitlesView/TitlesView';
 import { AuthorsView } from './views/AuthorsView/AuthorsView';
 import { DictionaryView } from './views/DictionaryView/DictionaryView';
+import { QuizView } from './views/QuizView/QuizView';
+import { StatsView } from './views/StatsView/StatsView';
 import { bookClient } from './api/bookClient';
 import { SearchParams, SearchResponse } from './types/book';
 import { APP_TITLE, APP_SUBTITLE, FOOTER_TEXT, ERROR_MESSAGES, NAV_LABELS, NAV_TITLES, DEFAULT_PAGE_SIZE } from './constants';
@@ -11,13 +13,15 @@ import HomeIcon from '@mui/icons-material/Home';
 import ListIcon from '@mui/icons-material/List';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import SpellcheckIcon from '@mui/icons-material/Spellcheck';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import './styles/global.scss';
 import './App.scss';
 
 function App() {
-  const [activePage, setActivePage] = useState<'home' | 'titles' | 'authors' | 'dictionary'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'titles' | 'authors' | 'dictionary' | 'quiz' | 'stats'>('home');
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -103,6 +107,20 @@ function App() {
       title: NAV_TITLES.DICTIONARY,
       mobileHidden: true,
     },
+    {
+      id: 'quiz',
+      label: NAV_LABELS.QUIZ,
+      icon: SpellcheckIcon,
+      title: NAV_TITLES.QUIZ,
+      mobileHidden: true,
+    },
+    {
+      id: 'stats',
+      label: NAV_LABELS.STATS,
+      icon: BarChartIcon,
+      title: NAV_TITLES.STATS,
+      mobileHidden: true,
+    },
   ] as const;
 
   return (
@@ -167,6 +185,10 @@ function App() {
         {activePage === 'authors' && <AuthorsView />}
 
         {activePage === 'dictionary' && <DictionaryView />}
+
+        {activePage === 'quiz' && <QuizView />}
+
+        {activePage === 'stats' && <StatsView />}
 
         {activePage === 'home' && (
           <HomePage

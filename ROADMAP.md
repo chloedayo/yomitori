@@ -41,6 +41,10 @@
 - [x] Alternate forms (see also) with independent expand/collapse
 - [x] Startup job queue — dict import → crawler → author extraction, serialized, no SQLITE_BUSY
 - [x] Dictionary file watcher — drop zip → auto-import, no restart needed
+- [x] SRS quiz system (ARIA algorithm — SM2 + speed/consistency/difficulty layers)
+- [x] Hardcore quiz mode (one strike ends session, 💀 tagged in history)
+- [x] Endless mode + per-mode stats dashboards with animated charts
+- [x] Session history (collapsible, mode-tagged)
 - [ ] Highlight / annotation persistence per book
 - [ ] Sentence-level context capture for Anki cards
 - [ ] Export annotations to Markdown

@@ -202,6 +202,7 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }
           baseForm: entry.baseForm,
           frequency: entry.entry.frequencies?.[0]?.frequency ?? 0,
           definitions: entry.entry.definitions,
+          definitionEntries: entry.entry.definitionEntries ?? [],
           frequencies: entry.entry.frequencies ?? [],
           addedToAnki: false,
           bookId: bookId || '',
@@ -223,6 +224,7 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }
         surface: entry.entry.expression,
         reading: entry.entry.reading,
         definitions: entry.entry.definitions,
+        definitionEntries: entry.entry.definitionEntries ?? [],
         frequencies: entry.entry.frequencies ?? [],
         bookId: bookId || '',
         minedAt: Date.now(),
@@ -247,6 +249,7 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }
           baseForm,
           frequency: alt.frequencies?.[0]?.frequency ?? 0,
           definitions: alt.definitions,
+          definitionEntries: alt.definitionEntries ?? [],
           frequencies: alt.frequencies ?? [],
           addedToAnki: false,
           bookId: bookId || '',
@@ -268,6 +271,7 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }
         surface: alt.expression,
         reading: alt.reading,
         definitions: alt.definitions,
+        definitionEntries: alt.definitionEntries ?? [],
         frequencies: alt.frequencies ?? [],
         bookId: bookId || '',
         minedAt: Date.now(),
@@ -321,8 +325,13 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }
               </div>
               {!isCollapsed && <>
               <ol className="definition-popup__definitions">
-                {entry.definitions.slice(0, MAX_DEFINITIONS).map((def, j) => (
-                  <li key={j}>{def}</li>
+                {(entry.definitionEntries?.length > 0 ? entry.definitionEntries : entry.definitions.map(d => ({ dictionaryName: entry.dictionaryName, definition: d }))).slice(0, MAX_DEFINITIONS).map((de, j) => (
+                  <li key={j}>
+                    {entry.definitionEntries?.length > 1 && (
+                      <span className="definition-popup__dict-label">{de.dictionaryName}</span>
+                    )}
+                    {de.definition}
+                  </li>
                 ))}
               </ol>
 
@@ -373,8 +382,13 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }
                         {isAltExpanded && (
                           <div className="definition-popup__alt-body">
                             <ol className="definition-popup__alt-definitions">
-                              {alt.definitions.slice(0, MAX_DEFINITIONS).map((def, k) => (
-                                <li key={k}>{def}</li>
+                              {(alt.definitionEntries?.length > 0 ? alt.definitionEntries : alt.definitions.map(d => ({ dictionaryName: alt.dictionaryName, definition: d }))).slice(0, MAX_DEFINITIONS).map((de, k) => (
+                                <li key={k}>
+                                  {alt.definitionEntries?.length > 1 && (
+                                    <span className="definition-popup__dict-label">{de.dictionaryName}</span>
+                                  )}
+                                  {de.definition}
+                                </li>
                               ))}
                             </ol>
                           </div>
