@@ -93,8 +93,7 @@ export function AnnotationsPanel({
     Math.round((Math.abs(charPos) / (totalChars || 1)) * 100)
 
   return (
-    <div className="annotations-overlay" onClick={onClose}>
-      <div className="annotations-panel" onClick={e => e.stopPropagation()}>
+    <div className="annotations-panel">
         <div className="annotations-panel__header">
           <h2>Annotations {annotations.length > 0 && `(${annotations.length})`}</h2>
           <div className="annotations-panel__header-actions">
@@ -174,7 +173,6 @@ export function AnnotationsPanel({
             ))}
           </div>
         </div>
-      </div>
     </div>
   )
 }

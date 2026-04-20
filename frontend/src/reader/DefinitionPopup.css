@@ -18,10 +18,33 @@
 
 .definition-popup__topbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   flex-shrink: 0;
   padding: 5px 6px 0;
   background: #0e0e1c;
+}
+
+.definition-popup__topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.definition-popup__note-btn {
+  background: none;
+  border: none;
+  color: #4b5563;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 5px;
+  line-height: 1;
+  border-radius: 3px;
+}
+
+.definition-popup__note-btn:hover {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .definition-popup__body {

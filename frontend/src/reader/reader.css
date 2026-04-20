@@ -23,6 +23,13 @@ body {
   height: 100%;
 }
 
+.reader-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .reader-content {
   flex: 1;
   overflow: hidden;

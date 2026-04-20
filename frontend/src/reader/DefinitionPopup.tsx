@@ -294,6 +294,15 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss, 
   return (
     <div ref={popupRef} className="definition-popup">
       <div className="definition-popup__topbar">
+        <div className="definition-popup__topbar-left">
+          {onAnnotate && entries.length > 0 && (
+            <button
+              className="definition-popup__note-btn"
+              onClick={() => { onAnnotate(entries[0].entry.expression); onDismiss() }}
+              aria-label="Add note"
+            >+ Note</button>
+          )}
+        </div>
         <button className="definition-popup__dismiss" onClick={onDismiss} aria-label="Dismiss">✕</button>
       </div>
       <div className="definition-popup__body">
@@ -434,17 +443,6 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss, 
                 >
                   {st.dict === 'loading' ? '…' : st.dict === 'ok' ? '✓ Dict' : st.dict === 'err' ? '✗ Dict' : '+ Dict'}
                 </button>
-                {onAnnotate && i === 0 && (
-                  <button
-                    className="definition-popup__action-btn"
-                    onClick={() => {
-                      onAnnotate(entry.expression)
-                      onDismiss()
-                    }}
-                  >
-                    + Note
-                  </button>
-                )}
               </div>
               {entry.dictionaryName && (
                 <div className="definition-popup__source">{entry.dictionaryName}</div>

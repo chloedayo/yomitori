@@ -338,19 +338,39 @@ export function ReaderPage() {
         </div>
       )}
       <div className="reader-container">
-        <div className="reader-content" ref={contentRef}>
-        <EpubReader
-          ref={readerRef}
-          file={file}
-          fontSize={fontSize}
-          onCharPosChange={setCurrentCharPos}
-          onTotalCharsChange={setTotalChars}
-          isVertical={isVertical}
-          customCSS={css}
-          scopeCSS={scopeCSS}
-          onDefinition={handleDefinition}
-        />
-      </div>
+        <div className="reader-main">
+          <div className="reader-content" ref={contentRef}>
+            <EpubReader
+              ref={readerRef}
+              file={file}
+              fontSize={fontSize}
+              onCharPosChange={setCurrentCharPos}
+              onTotalCharsChange={setTotalChars}
+              isVertical={isVertical}
+              customCSS={css}
+              scopeCSS={scopeCSS}
+              onDefinition={handleDefinition}
+            />
+          </div>
+          {showAnnotations && bookId && (
+            <AnnotationsPanel
+              annotations={annotations}
+              dirtyCount={dirtyCount}
+              syncing={annotationsSyncing}
+              totalChars={totalChars}
+              currentCharPos={currentCharPos}
+              settings={annotationSettings}
+              initialBody={pendingAnnotationBody.current ?? undefined}
+              onInitialBodyConsumed={() => { pendingAnnotationBody.current = null }}
+              onClose={() => setShowAnnotations(false)}
+              onCreate={createAnnotation}
+              onUpdate={updateAnnotation}
+              onDelete={deleteAnnotation}
+              onSave={saveAnnotations}
+              onJumpTo={handleJumpToAnnotation}
+            />
+          )}
+        </div>
       <ReaderUI
         currentCharPos={currentCharPos}
         totalChars={totalChars}
@@ -413,24 +433,6 @@ export function ReaderPage() {
             pendingAnnotationBody.current = selectedText
             setShowAnnotations(true)
           }}
-        />
-      )}
-      {showAnnotations && bookId && (
-        <AnnotationsPanel
-          annotations={annotations}
-          dirtyCount={dirtyCount}
-          syncing={annotationsSyncing}
-          totalChars={totalChars}
-          currentCharPos={currentCharPos}
-          settings={annotationSettings}
-          initialBody={pendingAnnotationBody.current ?? undefined}
-          onInitialBodyConsumed={() => { pendingAnnotationBody.current = null }}
-          onClose={() => setShowAnnotations(false)}
-          onCreate={createAnnotation}
-          onUpdate={updateAnnotation}
-          onDelete={deleteAnnotation}
-          onSave={saveAnnotations}
-          onJumpTo={handleJumpToAnnotation}
         />
       )}
       </div>

@@ -1,27 +1,21 @@
 @import '../styles/variables';
 @import '../styles/mixins';
 
-.annotations-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
 .annotations-panel {
+  width: 340px;
+  flex-shrink: 0;
+  height: 100%;
   background: $bg-darker;
-  border: 1px solid $border-primary;
-  border-radius: 8px;
+  border-left: 1px solid $border-primary;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-  width: 90%;
-  max-width: 560px;
-  max-height: 85vh;
   overflow: hidden;
+  animation: annotations-slide-in 0.2s ease-out;
+
+  @keyframes annotations-slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
 
   &__header {
     @include flex-between;
