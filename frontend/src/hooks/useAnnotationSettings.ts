@@ -1,15 +1,6 @@
 import { useState, useCallback } from 'react'
 
-export interface AnnotationEditorColors {
-  heading: string
-  bold: string
-  italic: string
-  code: string
-  link: string
-  blockquote: string
-}
-
-export interface AnnotationPreviewColors {
+export interface AnnotationContentColors {
   h1: string
   h2: string
   h3: string
@@ -21,26 +12,15 @@ export interface AnnotationPreviewColors {
 }
 
 export interface AnnotationSettings {
-  editorHighlightEnabled: boolean
-  editorColors: AnnotationEditorColors
-  previewColorsEnabled: boolean
-  previewColors: AnnotationPreviewColors
+  contentColorsEnabled: boolean
+  contentColors: AnnotationContentColors
 }
 
 const SETTINGS_KEY = 'yomitori-annotation-settings'
 
 const DEFAULT: AnnotationSettings = {
-  editorHighlightEnabled: false,
-  editorColors: {
-    heading: '#7eb8da',
-    bold: '#e0c97f',
-    italic: '#b8e0c9',
-    code: '#da8c7e',
-    link: '#8cb8e0',
-    blockquote: '#9e9e9e',
-  },
-  previewColorsEnabled: false,
-  previewColors: {
+  contentColorsEnabled: false,
+  contentColors: {
     h1: '#7eb8da',
     h2: '#7eb8da',
     h3: '#7eb8da',
@@ -56,7 +36,12 @@ function load(): AnnotationSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
     if (!raw) return DEFAULT
-    return { ...DEFAULT, ...JSON.parse(raw) }
+    const stored = JSON.parse(raw)
+    // Migrate old previewColors* keys
+    const migrated: Partial<AnnotationSettings> = {}
+    if ('previewColorsEnabled' in stored) migrated.contentColorsEnabled = stored.previewColorsEnabled
+    if ('previewColors' in stored) migrated.contentColors = stored.previewColors
+    return { ...DEFAULT, ...migrated, ...('contentColorsEnabled' in stored ? stored : {}) }
   } catch {
     return DEFAULT
   }
