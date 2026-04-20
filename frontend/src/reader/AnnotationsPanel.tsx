@@ -106,7 +106,7 @@ export function AnnotationsPanel({
   return (
     <div className="annotations-panel">
       <div className="annotations-panel__header">
-        <h2>Notes</h2>
+        <h2>Notes{bookTitle && <span className="annotations-panel__header-book"> — {bookTitle}</span>}</h2>
         <div className="annotations-panel__header-actions">
           {oldNotes.length > 0 && (
             <div className="annotations-panel__menu-wrap" ref={menuRef}>

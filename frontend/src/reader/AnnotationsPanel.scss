@@ -29,7 +29,16 @@
       font-size: $font-size-lg;
       margin: 0;
       flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+  }
+
+  &__header-book {
+    font-size: 0.75em;
+    font-weight: 400;
+    color: $text-muted;
   }
 
   &__header-actions {
