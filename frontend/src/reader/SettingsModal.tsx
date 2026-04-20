@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import { AnnotationSettings, AnnotationEditorColors, AnnotationPreviewColors } from '../hooks/useAnnotationSettings'
 
 interface FrequencySource {
   id: number
@@ -22,6 +23,8 @@ interface SettingsModalProps {
   frequencyTagFilter: string | null
   onFrequencyTagFilterChange: (tag: string | null) => void
   frequencySources: FrequencySource[]
+  annotationSettings: AnnotationSettings
+  onAnnotationSettingsChange: (patch: Partial<AnnotationSettings>) => void
 }
 
 export function SettingsModal({
@@ -40,10 +43,12 @@ export function SettingsModal({
   frequencyTagFilter,
   onFrequencyTagFilterChange,
   frequencySources,
+  annotationSettings,
+  onAnnotationSettingsChange,
 }: SettingsModalProps) {
   const [css, setCSS] = useState(currentCSS)
   const [liveError, setLiveError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'textarea' | 'upload' | 'frequency'>('textarea')
+  const [activeTab, setActiveTab] = useState<'textarea' | 'upload' | 'frequency' | 'annotations'>('textarea')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<number | null>(null)
 
@@ -152,6 +157,15 @@ export function SettingsModal({
           >
             Frequency Filter
           </button>
+          <button
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'annotations' ? styles.tabActive : {}),
+            }}
+            onClick={() => setActiveTab('annotations')}
+          >
+            Annotations
+          </button>
         </div>
 
         <div style={styles.content}>
@@ -230,6 +244,62 @@ export function SettingsModal({
                 )
               })()}
             </div>
+          ) : activeTab === 'annotations' ? (
+            <div className="settings-annotations" style={{ padding: '12px 0' }}>
+              <div className="settings-section">
+                <label className="settings-toggle">
+                  <input
+                    type="checkbox"
+                    checked={annotationSettings.editorHighlightEnabled}
+                    onChange={e => onAnnotationSettingsChange({ editorHighlightEnabled: e.target.checked })}
+                  />
+                  Editor syntax highlighting
+                </label>
+                {annotationSettings.editorHighlightEnabled && (
+                  <div className="settings-color-grid">
+                    {(Object.keys(annotationSettings.editorColors) as (keyof AnnotationEditorColors)[]).map(key => (
+                      <label key={key} className="settings-color-row">
+                        <span>{key}</span>
+                        <input
+                          type="color"
+                          value={annotationSettings.editorColors[key]}
+                          onChange={e => onAnnotationSettingsChange({
+                            editorColors: { ...annotationSettings.editorColors, [key]: e.target.value }
+                          })}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="settings-section">
+                <label className="settings-toggle">
+                  <input
+                    type="checkbox"
+                    checked={annotationSettings.previewColorsEnabled}
+                    onChange={e => onAnnotationSettingsChange({ previewColorsEnabled: e.target.checked })}
+                  />
+                  Preview element colors
+                </label>
+                {annotationSettings.previewColorsEnabled && (
+                  <div className="settings-color-grid">
+                    {(Object.keys(annotationSettings.previewColors) as (keyof AnnotationPreviewColors)[]).map(key => (
+                      <label key={key} className="settings-color-row">
+                        <span>{key}</span>
+                        <input
+                          type="color"
+                          value={annotationSettings.previewColors[key]}
+                          onChange={e => onAnnotationSettingsChange({
+                            previewColors: { ...annotationSettings.previewColors, [key]: e.target.value }
+                          })}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
             <div style={styles.uploadArea}>
               <input
@@ -253,7 +323,7 @@ export function SettingsModal({
             <div style={styles.error}>{liveError || error}</div>
           )}
 
-          {activeTab !== 'frequency' && <details style={styles.guide}>
+          {activeTab !== 'frequency' && activeTab !== 'annotations' && <details style={styles.guide}>
             <summary style={styles.guideSummary}>Available Selectors</summary>
             <div style={styles.guideContent}>
               <p><code>.reader-text</code> — Main text container</p>

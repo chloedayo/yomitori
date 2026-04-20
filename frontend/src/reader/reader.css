@@ -347,3 +347,58 @@ rt {
 .reader-content--pulse {
   animation: reader-pulse 0.6s ease-out;
 }
+
+/* Annotation settings tab */
+.settings-section {
+  margin-bottom: 20px;
+}
+
+.settings-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: #a0a0a0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #c8c8c8;
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #5a9fd4;
+  cursor: pointer;
+}
+
+.settings-color-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.settings-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #b0b0b0;
+}
+
+.settings-color-row input[type="color"] {
+  width: 28px;
+  height: 22px;
+  border: 1px solid #444;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  padding: 1px;
+}
