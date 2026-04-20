@@ -75,7 +75,7 @@ export function ReaderPage() {
   const [selectionDef, setSelectionDef] = useState<SelectionDefinitionState | null>(null)
   const [showAnnotations, setShowAnnotations] = useState(false)
   const pendingAnnotationBody = useRef<string | null>(null)
-  const { settings: annotationSettings } = useAnnotationSettings()
+  const { settings: annotationSettings, updateSettings } = useAnnotationSettings()
   const {
     annotations,
     dirtyCount,
@@ -392,6 +392,8 @@ export function ReaderPage() {
         frequencyTagFilter={frequencyTagFilter}
         onFrequencyTagFilterChange={setFrequencyTagFilter}
         frequencySources={frequencySources}
+        annotationSettings={annotationSettings}
+        onAnnotationSettingsChange={updateSettings}
       />
       {showWordMiner && bookId && (
         <WordMinerPanel
