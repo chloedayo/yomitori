@@ -1,0 +1,323 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.annotations-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.annotations-panel {
+  background: $bg-darker;
+  border: 1px solid $border-primary;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  width: 90%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow: hidden;
+
+  &__header {
+    @include flex-between;
+    padding: $spacing-lg;
+    border-bottom: 1px solid $border-primary;
+    flex-shrink: 0;
+    gap: 8px;
+
+    h2 {
+      font-size: $font-size-lg;
+      margin: 0;
+      flex: 1;
+    }
+  }
+
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__save-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: $accent;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: $font-size-sm;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    &--dirty {
+      background: #e0a030;
+    }
+  }
+
+  &__dirty-badge {
+    background: #fff;
+    color: #e0a030;
+    border-radius: 10px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  &__close-btn {
+    background: transparent;
+    border: none;
+    color: $text-primary;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+
+    &:hover {
+      color: $accent;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  &__new-btn {
+    margin: $spacing-md $spacing-lg;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px dashed $border-primary;
+    border-radius: 4px;
+    color: $text-muted;
+    cursor: pointer;
+    font-size: $font-size-sm;
+    text-align: left;
+    flex-shrink: 0;
+
+    &:hover {
+      border-color: $accent;
+      color: $text-primary;
+    }
+  }
+
+  &__editor-wrap {
+    padding: 0 $spacing-lg $spacing-md;
+    border-bottom: 1px solid $border-primary;
+    flex-shrink: 0;
+  }
+
+  &__editor-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+
+    button {
+      padding: 4px 12px;
+      border-radius: 4px;
+      border: 1px solid $border-primary;
+      cursor: pointer;
+      font-size: $font-size-sm;
+    }
+  }
+
+  &__save-annotation-btn {
+    background: $accent;
+    color: #fff;
+    border-color: $accent !important;
+  }
+
+  &__cancel-btn {
+    background: transparent;
+    color: $text-muted;
+  }
+
+  &__list {
+    flex: 1;
+    overflow-y: auto;
+    padding: $spacing-sm 0;
+  }
+
+  &__empty {
+    color: $text-muted;
+    font-size: $font-size-sm;
+    text-align: center;
+    padding: $spacing-xl;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: $spacing-sm $spacing-lg;
+    cursor: pointer;
+    border-bottom: 1px solid rgba($border-primary, 0.4);
+
+    &:hover {
+      background: rgba($accent, 0.08);
+    }
+  }
+
+  &__item-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__item-title {
+    font-size: $font-size-sm;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__item-pos {
+    font-size: 11px;
+    color: $text-muted;
+  }
+
+  &__item-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  &__icon-btn {
+    background: transparent;
+    border: none;
+    color: $text-muted;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      color: $text-primary;
+    }
+
+    &--danger:hover {
+      color: #e57373;
+    }
+  }
+}
+
+// AnnotationEditor styles
+.annotation-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__title {
+    width: 100%;
+    padding: 6px 10px;
+    background: $bg-dark;
+    border: 1px solid $border-primary;
+    border-radius: 4px;
+    color: $text-primary;
+    font-size: $font-size-base;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: $accent;
+    }
+  }
+
+  &__split {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__editor-wrap {
+    position: relative;
+    height: 120px;
+    overflow: hidden;
+    border: 1px solid $border-primary;
+    border-radius: 4px;
+    background: $bg-dark;
+  }
+
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    pointer-events: none;
+    overflow: hidden;
+    color: $text-primary;
+    box-sizing: border-box;
+  }
+
+  &__textarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    background: transparent;
+    color: $text-primary;
+    caret-color: $text-primary;
+    border: none;
+    resize: none;
+    outline: none;
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    &--highlighted {
+      color: transparent;
+      caret-color: $text-primary;
+    }
+  }
+
+  &__preview {
+    min-height: 80px;
+    max-height: 160px;
+    padding: 8px 10px;
+    background: $bg-dark;
+    border: 1px solid $border-primary;
+    border-radius: 4px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.6;
+
+    h1 { color: var(--ap-h1, $text-primary); font-size: 1.2em; margin: 4px 0; }
+    h2 { color: var(--ap-h2, $text-primary); font-size: 1.1em; margin: 4px 0; }
+    h3 { color: var(--ap-h3, $text-primary); font-size: 1em; margin: 4px 0; }
+    strong { color: var(--ap-strong, $text-primary); }
+    em { color: var(--ap-em, $text-primary); }
+    code { color: var(--ap-code, $text-primary); font-family: monospace; background: rgba(255,255,255,0.05); padding: 0 3px; border-radius: 2px; }
+    blockquote { color: var(--ap-blockquote, $text-muted); border-left: 3px solid $border-primary; padding-left: 8px; margin: 4px 0; }
+    a { color: var(--ap-a, $accent); }
+    p { margin: 4px 0; }
+  }
+
+  &__preview-placeholder {
+    color: $text-muted;
+    font-style: italic;
+    font-size: $font-size-sm;
+  }
+}
