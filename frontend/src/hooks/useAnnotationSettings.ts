@@ -36,12 +36,18 @@ function load(): AnnotationSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
     if (!raw) return DEFAULT
-    const stored = JSON.parse(raw)
-    // Migrate old previewColors* keys
-    const migrated: Partial<AnnotationSettings> = {}
-    if ('previewColorsEnabled' in stored) migrated.contentColorsEnabled = stored.previewColorsEnabled
-    if ('previewColors' in stored) migrated.contentColors = stored.previewColors
-    return { ...DEFAULT, ...migrated, ...('contentColorsEnabled' in stored ? stored : {}) }
+    const s = JSON.parse(raw)
+    return {
+      contentColorsEnabled:
+        'contentColorsEnabled' in s ? s.contentColorsEnabled :
+        'previewColorsEnabled' in s ? s.previewColorsEnabled :
+        DEFAULT.contentColorsEnabled,
+      contentColors: {
+        ...DEFAULT.contentColors,
+        ...('contentColors' in s && s.contentColors ? s.contentColors : {}),
+        ...('previewColors' in s && s.previewColors && !s.contentColors ? s.previewColors : {}),
+      },
+    }
   } catch {
     return DEFAULT
   }
