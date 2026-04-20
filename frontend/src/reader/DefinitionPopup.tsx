@@ -11,6 +11,7 @@ interface DefinitionPopupProps {
   isVertical: boolean
   bookId: string | null
   onDismiss: () => void
+  onAnnotate?: (selectedText: string) => void
 }
 
 type ActionStatus = 'idle' | 'loading' | 'ok' | 'err' | 'offline'
@@ -55,7 +56,7 @@ function ExpressionWithKanji({
   )
 }
 
-export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }: DefinitionPopupProps) {
+export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss, onAnnotate }: DefinitionPopupProps) {
   const popupRef = useRef<HTMLDivElement>(null)
   const deckNameRef = useRef<string | null>(null)
   const [statuses, setStatuses] = useState<Record<string, EntryStatus>>({})
@@ -433,6 +434,17 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss }
                 >
                   {st.dict === 'loading' ? '…' : st.dict === 'ok' ? '✓ Dict' : st.dict === 'err' ? '✗ Dict' : '+ Dict'}
                 </button>
+                {onAnnotate && i === 0 && (
+                  <button
+                    className="definition-popup__action-btn"
+                    onClick={() => {
+                      onAnnotate(entry.expression)
+                      onDismiss()
+                    }}
+                  >
+                    + Note
+                  </button>
+                )}
               </div>
               {entry.dictionaryName && (
                 <div className="definition-popup__source">{entry.dictionaryName}</div>
