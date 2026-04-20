@@ -182,6 +182,20 @@ class DictionaryParserService(
                     tag == "img" -> (content["title"] as? String)?.let { sb.append(it) }
                     tag == "rt" -> { /* skip furigana readings */ }
                     tag == "br" -> sb.append(" ")
+                    tag == "li" && inner != null -> {
+                        val before = sb.length
+                        extractTextFromContent(inner, sb)
+                        if (sb.length > before) {
+                            if (sb.last() == ' ') sb.deleteCharAt(sb.length - 1)
+                            sb.append("; ")
+                        }
+                    }
+                    tag in BLOCK_TAGS && inner != null -> {
+                        if (sb.isNotEmpty() && sb.last() != ' ') sb.append(' ')
+                        val before = sb.length
+                        extractTextFromContent(inner, sb)
+                        if (sb.length > before && sb.last() != ' ') sb.append(' ')
+                    }
                     inner != null -> extractTextFromContent(inner, sb)
                     tag != null -> { /* empty element, skip */ }
                     else -> content.values.forEach { extractTextFromContent(it, sb) }
@@ -189,6 +203,10 @@ class DictionaryParserService(
             }
             is List<*> -> content.forEach { extractTextFromContent(it, sb) }
         }
+    }
+
+    companion object {
+        private val BLOCK_TAGS = setOf("div", "p", "tr", "td", "th", "ul", "ol", "table")
     }
 
     fun loadFrequencyDictionaries() {
