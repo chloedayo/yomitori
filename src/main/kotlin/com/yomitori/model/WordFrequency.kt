@@ -21,6 +21,9 @@ data class WordFrequency(
     @Column(nullable = false)
     val frequency: Long,
 
+    @Column(name = "frequency_tag")
+    val frequencyTag: String? = null,
+
     @Column(name = "source_id", nullable = false)
     val sourceId: Long
 )

@@ -42,4 +42,5 @@ books/
 
 # Dictionaries
 .dictionaries/
+dictionaries/**/*.zip
 dictionaries/*.zip

@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from 'react'
 interface FrequencySource {
   id: number
   name: string
+  isNumeric: boolean
 }
 
 interface SettingsModalProps {
@@ -18,6 +19,8 @@ interface SettingsModalProps {
   onMinFrequencyRankChange: (rank: number | null) => void
   maxFrequencyRank: number | null
   onMaxFrequencyRankChange: (rank: number | null) => void
+  frequencyTagFilter: string | null
+  onFrequencyTagFilterChange: (tag: string | null) => void
   frequencySources: FrequencySource[]
 }
 
@@ -34,6 +37,8 @@ export function SettingsModal({
   onMinFrequencyRankChange,
   maxFrequencyRank,
   onMaxFrequencyRankChange,
+  frequencyTagFilter,
+  onFrequencyTagFilterChange,
   frequencySources,
 }: SettingsModalProps) {
   const [css, setCSS] = useState(currentCSS)
@@ -174,34 +179,56 @@ export function SettingsModal({
                 </select>
               </div>
 
-              {frequencySource && (
-                <div style={styles.settingGroup}>
-                  <label style={styles.label}>Frequency Range</label>
-                  <div style={styles.rangeInputs}>
-                    <div>
-                      <label style={styles.rangeLabel}>Min Rank</label>
+              {frequencySource && (() => {
+                const selectedSource = frequencySources.find(s => s.name === frequencySource)
+                if (!selectedSource) return null
+                if (!selectedSource.isNumeric) {
+                  return (
+                    <div style={styles.settingGroup}>
+                      <div style={styles.nonNumericWarning}>
+                        ⚠ This frequency dictionary uses labels, not numeric ranks. Filtering uses exact match instead of a range.
+                      </div>
+                      <label style={styles.label}>Match Tag</label>
                       <input
-                        type="number"
-                        value={minFrequencyRank ?? ''}
-                        onChange={(e) => onMinFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
+                        type="text"
+                        value={frequencyTagFilter ?? ''}
+                        onChange={(e) => onFrequencyTagFilterChange(e.target.value || null)}
                         style={styles.numberInput}
-                        placeholder="Leave empty for no minimum"
+                        placeholder="e.g. A1, idol, rare — leave empty to include all"
                       />
+                      <p style={styles.hint}>Only words with this exact frequency label will be included when mining.</p>
                     </div>
-                    <div>
-                      <label style={styles.rangeLabel}>Max Rank</label>
-                      <input
-                        type="number"
-                        value={maxFrequencyRank ?? ''}
-                        onChange={(e) => onMaxFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
-                        style={styles.numberInput}
-                        placeholder="Leave empty for no maximum"
-                      />
+                  )
+                }
+                return (
+                  <div style={styles.settingGroup}>
+                    <label style={styles.label}>Frequency Range</label>
+                    <div style={styles.rangeInputs}>
+                      <div>
+                        <label style={styles.rangeLabel}>Min Rank</label>
+                        <input
+                          type="number"
+                          value={minFrequencyRank ?? ''}
+                          onChange={(e) => onMinFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
+                          style={styles.numberInput}
+                          placeholder="Leave empty for no minimum"
+                        />
+                      </div>
+                      <div>
+                        <label style={styles.rangeLabel}>Max Rank</label>
+                        <input
+                          type="number"
+                          value={maxFrequencyRank ?? ''}
+                          onChange={(e) => onMaxFrequencyRankChange(e.target.value ? parseInt(e.target.value) : null)}
+                          style={styles.numberInput}
+                          placeholder="Leave empty for no maximum"
+                        />
+                      </div>
                     </div>
+                    <p style={styles.hint}>Lower frequency rank = more common word. Leave either field empty to skip that bound.</p>
                   </div>
-                  <p style={styles.hint}>Lower frequency rank = more common word. Leave either field empty to skip that bound.</p>
-                </div>
-              )}
+                )
+              })()}
             </div>
           ) : (
             <div style={styles.uploadArea}>
@@ -476,5 +503,13 @@ const styles = {
     fontSize: '12px',
     margin: '8px 0 0 0',
     fontStyle: 'italic' as const,
+  },
+  nonNumericWarning: {
+    backgroundColor: '#3a3020',
+    color: '#d4a843',
+    border: '1px solid #5a4a20',
+    borderRadius: '4px',
+    padding: '10px 12px',
+    fontSize: '12px',
   },
 }

@@ -9,7 +9,8 @@ import org.springframework.stereotype.Service
 
 data class FrequencyInfo(
     val sourceName: String,
-    val frequency: Long
+    val frequency: Long,
+    val frequencyTag: String? = null
 )
 
 data class DictionaryLookupResult(
@@ -39,7 +40,8 @@ class DictionaryService(
                 val source = frequencySourceRepository.findById(freq.sourceId).orElse(null)
                 FrequencyInfo(
                     sourceName = source?.name ?: "Unknown",
-                    frequency = freq.frequency
+                    frequency = freq.frequency,
+                    frequencyTag = freq.frequencyTag
                 )
             }
 

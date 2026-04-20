@@ -11,6 +11,7 @@ export interface UsWordMinerProps {
   frequencySource?: string | null
   minFrequencyRank?: number | null
   maxFrequencyRank?: number | null
+  frequencyTagFilter?: string | null
 }
 
 interface WordEntry {
@@ -29,6 +30,7 @@ export function useWordMiner({
   frequencySource,
   minFrequencyRank,
   maxFrequencyRank,
+  frequencyTagFilter,
 }: UsWordMinerProps) {
   const cancelledRef = useRef(false)
 
@@ -55,7 +57,7 @@ export function useWordMiner({
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, frequencySource, minFrequencyRank, maxFrequencyRank, bookTitle }),
+        body: JSON.stringify({ text, frequencySource, minFrequencyRank, maxFrequencyRank, frequencyTagFilter, bookTitle }),
         signal: AbortSignal.timeout(300000),
       })
 
@@ -100,7 +102,7 @@ export function useWordMiner({
       console.error('Mining error:', err)
       throw err
     }
-  }, [extractText, bookId, bookTitle, onMiningWord, frequencySource, minFrequencyRank, maxFrequencyRank])
+  }, [extractText, bookId, bookTitle, onMiningWord, frequencySource, minFrequencyRank, maxFrequencyRank, frequencyTagFilter])
 
   return { mineWords, cancelMining }
 }
