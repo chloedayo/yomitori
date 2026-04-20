@@ -13,6 +13,9 @@ import { MinedWord } from '../services/ankiService'
 import { ankiQueue } from '../services/ankiQueueService'
 import { getWordsByBookId, DictionaryWord } from '../services/dictionaryStore'
 import { SelectionDefinitionState } from './useSelectionDefinition'
+import { AnnotationsPanel } from './AnnotationsPanel'
+import { useAnnotations } from '../hooks/useAnnotations'
+import { useAnnotationSettings } from '../hooks/useAnnotationSettings'
 import './reader.css'
 
 function dictWordToMined(w: DictionaryWord, bookId: string): MinedWord {
@@ -70,6 +73,18 @@ export function ReaderPage() {
   const [isMining, setIsMining] = useState(false)
   const [frequencySources, setFrequencySources] = useState<Array<{ id: number; name: string; isNumeric: boolean }>>([])
   const [selectionDef, setSelectionDef] = useState<SelectionDefinitionState | null>(null)
+  const [showAnnotations, setShowAnnotations] = useState(false)
+  const pendingAnnotationBody = useRef<string | null>(null)
+  const { settings: annotationSettings } = useAnnotationSettings()
+  const {
+    annotations,
+    dirtyCount,
+    syncing: annotationsSyncing,
+    createAnnotation,
+    updateAnnotation,
+    deleteAnnotation,
+    saveToBackend: saveAnnotations,
+  } = useAnnotations(bookId)
 
   const handleDefinition = useCallback((state: SelectionDefinitionState | null) => {
     setSelectionDef(state)
@@ -195,6 +210,16 @@ export function ReaderPage() {
       readerRef.current.scrollToCharPos(0)
     }
   }
+
+  const handleJumpToAnnotation = useCallback((charPos: number) => {
+    if (readerRef.current) {
+      readerRef.current.scrollToCharPos(charPos)
+    }
+    if (contentRef.current) {
+      contentRef.current.classList.add('reader-content--pulse')
+      setTimeout(() => contentRef.current?.classList.remove('reader-content--pulse'), 600)
+    }
+  }, [])
 
   const handleRemoveBookmark = () => {
     if (bookId) {
@@ -347,6 +372,9 @@ export function ReaderPage() {
         currentMiningWord={currentMiningWord}
         isFavorited={bookId ? isFavorite(bookId) : false}
         hasBookmark={bookmarkPos !== null}
+        showAnnotations={showAnnotations}
+        annotationCount={annotations.length}
+        onToggleAnnotations={() => setShowAnnotations(prev => !prev)}
       />
       <SettingsModal
         isOpen={isModalOpen}
@@ -379,6 +407,28 @@ export function ReaderPage() {
           isVertical={isVertical}
           bookId={bookId}
           onDismiss={dismissDefinition}
+          onAnnotate={(selectedText) => {
+            pendingAnnotationBody.current = selectedText
+            setShowAnnotations(true)
+          }}
+        />
+      )}
+      {showAnnotations && bookId && (
+        <AnnotationsPanel
+          annotations={annotations}
+          dirtyCount={dirtyCount}
+          syncing={annotationsSyncing}
+          totalChars={totalChars}
+          currentCharPos={currentCharPos}
+          settings={annotationSettings}
+          initialBody={pendingAnnotationBody.current ?? undefined}
+          onInitialBodyConsumed={() => { pendingAnnotationBody.current = null }}
+          onClose={() => setShowAnnotations(false)}
+          onCreate={createAnnotation}
+          onUpdate={updateAnnotation}
+          onDelete={deleteAnnotation}
+          onSave={saveAnnotations}
+          onJumpTo={handleJumpToAnnotation}
         />
       )}
       </div>

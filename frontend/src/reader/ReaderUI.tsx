@@ -11,6 +11,7 @@ import HomeIcon from '@mui/icons-material/Home'
 import SchoolIcon from '@mui/icons-material/School'
 import StopIcon from '@mui/icons-material/Stop'
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'
+import EditNoteIcon from '@mui/icons-material/EditNote'
 
 interface ReaderUIProps {
   currentCharPos: number
@@ -33,6 +34,9 @@ interface ReaderUIProps {
   isFavorited: boolean
   hasBookmark: boolean
   bookTitle?: string | null
+  showAnnotations: boolean
+  annotationCount: number
+  onToggleAnnotations: () => void
 }
 
 export function ReaderUI({
@@ -56,6 +60,9 @@ export function ReaderUI({
   isFavorited,
   hasBookmark,
   bookTitle = null,
+  showAnnotations,
+  annotationCount,
+  onToggleAnnotations,
 }: ReaderUIProps) {
   const bookmarkPercent = bookmarkPos !== null
     ? Math.abs(Math.round(-1 * (bookmarkPos / (totalChars || 1)) * 100))
@@ -154,6 +161,17 @@ export function ReaderUI({
           aria-label="Customize styles"
         >
           <FormatPaintIcon fontSize="small" />
+        </button>
+        <button
+          className={`font-size-btn${showAnnotations ? ' word-miner-btn--active' : ''}`}
+          onClick={onToggleAnnotations}
+          title={`Annotations${annotationCount > 0 ? ` (${annotationCount})` : ''}`}
+          aria-label="Toggle annotations"
+        >
+          <EditNoteIcon fontSize="small" />
+          {annotationCount > 0 && (
+            <span className="btn-label">{annotationCount}</span>
+          )}
         </button>
         <button
           className={`font-size-btn word-miner-btn${isMining ? ' word-miner-btn--active' : ''}`}
