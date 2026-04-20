@@ -1,0 +1,84 @@
+.inline-annotation-input {
+  position: fixed;
+  z-index: 9998;
+  visibility: hidden;
+  width: 280px;
+  background: #0e0e1c;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.inline-annotation-input__label {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.inline-annotation-input__label em {
+  color: #818cf8;
+  font-style: normal;
+}
+
+.inline-annotation-input__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  color: #e2e8f4;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: none;
+  font-family: inherit;
+}
+
+.inline-annotation-input__textarea:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.55);
+}
+
+.inline-annotation-input__actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.inline-annotation-input__cancel,
+.inline-annotation-input__save {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.inline-annotation-input__cancel {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.inline-annotation-input__cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.inline-annotation-input__save {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.45);
+  color: #c7d2fe;
+}
+
+.inline-annotation-input__save:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+.inline-annotation-input__save:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

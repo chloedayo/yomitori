@@ -8,10 +8,12 @@ import './DefinitionPopup.css'
 interface DefinitionPopupProps {
   entries: SelectionEntry[]
   rect: SelectionRect
+  rawText: string
   isVertical: boolean
   bookId: string | null
   onDismiss: () => void
   onAnnotate?: (selectedText: string) => void
+  onInlineAnnotate?: (rawText: string) => void
 }
 
 type ActionStatus = 'idle' | 'loading' | 'ok' | 'err' | 'offline'
@@ -56,7 +58,7 @@ function ExpressionWithKanji({
   )
 }
 
-export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss, onAnnotate }: DefinitionPopupProps) {
+export function DefinitionPopup({ entries, rect, rawText, isVertical, bookId, onDismiss, onAnnotate, onInlineAnnotate }: DefinitionPopupProps) {
   const popupRef = useRef<HTMLDivElement>(null)
   const deckNameRef = useRef<string | null>(null)
   const [statuses, setStatuses] = useState<Record<string, EntryStatus>>({})
@@ -301,6 +303,13 @@ export function DefinitionPopup({ entries, rect, isVertical, bookId, onDismiss, 
               onClick={() => { onAnnotate(entries[0].entry.expression); onDismiss() }}
               aria-label="Add note"
             >+ Note</button>
+          )}
+          {onInlineAnnotate && rawText && (
+            <button
+              className="definition-popup__note-btn"
+              onClick={() => { onInlineAnnotate(rawText); onDismiss() }}
+              aria-label="Add inline annotation"
+            >✏ Inline</button>
           )}
         </div>
         <button className="definition-popup__dismiss" onClick={onDismiss} aria-label="Dismiss">✕</button>

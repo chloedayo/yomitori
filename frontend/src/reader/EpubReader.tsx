@@ -12,6 +12,7 @@ interface EpubReaderProps {
   customCSS?: string
   scopeCSS?: (css: string) => string
   onDefinition?: (state: SelectionDefinitionState | null) => void
+  onContentLoaded?: (el: HTMLElement) => void
 }
 
 export interface EpubReaderHandle {
@@ -28,6 +29,7 @@ export const EpubReader = memo(forwardRef<EpubReaderHandle, EpubReaderProps>(fun
     customCSS,
     scopeCSS,
     onDefinition,
+    onContentLoaded,
   },
   ref
 ) {
@@ -84,6 +86,7 @@ export const EpubReader = memo(forwardRef<EpubReaderHandle, EpubReaderProps>(fun
           contentRef.current.innerHTML = parsed.content
           setTotalChars(parsed.totalChars)
           onTotalCharsChange?.(parsed.totalChars)
+          onContentLoaded?.(contentRef.current)
           console.log('📖 EPUB loaded, total chars:', parsed.totalChars)
         }
       } catch (e) {

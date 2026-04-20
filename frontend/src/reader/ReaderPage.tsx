@@ -16,6 +16,8 @@ import { SelectionDefinitionState } from './useSelectionDefinition'
 import { AnnotationsPanel } from './AnnotationsPanel'
 import { useAnnotations } from '../hooks/useAnnotations'
 import { useAnnotationSettings } from '../hooks/useAnnotationSettings'
+import { useInlineAnnotations, injectInlineAnnotation, injectAllInlineAnnotations, InlineAnnotationEditRequest } from '../hooks/useInlineAnnotations'
+import { InlineAnnotationInput } from './InlineAnnotationInput'
 import './reader.css'
 
 function dictWordToMined(w: DictionaryWord, bookId: string): MinedWord {
@@ -74,8 +76,11 @@ export function ReaderPage() {
   const [frequencySources, setFrequencySources] = useState<Array<{ id: number; name: string; isNumeric: boolean }>>([])
   const [selectionDef, setSelectionDef] = useState<SelectionDefinitionState | null>(null)
   const [showAnnotations, setShowAnnotations] = useState(false)
+  const [pendingInlineAnnotation, setPendingInlineAnnotation] = useState<{ rawText: string; rect: SelectionDefinitionState['rect']; editId?: string; initialText?: string } | null>(null)
   const pendingAnnotationBody = useRef<string | null>(null)
+  const epubContentRef = useRef<HTMLElement | null>(null)
   const { settings: annotationSettings, updateSettings } = useAnnotationSettings()
+  const { annotations: inlineAnnotations, createAnnotation: createInlineAnnotation, editAnnotation: editInlineAnnotation, removeAnnotation: removeInlineAnnotation } = useInlineAnnotations(bookId)
   const {
     annotations,
     dirtyCount,
@@ -91,6 +96,44 @@ export function ReaderPage() {
   }, [])
 
   const dismissDefinition = useCallback(() => setSelectionDef(null), [])
+
+  const handleInlineAnnotationDismiss = useCallback((id: string) => {
+    removeInlineAnnotation(id)
+  }, [removeInlineAnnotation])
+
+  const handleInlineAnnotationEdit = useCallback((req: InlineAnnotationEditRequest) => {
+    setPendingInlineAnnotation({ rawText: '', rect: req.rect, editId: req.id, initialText: req.currentText })
+  }, [])
+
+  const handleContentLoaded = useCallback((el: HTMLElement) => {
+    epubContentRef.current = el
+    injectAllInlineAnnotations(el, inlineAnnotations, handleInlineAnnotationDismiss, handleInlineAnnotationEdit)
+  }, [inlineAnnotations, handleInlineAnnotationDismiss, handleInlineAnnotationEdit])
+
+  const handleInlineAnnotate = useCallback((rawText: string) => {
+    if (!selectionDef) return
+    setPendingInlineAnnotation({ rawText, rect: selectionDef.rect })
+    setSelectionDef(null)
+  }, [selectionDef])
+
+  const handleInlineAnnotateSave = useCallback(async (noteText: string) => {
+    if (!pendingInlineAnnotation) return
+    try {
+      if (pendingInlineAnnotation.editId) {
+        await editInlineAnnotation(pendingInlineAnnotation.editId, noteText)
+        const labelEl = epubContentRef.current?.querySelector(`[data-annotation-id="${pendingInlineAnnotation.editId}"] .epub-inline-annotation__text`)
+        if (labelEl) labelEl.textContent = noteText
+      } else {
+        const ann = await createInlineAnnotation(pendingInlineAnnotation.rawText, noteText, currentCharPos)
+        if (epubContentRef.current) {
+          injectInlineAnnotation(epubContentRef.current, ann, handleInlineAnnotationDismiss, handleInlineAnnotationEdit)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to save inline annotation:', err)
+    }
+    setPendingInlineAnnotation(null)
+  }, [pendingInlineAnnotation, createInlineAnnotation, editInlineAnnotation, currentCharPos, handleInlineAnnotationDismiss, handleInlineAnnotationEdit])
 
   useEffect(() => {
     const fetchFrequencySources = async () => {
@@ -350,6 +393,7 @@ export function ReaderPage() {
               customCSS={css}
               scopeCSS={scopeCSS}
               onDefinition={handleDefinition}
+              onContentLoaded={handleContentLoaded}
             />
           </div>
           {showAnnotations && bookId && (
@@ -427,6 +471,7 @@ export function ReaderPage() {
         <DefinitionPopup
           entries={selectionDef.entries}
           rect={selectionDef.rect}
+          rawText={selectionDef.rawText}
           isVertical={isVertical}
           bookId={bookId}
           onDismiss={dismissDefinition}
@@ -434,6 +479,17 @@ export function ReaderPage() {
             pendingAnnotationBody.current = selectedText
             setShowAnnotations(true)
           }}
+          onInlineAnnotate={handleInlineAnnotate}
+        />
+      )}
+      {pendingInlineAnnotation && (
+        <InlineAnnotationInput
+          rect={pendingInlineAnnotation.rect}
+          rawText={pendingInlineAnnotation.editId ? '(edit)' : pendingInlineAnnotation.rawText}
+          isVertical={isVertical}
+          initialText={pendingInlineAnnotation.initialText}
+          onSave={handleInlineAnnotateSave}
+          onCancel={() => setPendingInlineAnnotation(null)}
         />
       )}
       </div>

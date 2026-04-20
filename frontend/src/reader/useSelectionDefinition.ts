@@ -19,6 +19,7 @@ export interface SelectionRect {
 export interface SelectionDefinitionState {
   entries: SelectionEntry[]
   rect: SelectionRect
+  rawText: string
 }
 
 interface DeinflectCandidate {
@@ -139,7 +140,7 @@ export function useSelectionDefinition(
       const entries = smartMatch(selectedText.length, candidates, dictResults)
 
       if (entries.length > 0) {
-        onDefinition({ entries, rect })
+        onDefinition({ entries, rect, rawText: selectedText })
       }
     }
 

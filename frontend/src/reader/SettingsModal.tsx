@@ -118,7 +118,7 @@ export function SettingsModal({
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
-          <h2 style={styles.title}>Reader Custom CSS</h2>
+          <h2 style={styles.title}>Settings</h2>
           <button
             style={styles.closeBtn}
             onClick={onClose}
@@ -155,7 +155,7 @@ export function SettingsModal({
             }}
             onClick={() => setActiveTab('frequency')}
           >
-            Frequency Filter
+            Mining Filter
           </button>
           <button
             style={{
