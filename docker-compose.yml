@@ -28,11 +28,15 @@ services:
     build:
       context: middleware
       dockerfile: Dockerfile
-    ports:
-      - "0.0.0.0:3000:3000"
+    network_mode: host
     environment:
       - NODE_ENV=production
       - PORT=3000
+      - BACKEND_URL=http://localhost:8080
+      - ANKI_DECK_NAME=${ANKI_DECK_NAME:-自動}
+      - DEINFLECT_RULES_PATH=/app/deinflect-rules.json
+    volumes:
+      - ./middleware/deinflect-rules.json:/app/deinflect-rules.json:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
@@ -40,8 +44,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-    networks:
-      - yomitori-network
 
   frontend:
     build:

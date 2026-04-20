@@ -41,8 +41,6 @@ class DictionaryParserService(
                 return false
             }
 
-            logger.info("Starting import of dictionary: {}", zipPath.name)
-
             val dictName = zipPath.name.substringBeforeLast(".")
 
             try {
@@ -105,7 +103,6 @@ class DictionaryParserService(
         val batch = mutableListOf<DictionaryEntry>()
 
         termBankFiles.forEach { file ->
-            logger.info("Parsing {}", file.name)
             try {
                 val entries: List<Any> = objectMapper.readValue(file, object : TypeReference<List<Any>>() {})
 
@@ -217,7 +214,7 @@ class DictionaryParserService(
     }
 
     @Transactional
-    private fun loadFrequencyDictionary(zipFile: File) {
+    fun loadFrequencyDictionary(zipFile: File) {
         val dictName = zipFile.name.substringBeforeLast(".zip")
 
         // Check if already loaded
@@ -225,8 +222,6 @@ class DictionaryParserService(
             logger.info("Frequency dictionary already loaded: {}", dictName)
             return
         }
-
-        logger.info("Loading frequency dictionary: {}", dictName)
 
         val tempDir = Files.createTempDirectory("yomitori-freq-")
         try {

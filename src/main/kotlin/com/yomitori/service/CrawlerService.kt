@@ -27,34 +27,23 @@ class CrawlerService(
         isRunning = true
         try {
             val startTime = System.currentTimeMillis()
-            logger.info("Crawler started")
 
             val scannedFiles = fileSystemScanner.scanDirectory(config.booksPath)
-            logger.info("Scanned {} files from {}", scannedFiles.size, config.booksPath)
             val scannedPaths = scannedFiles.map { it.filepath }.toSet()
 
             var indexedCount = 0
             var updatedCount = 0
-            var processedTotal = 0
+            var errorCount = 0
             scannedFiles.chunked(config.batchSize).forEach { batch ->
                 batch.forEach { fileInfo ->
                     val existing = repository.findByFilepath(fileInfo.filepath)
-
                     if (existing == null) {
-                        indexedCount++
-                        indexNewFile(fileInfo.filepath)
+                        if (indexNewFile(fileInfo.filepath)) indexedCount++ else errorCount++
                     } else if (fileInfo.lastModified.isAfter(existing.lastIndexed)) {
-                        updatedCount++
-                        updateExistingFile(existing, fileInfo.filepath)
-                    }
-
-                    processedTotal++
-                    if (processedTotal % 500 == 0) {
-                        logger.info("Processed {} files (indexed: {}, updated: {})", processedTotal, indexedCount, updatedCount)
+                        if (updateExistingFile(existing, fileInfo.filepath)) updatedCount++ else errorCount++
                     }
                 }
             }
-            logger.info("Indexed {} new files, updated {} existing files", indexedCount, updatedCount)
 
             val allBooks = repository.findAll()
             var deletedCount = 0
@@ -64,21 +53,20 @@ class CrawlerService(
                     repository.save(book.copy(isDeleted = true, updatedAt = LocalDateTime.now()))
                 }
             }
-            if (deletedCount > 0) {
-                logger.info("Marked {} books as deleted", deletedCount)
-            }
 
             val elapsed = (System.currentTimeMillis() - startTime) / 1000
-            logger.info("Crawler completed in {}s", elapsed)
+            logger.info(
+                "Crawler done in {}s — scanned: {}, indexed: {}, updated: {}, deleted: {}, errors: {}",
+                elapsed, scannedFiles.size, indexedCount, updatedCount, deletedCount, errorCount
+            )
         } finally {
             isRunning = false
         }
     }
 
-    private fun indexNewFile(filepath: String) {
-        try {
+    private fun indexNewFile(filepath: String): Boolean {
+        return try {
             val metadata = metadataExtractor.extract(filepath)
-
             val book = Book(
                 filepath = filepath,
                 filename = filepath.substringAfterLast('/'),
@@ -88,36 +76,33 @@ class CrawlerService(
                 fileFormat = metadata.fileFormat,
                 lastIndexed = LocalDateTime.now()
             )
-
             repository.save(book)
             coverExtractor.extractCover(filepath, book.id)
+            true
         } catch (e: Exception) {
-            logger.warn("Failed to index file {}: {}", filepath, e.message)
+            false
         }
     }
 
-    private fun updateExistingFile(existing: Book, filepath: String) {
-        try {
+    private fun updateExistingFile(existing: Book, filepath: String): Boolean {
+        return try {
             if (existing.manualOverride) {
                 repository.save(existing.copy(lastIndexed = LocalDateTime.now()))
-                return
+                return true
             }
-
             val metadata = metadataExtractor.extract(filepath)
             val coverPath = coverExtractor.extractCover(filepath, existing.id)
-
-            val updated = existing.copy(
+            repository.save(existing.copy(
                 title = metadata.title,
                 genre = metadata.genre,
                 type = metadata.type,
                 coverPath = coverPath ?: existing.coverPath,
                 lastIndexed = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
-            )
-
-            repository.save(updated)
+            ))
+            true
         } catch (e: Exception) {
-            logger.warn("Failed to update file {}: {}", filepath, e.message)
+            false
         }
     }
 

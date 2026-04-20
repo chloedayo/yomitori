@@ -33,15 +33,20 @@
 - [ ] Handle mining timeout / progress cancel
 - [ ] Word miner panel: click word → jump to occurrence in book
 
-## Phase 3 — Polish + Annotations (Planned)
+## Phase 3 — Polish + Annotations (In Progress)
 
-- [ ] In-reader word lookup (click/tap → dictionary popup)
+- [x] In-reader word lookup (select text → deinflect → definition popup)
+- [x] Kanji drill-down per word (click kanji in popup → inline lookup)
+- [x] +Anki / +Dict from popup (save without leaving reader)
+- [x] Alternate forms (see also) with independent expand/collapse
+- [x] Startup job queue — dict import → crawler → author extraction, serialized, no SQLITE_BUSY
+- [x] Dictionary file watcher — drop zip → auto-import, no restart needed
 - [ ] Highlight / annotation persistence per book
 - [ ] Sentence-level context capture for Anki cards
 - [ ] Export annotations to Markdown
+- [ ] Touch / mobile support for definition popup (tap to select)
 - [ ] Reading stats dashboard (chars read, books finished, mining rate)
 - [ ] JLPT level estimation from mined words (optional tag)
-- [ ] Kanji breakdown per word
 - [ ] Per-book vocabulary review mode
 
 ## Phase 4 — Collaboration / Future

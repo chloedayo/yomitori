@@ -35,12 +35,20 @@ class ProxyController(private val restTemplate: RestTemplate) {
     return try {
       val headers = org.springframework.http.HttpHeaders()
       headers.contentType = org.springframework.http.MediaType.APPLICATION_JSON
-      logger.info("Forwarding AnkiConnect request: ${String(body)}")
+      val parsed = com.fasterxml.jackson.databind.ObjectMapper().readTree(body)
+      val action = parsed.get("action")?.asText() ?: "unknown"
+      if (action == "addNotes") {
+        val count = parsed.get("params")?.get("notes")?.size() ?: 0
+        logger.info("AnkiConnect addNotes — sending $count notes")
+      }
       val entity = org.springframework.http.HttpEntity<ByteArray>(body, headers)
       val response = restTemplate.exchange(ankiUrl, org.springframework.http.HttpMethod.POST, entity, String::class.java)
+      if (action == "addNotes") {
+        logger.info("AnkiConnect addNotes — response: ${(response.body ?: "").take(120)}")
+      }
       ResponseEntity.ok(response.body)
     } catch (e: Exception) {
-      logger.error("Error connecting to AnkiConnect", e)
+      logger.error("AnkiConnect error: ${e.message}")
       ResponseEntity.status(500).body("""{"error":"AnkiConnect not found. Is Anki running with AnkiConnect add-on?"}""")
     }
   }

@@ -2,6 +2,63 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.3.0] - 2026-04-20
+
+### Added
+
+- **In-Reader Definition Popup** (Phase 3 headline)
+  - Select any text in the EPUB reader → popup appears with definitions
+  - Rule-based deinflection (middleware) generates conjugation candidates for selected text
+  - Greedy longest-match segmentation across the selection
+  - Each entry: expression, reading, definitions (up to 3), source dictionary name
+  - Click any kanji in the expression → inline sub-lookup
+  - "See also" section for alternate dictionary matches (collapsed by default; expression + reading only when collapsed, full definition when expanded)
+  - Each alternate is independently expandable
+  - +Anki / +Dict action buttons per entry and per alternate
+  - Smart popup positioning — vertical mode: left/right of selection; horizontal: above/below
+  - Click outside to dismiss
+
+- **Deinflection Engine (Middleware)**
+  - `deinflect.ts` — rule-based, loads `deinflect-rules.json` at startup
+  - Generates all substring candidates with `startPos` for greedy matching
+  - `POST /deinflect` — returns candidates for selected text
+  - `POST /extract-baseForms` — bulk base form extraction for mining
+  - `POST /mine-words` — full mining pipeline moved from frontend to middleware
+
+- **Mining Pipeline Moved to Middleware**
+  - `miner.ts`, `ankiClient.ts`, `ankiQueue.ts` all live in middleware
+  - Frontend sends one `POST /mine-words` (full book text) — middleware tokenizes, batch-looks up, filters, queues Anki
+  - Anki retry queue persists in middleware process (survives page reload)
+  - `bookTitle` forwarded through pipeline for Anki card tags and `MiscInfo` field
+
+- **Startup Job Queue** (`StartupJobService`)
+  - Single-threaded executor serializes all DB-writing jobs (startup + manual)
+  - Startup sequence: dictionary import → crawler → author extraction (in order, no overlap)
+  - Manual triggers (`/crawler/run`, `/admin/extract-authors`) submit to the same queue
+  - No more `SQLITE_BUSY` conflicts on startup
+  - `AppStartupListener` (renamed from `DictionaryStartupRunner`) — thin `@EventListener` that calls `submitAll()`
+
+- **Dictionary File Watcher** (`DictionaryWatcherService`)
+  - `java.nio.WatchService` watches `/app/data/dictionaries/` and `.../frequency/` at runtime
+  - Drop a new `.zip` → auto-imported without restart
+  - Imports go through the job queue (no concurrent write conflicts)
+  - Daemon thread, starts after `ApplicationReadyEvent`
+
+- **DictionaryView Enhancements**
+  - Kana row filter (あ/か/さ/た/な/は/ま/や/ら/わ) for browsing personal dictionary
+  - Frequency filter panel with source dropdown + min/max rank inputs
+
+- **Mined Words: localStorage → IndexedDB**
+  - Per-book mined word lists now loaded from IndexedDB (`dictionaryStore`) instead of localStorage
+  - `getWordsByBookId`, `getWord` added to `dictionaryStore`
+
+### Changed
+
+- `batchLookup` now returns `Map<string, DictionaryEntry[]>` (all matches) instead of `Map<string, DictionaryEntry | null>` (first match only) — enables alternate/see-also entries in popup
+- Middleware switches to `network_mode: host` in Docker — required for Anki (localhost:8765) and backend (localhost:8080) reachability from middleware
+- `BookController` no longer injects `CrawlerService` / `RetroactiveAuthorExtractionService` directly — routes through `StartupJobService` queue
+- Logging reduced across all indexing services — per-file/per-entry INFO logs removed; only final summary counts logged
+
 ## [0.2.3] - 2026-04-19
 
 ### Added

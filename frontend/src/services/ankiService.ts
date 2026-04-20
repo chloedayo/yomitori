@@ -68,6 +68,15 @@ export async function checkConnection(): Promise<boolean> {
   }
 }
 
+export async function isNoteInAnki(expression: string): Promise<boolean> {
+  try {
+    const result = await invoke('findNotes', { query: `Expression:"${expression}"` })
+    return Array.isArray(result) && result.length > 0
+  } catch {
+    return false
+  }
+}
+
 export async function getDeckNames(): Promise<string[]> {
   try {
     return await invoke('deckNames')

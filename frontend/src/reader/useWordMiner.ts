@@ -1,221 +1,106 @@
 import { useRef, useCallback } from 'react'
-import { batchLookup } from '../api/dictionaryClient'
-import { MinedWord, getDeckNames } from '../services/ankiService'
-import { ankiQueue } from '../services/ankiQueueService'
+import { MinedWord } from '../services/ankiService'
+import { upsertWord } from '../services/dictionaryStore'
 import { useMiddlewareProxy } from '../hooks/useProxy'
 
 export interface UsWordMinerProps {
   contentRef: React.RefObject<HTMLDivElement>
   bookId: string
+  bookTitle?: string | null
   onMiningWord?: (word: string) => void
   frequencySource?: string | null
   minFrequencyRank?: number | null
   maxFrequencyRank?: number | null
 }
 
-interface TokenizedWord {
-  surface: string
-  baseForm: string
-  partOfSpeech: string
-  reading?: string
-}
-
-
-const fallbackTokenize = (text: string): TokenizedWord[] => {
-  const words = text.match(/[\p{L}\p{N}]+/gu) || []
-  return words
-    .filter(w => w.length > 1)
-    .map(word => ({
-      surface: word,
-      baseForm: word,
-      partOfSpeech: 'unknown',
-      reading: undefined,
-    }))
+interface WordEntry {
+  expression: string
+  reading: string
+  definitions: string[]
+  frequencies: { sourceName: string; frequency: number }[]
+  dictionaryName: string
 }
 
 export function useWordMiner({
   contentRef,
   bookId,
+  bookTitle,
   onMiningWord,
   frequencySource,
   minFrequencyRank,
   maxFrequencyRank,
 }: UsWordMinerProps) {
-  const useKuromojiRef = useRef(true)
-  const initPromiseRef = useRef<Promise<void> | null>(null)
   const cancelledRef = useRef(false)
 
   const cancelMining = useCallback(() => {
     cancelledRef.current = true
   }, [])
 
-  const initializeTokenizer = useCallback(async () => {
-    if (initPromiseRef.current) return initPromiseRef.current
-
-    initPromiseRef.current = (async () => {
-      try {
-        const url = useMiddlewareProxy('/health')
-        const response = await fetch(url)
-        if (!response.ok) {
-          throw new Error('Middleware not ready')
-        }
-      } catch (err) {
-        console.warn('Middleware unavailable, using fallback regex tokenizer')
-        useKuromojiRef.current = false
-      }
-    })()
-
-    return initPromiseRef.current
-  }, [])
-
   const extractText = useCallback(() => {
     if (!contentRef.current) return ''
     const chapters = contentRef.current.querySelectorAll('.epub-chapter')
-    const texts: string[] = []
-    chapters.forEach((chapter) => {
-      texts.push(chapter.textContent || '')
-    })
-    return texts.join('\n')
+    return Array.from(chapters).map(c => c.textContent || '').join('\n')
   }, [contentRef])
-
-  const tokenizeText = useCallback(
-    async (text: string): Promise<TokenizedWord[]> => {
-      if (!useKuromojiRef.current) {
-        return fallbackTokenize(text)
-      }
-
-      try {
-        const url = useMiddlewareProxy('/tokenize')
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
-        })
-
-        if (!response.ok) {
-          throw new Error(`Middleware error: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        return data.tokens || []
-      } catch (err) {
-        console.error('Middleware tokenization failed, falling back:', err)
-        return fallbackTokenize(text)
-      }
-    },
-    []
-  )
-
-  const isKanaOnly = (str: string) => /^[\u3041-\u30FF\u30FC]+$/.test(str)
-
-  const dedupeAndCount = useCallback(
-    (words: TokenizedWord[]): Map<string, { word: TokenizedWord; count: number }> => {
-      const map = new Map<string, { word: TokenizedWord; count: number }>()
-      words.forEach((word) => {
-        if (isKanaOnly(word.baseForm)) return
-        const key = word.baseForm
-        const existing = map.get(key)
-        if (existing) {
-          existing.count += 1
-        } else {
-          map.set(key, { word, count: 1 })
-        }
-      })
-      return map
-    },
-    []
-  )
-
-  const enrichWithDefinitions = useCallback(
-    async (
-      words: Map<string, { word: TokenizedWord; count: number }>,
-      deckName: string
-    ): Promise<MinedWord[]> => {
-      const minedWords: MinedWord[] = []
-      const wordKeys = Array.from(words.keys())
-      const BATCH_SIZE = 1000
-
-      // Process words in batches
-      for (let i = 0; i < wordKeys.length; i += BATCH_SIZE) {
-        if (cancelledRef.current) break
-        const batch = wordKeys.slice(i, i + BATCH_SIZE)
-        onMiningWord?.(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}...`)
-
-        // Single API call for entire batch
-        const dictionaryResults = await batchLookup(batch)
-
-        if (cancelledRef.current) break
-
-        for (const key of batch) {
-          const entry = dictionaryResults.get(key)
-
-          if (entry) {
-
-            let minedFreq = 0;
-
-            // Filter by frequency range if specified
-            if (frequencySource) {
-              const freq = entry.frequencies?.find(f => f.sourceName === frequencySource)
-              if (!freq) {
-                continue
-              }
-
-              const inRange = (
-                (minFrequencyRank === null || minFrequencyRank === undefined || freq.frequency >= minFrequencyRank) &&
-                (maxFrequencyRank === null || maxFrequencyRank === undefined || freq.frequency <= maxFrequencyRank)
-              )
-
-              if (!inRange) {
-                continue
-              }
-              minedFreq = freq.frequency;
-            }
-
-            const minedWord: MinedWord = {
-              surface: entry.expression,
-              reading: entry.reading,
-              baseForm: entry.expression,
-              frequency: minedFreq,
-              definitions: entry.definitions,
-              frequencies: entry.frequencies || [],
-              addedToAnki: false,
-              bookId,
-              minedAt: Date.now(),
-            }
-
-            minedWords.push(minedWord)
-            ankiQueue.addToQueue(minedWord, deckName)
-          }
-        }
-      }
-
-      return minedWords.sort((a, b) => b.frequency - a.frequency)
-    },
-    [bookId, onMiningWord, frequencySource, minFrequencyRank, maxFrequencyRank]
-  )
 
   const mineWords = useCallback(async (): Promise<MinedWord[]> => {
     cancelledRef.current = false
     try {
-      await initializeTokenizer()
-
-      // Get default deck for auto-queuing
-      const decks = (await getDeckNames()) || []
-      const defaultDeck = decks.find(d => d === '自動') || decks[0] || 'Default'
       const text = extractText()
       if (!text.trim()) throw new Error('No text found in reader')
 
-      const tokens = await tokenizeText(text)
-      if (tokens.length === 0) throw new Error('No words could be tokenized')
+      console.log(`[miner] sending ${text.length} chars (${(new Blob([text]).size / 1024).toFixed(1)} KB) to middleware`)
+      onMiningWord?.('Mining…')
 
-      const deduped = dedupeAndCount(tokens)
-      const enriched = await enrichWithDefinitions(deduped, defaultDeck)
-      return enriched
+      const url = useMiddlewareProxy('/mine-words')
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, frequencySource, minFrequencyRank, maxFrequencyRank, bookTitle }),
+        signal: AbortSignal.timeout(300000),
+      })
+
+      if (!res.ok) throw new Error(`Mining failed: ${res.statusText}`)
+      const data = await res.json() as { words: WordEntry[] }
+
+      if (cancelledRef.current) return []
+
+      const minedAt = Date.now()
+      const minedWords: MinedWord[] = data.words.map(entry => ({
+        surface: entry.expression,
+        reading: entry.reading,
+        baseForm: entry.expression,
+        frequency: entry.frequencies?.find(f => f.sourceName === frequencySource)?.frequency
+          ?? entry.frequencies?.[0]?.frequency
+          ?? 0,
+        definitions: entry.definitions,
+        frequencies: entry.frequencies || [],
+        addedToAnki: false,
+        bookId,
+        minedAt,
+      }))
+
+      minedWords.sort((a, b) => b.frequency - a.frequency)
+
+      await Promise.all(
+        minedWords.map(word =>
+          upsertWord({
+            baseForm: word.baseForm,
+            surface: word.surface,
+            reading: word.reading,
+            definitions: word.definitions,
+            frequencies: word.frequencies,
+            bookId: word.bookId,
+            minedAt: word.minedAt,
+          }).catch(() => {})
+        )
+      )
+
+      return minedWords
     } catch (err) {
       console.error('Mining error:', err)
       throw err
     }
-  }, [initializeTokenizer, extractText, tokenizeText, dedupeAndCount, enrichWithDefinitions, frequencySource, minFrequencyRank, maxFrequencyRank])
+  }, [extractText, bookId, bookTitle, onMiningWord, frequencySource, minFrequencyRank, maxFrequencyRank])
 
   return { mineWords, cancelMining }
 }
