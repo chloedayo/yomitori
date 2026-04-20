@@ -176,11 +176,15 @@ class DictionaryParserService(
         when (content) {
             is String -> sb.append(content)
             is Map<*, *> -> {
+                val tag = content["tag"] as? String
                 val inner = content["content"]
-                if (inner != null) {
-                    extractTextFromContent(inner, sb)
-                } else {
-                    content.values.forEach { extractTextFromContent(it, sb) }
+                when {
+                    tag == "img" -> (content["title"] as? String)?.let { sb.append(it) }
+                    tag == "rt" -> { /* skip furigana readings */ }
+                    tag == "br" -> sb.append(" ")
+                    inner != null -> extractTextFromContent(inner, sb)
+                    tag != null -> { /* empty element, skip */ }
+                    else -> content.values.forEach { extractTextFromContent(it, sb) }
                 }
             }
             is List<*> -> content.forEach { extractTextFromContent(it, sb) }

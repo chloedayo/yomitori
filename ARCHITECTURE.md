@@ -174,6 +174,7 @@ src/main/kotlin/com/yomitori/
 | GET | `/frequency-sources` | List available frequency dictionaries |
 | GET | `/lookup?word=` | Single word lookup |
 | POST | `/batch-lookup` | Bulk word lookup (up to 1000 words) |
+| POST | `/reimport` | Wipe all dictionary data and re-import from disk |
 
 **GET /lookup response:**
 ```json
