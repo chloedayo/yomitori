@@ -232,55 +232,74 @@
   }
 
   &__editor-wrap {
-    position: relative;
     height: 260px;
-    overflow: hidden;
+    overflow-y: auto;
     border: 1px solid $border-primary;
     border-radius: 4px;
     background: $bg-dark;
-  }
-
-  &__overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 8px;
-    font-family: monospace;
-    font-size: 13px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    pointer-events: none;
-    overflow: hidden;
-    color: $text-primary;
-    box-sizing: border-box;
-  }
-
-  &__textarea {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 8px;
-    font-family: monospace;
-    font-size: 13px;
-    line-height: 1.5;
-    background: transparent;
-    color: $text-primary;
-    caret-color: $text-primary;
-    border: none;
-    resize: none;
-    outline: none;
-    overflow-y: auto;
     box-sizing: border-box;
 
-    &--highlighted {
-      color: transparent;
-      caret-color: $text-primary;
+    &:focus-within {
+      border-color: $accent;
     }
   }
+}
 
+// Tiptap / ProseMirror rich editor
+.annotation-editor__editor-wrap .ProseMirror {
+  min-height: 244px;
+  padding: 10px 12px;
+  outline: none;
+  color: $text-primary;
+  font-size: 13px;
+  line-height: 1.6;
+
+  p  { margin: 2px 0; }
+  h1 { color: var(--ap-h1, $text-primary); font-size: 1.5em;  font-weight: bold; margin: 8px 0 4px; }
+  h2 { color: var(--ap-h2, $text-primary); font-size: 1.25em; font-weight: bold; margin: 6px 0 3px; }
+  h3 { color: var(--ap-h3, $text-primary); font-size: 1.1em;  font-weight: bold; margin: 4px 0 2px; }
+
+  strong { color: var(--ap-strong, $text-primary); }
+  em     { color: var(--ap-em,     $text-primary); }
+
+  code {
+    color: var(--ap-code, $text-primary);
+    font-family: monospace;
+    font-size: 0.9em;
+    background: rgba(255,255,255,0.07);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  pre {
+    background: rgba(0,0,0,0.35);
+    padding: 10px 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 6px 0;
+    code { background: none; padding: 0; color: $text-primary; }
+  }
+
+  blockquote {
+    color: var(--ap-blockquote, $text-muted);
+    border-left: 3px solid $border-primary;
+    padding-left: 10px;
+    margin: 4px 0 4px 2px;
+  }
+
+  ul { list-style: disc;    padding-left: 1.4em; margin: 2px 0; }
+  ol { list-style: decimal; padding-left: 1.4em; margin: 2px 0; }
+  li { margin: 1px 0; }
+
+  a  { color: var(--ap-a, $accent); text-decoration: underline; }
+  hr { border: none; border-top: 1px solid $border-primary; margin: 8px 0; }
+
+  // Placeholder text
+  p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: $text-muted;
+    pointer-events: none;
+    float: left;
+    height: 0;
+  }
 }

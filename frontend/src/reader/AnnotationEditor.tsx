@@ -1,5 +1,16 @@
-import { useRef, useCallback, useState } from 'react'
+import { useEffect, useRef } from 'react'
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Placeholder from '@tiptap/extension-placeholder'
+import { Markdown, type MarkdownStorage } from 'tiptap-markdown'
 import { AnnotationSettings } from '../hooks/useAnnotationSettings'
+
+import type { Editor } from '@tiptap/react'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getMarkdown(editor: Editor | null): string {
+  return ((editor?.storage as any)?.markdown as MarkdownStorage | undefined)?.getMarkdown() ?? ''
+}
 
 interface AnnotationEditorProps {
   title: string
@@ -9,67 +20,6 @@ interface AnnotationEditorProps {
   settings: AnnotationSettings
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
-
-// Cursor line: keep raw chars, just apply colors
-function renderLineRaw(line: string, colors: AnnotationSettings['editorColors']): string {
-  const escaped = escapeHtml(line)
-  if (/^#{1,3} /.test(line)) return `<span style="color:${colors.heading}">${escaped}</span>`
-  if (/^> /.test(line)) return `<span style="color:${colors.blockquote}">${escaped}</span>`
-  let out = escaped
-  out = out.replace(/\*\*(.+?)\*\*/g, `<span style="color:${colors.bold}">**$1**</span>`)
-  out = out.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, `<span style="color:${colors.italic}">*$1*</span>`)
-  out = out.replace(/`([^`]+)`/g, `<span style="color:${colors.code}">\`$1\`</span>`)
-  return out
-}
-
-// Apply inline renders — replace syntax chars with spaces (same char count, monospace-safe)
-function applyInline(escaped: string, colors: AnnotationSettings['editorColors']): string {
-  let out = escaped
-  // **bold** → "  bold  " (2 spaces each side, same char count)
-  out = out.replace(/\*\*([^*\n]+?)\*\*/g, (_, c) =>
-    `<strong style="color:${colors.bold}">  ${c}  </strong>`)
-  // *italic* → " italic " (1 space each side)
-  out = out.replace(/(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)/g, (_, c) =>
-    `<em style="color:${colors.italic}"> ${c} </em>`)
-  // `code` → " code " (1 space each side)
-  out = out.replace(/`([^`\n]+)`/g, (_, c) =>
-    `<code style="color:${colors.code}"> ${c} </code>`)
-  return out
-}
-
-// Non-cursor line: hide syntax markers with equal-width spaces
-function renderLineInPlace(line: string, colors: AnnotationSettings['editorColors']): string {
-  // Heading: "## text" → "   text" (## + space → spaces, same count)
-  const headingMatch = line.match(/^(#{1,3}) (.*)/)
-  if (headingMatch) {
-    const pad = ' '.repeat(headingMatch[1].length + 1)
-    const content = applyInline(escapeHtml(headingMatch[2]), colors)
-    return `<span>${pad}</span><strong style="color:${colors.heading}">${content}</strong>`
-  }
-  // Blockquote: "> text" → "  text" ("> " → 2 spaces)
-  const bqMatch = line.match(/^> (.*)/)
-  if (bqMatch) {
-    const content = applyInline(escapeHtml(bqMatch[1]), colors)
-    return `<span>  </span><span style="color:${colors.blockquote}">${content}</span>`
-  }
-  return applyInline(escapeHtml(line), colors)
-}
-
-function buildOverlay(text: string, cursorLine: number, colors: AnnotationSettings['editorColors']): string {
-  return text
-    .split('\n')
-    .map((line, i) =>
-      i === cursorLine ? renderLineRaw(line, colors) : renderLineInPlace(line, colors)
-    )
-    .join('\n') + '\n'
-}
-
 export function AnnotationEditor({
   title,
   body,
@@ -77,24 +27,42 @@ export function AnnotationEditor({
   onBodyChange,
   settings,
 }: AnnotationEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const overlayRef = useRef<HTMLDivElement>(null)
-  const [cursorLine, setCursorLine] = useState(-1)
+  const lastEmittedRef = useRef(body)
 
-  const updateCursorLine = useCallback(() => {
-    const ta = textareaRef.current
-    if (!ta) return
-    const linesBefore = ta.value.substring(0, ta.selectionStart).split('\n')
-    setCursorLine(linesBefore.length - 1)
-  }, [])
+  const previewStyle: React.CSSProperties = settings.previewColorsEnabled
+    ? {
+        '--ap-h1': settings.previewColors.h1,
+        '--ap-h2': settings.previewColors.h2,
+        '--ap-h3': settings.previewColors.h3,
+        '--ap-strong': settings.previewColors.strong,
+        '--ap-em': settings.previewColors.em,
+        '--ap-code': settings.previewColors.code,
+        '--ap-blockquote': settings.previewColors.blockquote,
+        '--ap-a': settings.previewColors.a,
+      } as React.CSSProperties
+    : {}
 
-  const handleScroll = useCallback(() => {
-    if (overlayRef.current && textareaRef.current) {
-      overlayRef.current.scrollTop = textareaRef.current.scrollTop
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({ placeholder: 'Write your annotation in markdown…' }),
+      Markdown.configure({ transformPastedText: true }),
+    ],
+    content: body,
+    onUpdate: ({ editor }) => {
+      const md = getMarkdown(editor)
+      lastEmittedRef.current = md
+      onBodyChange(md)
+    },
+  })
+
+  // Sync external body changes (e.g. initialBody from DefinitionPopup)
+  useEffect(() => {
+    if (editor && body !== lastEmittedRef.current) {
+      editor.commands.setContent(body)
+      lastEmittedRef.current = body
     }
-  }, [])
-
-  const overlayHtml = buildOverlay(body, cursorLine, settings.editorColors)
+  }, [body, editor])
 
   return (
     <div className="annotation-editor">
@@ -105,28 +73,8 @@ export function AnnotationEditor({
         value={title}
         onChange={e => onTitleChange(e.target.value)}
       />
-
-      <div className="annotation-editor__editor-wrap">
-        <div
-          ref={overlayRef}
-          className="annotation-editor__overlay"
-          dangerouslySetInnerHTML={{ __html: overlayHtml }}
-          aria-hidden
-        />
-        <textarea
-          ref={textareaRef}
-          className="annotation-editor__textarea annotation-editor__textarea--highlighted"
-          value={body}
-          onChange={e => { onBodyChange(e.target.value); updateCursorLine() }}
-          onKeyUp={updateCursorLine}
-          onClick={updateCursorLine}
-          onSelect={updateCursorLine}
-          onFocus={updateCursorLine}
-          onBlur={() => setCursorLine(-1)}
-          onScroll={handleScroll}
-          placeholder="Write your annotation in markdown..."
-          spellCheck={false}
-        />
+      <div className="annotation-editor__editor-wrap" style={previewStyle}>
+        <EditorContent editor={editor} />
       </div>
     </div>
   )
