@@ -13,17 +13,13 @@ function getMarkdown(editor: Editor | null): string {
 }
 
 interface AnnotationEditorProps {
-  title: string
   body: string
-  onTitleChange: (title: string) => void
   onBodyChange: (body: string) => void
   settings: AnnotationSettings
 }
 
 export function AnnotationEditor({
-  title,
   body,
-  onTitleChange,
   onBodyChange,
   settings,
 }: AnnotationEditorProps) {
@@ -66,13 +62,6 @@ export function AnnotationEditor({
 
   return (
     <div className="annotation-editor">
-      <input
-        className="annotation-editor__title"
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={e => onTitleChange(e.target.value)}
-      />
       <div className="annotation-editor__editor-wrap" style={previewStyle}>
         <EditorContent editor={editor} />
       </div>

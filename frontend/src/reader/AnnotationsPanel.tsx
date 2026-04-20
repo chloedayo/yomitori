@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect } from 'react'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
+import { useState, useEffect, useRef } from 'react'
 import SaveIcon from '@mui/icons-material/Save'
+import MenuIcon from '@mui/icons-material/Menu'
 import { Annotation } from '../services/annotationStore'
 import { AnnotationEditor } from './AnnotationEditor'
 import { AnnotationSettings } from '../hooks/useAnnotationSettings'
@@ -24,155 +23,125 @@ interface AnnotationsPanelProps {
   onJumpTo: (charPos: number) => void
 }
 
-interface EditorState {
-  id: string | null
-  title: string
-  body: string
-  charPos: number
-}
-
 export function AnnotationsPanel({
   annotations,
-  dirtyCount,
   syncing,
   totalChars,
-  currentCharPos,
   settings,
   initialBody,
   onInitialBodyConsumed,
   onClose,
   onCreate,
   onUpdate,
-  onDelete,
   onSave,
   onJumpTo,
 }: AnnotationsPanelProps) {
-  const [editor, setEditor] = useState<EditorState | null>(null)
+  const primaryNote = annotations[0] ?? null
+  const oldNotes = annotations.slice(1)
 
+  const [body, setBody] = useState(primaryNote?.body ?? '')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  const isDirty = body !== (primaryNote?.body ?? '')
+
+  // Sync primary note when it changes from outside
+  useEffect(() => {
+    setBody(primaryNote?.body ?? '')
+  }, [primaryNote?.id])
+
+  // Append initialBody (from DefinitionPopup +Note)
   useEffect(() => {
     if (initialBody) {
-      setEditor({ id: null, title: '', body: initialBody, charPos: currentCharPos })
+      setBody(prev => prev ? `${prev}\n\n${initialBody}` : initialBody)
       onInitialBodyConsumed?.()
     }
   }, [])
 
-  const handleNew = useCallback(() => {
-    setEditor({ id: null, title: '', body: '', charPos: currentCharPos })
-  }, [currentCharPos])
-
-  const handleEdit = useCallback((annotation: Annotation, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setEditor({
-      id: annotation.id,
-      title: annotation.title,
-      body: annotation.body,
-      charPos: annotation.charPos,
-    })
-  }, [])
-
-  const handleDelete = useCallback(async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    await onDelete(id)
-    if (editor?.id === id) setEditor(null)
-  }, [editor, onDelete])
-
-  const handleSaveAnnotation = useCallback(async () => {
-    if (!editor) return
-    if (!editor.title.trim()) return
-    if (editor.id === null) {
-      await onCreate(editor.title, editor.body, editor.charPos)
-    } else {
-      await onUpdate(editor.id, editor.title, editor.body, editor.charPos)
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
     }
-    setEditor(null)
-  }, [editor, onCreate, onUpdate])
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [menuOpen])
 
-  const handleCancel = useCallback(() => setEditor(null), [])
+  const handleSave = async () => {
+    if (saving) return
+    setSaving(true)
+    try {
+      if (primaryNote) {
+        await onUpdate(primaryNote.id, primaryNote.title || '', body, 0)
+      } else {
+        await onCreate('', body, 0)
+      }
+      await onSave()
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const posPercent = (charPos: number) =>
     Math.round((Math.abs(charPos) / (totalChars || 1)) * 100)
 
   return (
     <div className="annotations-panel">
-        <div className="annotations-panel__header">
-          <h2>Annotations {annotations.length > 0 && `(${annotations.length})`}</h2>
-          <div className="annotations-panel__header-actions">
-            <button
-              className={`annotations-panel__save-btn${dirtyCount > 0 ? ' annotations-panel__save-btn--dirty' : ''}`}
-              onClick={onSave}
-              disabled={syncing || dirtyCount === 0}
-              title="Save to server"
-            >
-              <SaveIcon fontSize="small" />
-              {dirtyCount > 0 && (
-                <span className="annotations-panel__dirty-badge">{dirtyCount}</span>
+      <div className="annotations-panel__header">
+        <h2>Notes</h2>
+        <div className="annotations-panel__header-actions">
+          {oldNotes.length > 0 && (
+            <div className="annotations-panel__menu-wrap" ref={menuRef}>
+              <button
+                className="annotations-panel__menu-btn"
+                onClick={() => setMenuOpen(p => !p)}
+                title="Previous notes"
+              >
+                <MenuIcon fontSize="small" />
+              </button>
+              {menuOpen && (
+                <div className="annotations-panel__menu-dropdown">
+                  {oldNotes.map(note => (
+                    <div
+                      key={note.id}
+                      className="annotations-panel__menu-item"
+                      onClick={() => { onJumpTo(note.charPos); setMenuOpen(false) }}
+                    >
+                      <span className="annotations-panel__menu-item-title">
+                        {note.title || note.body.slice(0, 40) || '(empty)'}
+                      </span>
+                      <span className="annotations-panel__menu-item-pos">
+                        {posPercent(note.charPos)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
-            </button>
-            <button className="annotations-panel__close-btn" onClick={onClose}>✕</button>
-          </div>
-        </div>
-
-        <div className="annotations-panel__body">
-          {editor && (
-            <div className="annotations-panel__editor-wrap">
-              <AnnotationEditor
-                title={editor.title}
-                body={editor.body}
-                onTitleChange={t => setEditor(prev => prev ? { ...prev, title: t } : null)}
-                onBodyChange={b => setEditor(prev => prev ? { ...prev, body: b } : null)}
-                settings={settings}
-              />
-              <div className="annotations-panel__editor-actions">
-                <button className="annotations-panel__save-annotation-btn" onClick={handleSaveAnnotation}>
-                  {editor.id === null ? 'Add' : 'Update'}
-                </button>
-                <button className="annotations-panel__cancel-btn" onClick={handleCancel}>
-                  Cancel
-                </button>
-              </div>
             </div>
           )}
-
-          {!editor && (
-            <button className="annotations-panel__new-btn" onClick={handleNew}>
-              + New annotation at current position
-            </button>
-          )}
-
-          <div className="annotations-panel__list">
-            {annotations.length === 0 && !editor && (
-              <div className="annotations-panel__empty">No annotations yet.</div>
-            )}
-            {annotations.map(annotation => (
-              <div
-                key={annotation.id}
-                className="annotations-panel__item"
-                onClick={() => onJumpTo(annotation.charPos)}
-              >
-                <div className="annotations-panel__item-main">
-                  <div className="annotations-panel__item-title">{annotation.title}</div>
-                  <div className="annotations-panel__item-pos">{posPercent(annotation.charPos)}%</div>
-                </div>
-                <div className="annotations-panel__item-actions">
-                  <button
-                    className="annotations-panel__icon-btn"
-                    onClick={e => handleEdit(annotation, e)}
-                    title="Edit"
-                  >
-                    <EditIcon fontSize="small" />
-                  </button>
-                  <button
-                    className="annotations-panel__icon-btn annotations-panel__icon-btn--danger"
-                    onClick={e => handleDelete(annotation.id, e)}
-                    title="Delete"
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <button
+            className={`annotations-panel__save-btn${isDirty ? ' annotations-panel__save-btn--dirty' : ''}`}
+            onClick={handleSave}
+            disabled={syncing || saving || !isDirty}
+          >
+            <SaveIcon fontSize="small" />
+            Save Changes
+          </button>
+          <button className="annotations-panel__close-btn" onClick={onClose}>✕</button>
         </div>
+      </div>
+
+      <div className="annotations-panel__body">
+        <AnnotationEditor
+          body={body}
+          onBodyChange={setBody}
+          settings={settings}
+        />
+      </div>
     </div>
   )
 }
