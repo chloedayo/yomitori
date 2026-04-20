@@ -2,7 +2,8 @@
 @import '../styles/mixins';
 
 .annotations-panel {
-  width: 340px;
+  width: 25vw;
+  min-width: 300px;
   flex-shrink: 0;
   height: 100%;
   background: $bg-darker;
@@ -19,7 +20,7 @@
 
   &__header {
     @include flex-between;
-    padding: $spacing-lg;
+    padding: $spacing-md $spacing-lg;
     border-bottom: 1px solid $border-primary;
     flex-shrink: 0;
     gap: 8px;
@@ -34,23 +35,24 @@
   &__header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   &__save-btn {
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
+    gap: 5px;
+    padding: 5px 12px;
     background: $accent;
     color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: $font-size-sm;
+    white-space: nowrap;
 
     &:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: default;
     }
 
@@ -59,153 +61,88 @@
     }
   }
 
-  &__dirty-badge {
-    background: #fff;
-    color: #e0a030;
-    border-radius: 10px;
-    padding: 0 6px;
-    font-size: 11px;
-    font-weight: bold;
-  }
-
   &__close-btn {
     background: transparent;
     border: none;
     color: $text-primary;
     cursor: pointer;
     font-size: 18px;
-    padding: 4px;
+    padding: 4px 6px;
+    line-height: 1;
 
-    &:hover {
-      color: $accent;
-    }
+    &:hover { color: $accent; }
   }
 
   &__body {
-    display: flex;
-    flex-direction: column;
     flex: 1;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: $spacing-md $spacing-lg;
   }
 
-  &__new-btn {
-    margin: $spacing-md $spacing-lg;
-    padding: 6px 12px;
+  // Hamburger menu for old notes
+  &__menu-wrap {
+    position: relative;
+  }
+
+  &__menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
     background: transparent;
-    border: 1px dashed $border-primary;
+    border: 1px solid $border-primary;
     border-radius: 4px;
     color: $text-muted;
     cursor: pointer;
-    font-size: $font-size-sm;
-    text-align: left;
-    flex-shrink: 0;
 
     &:hover {
-      border-color: $accent;
       color: $text-primary;
+      border-color: $text-muted;
     }
   }
 
-  &__editor-wrap {
-    padding: 0 $spacing-lg $spacing-md;
-    border-bottom: 1px solid $border-primary;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
+  &__menu-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    background: $bg-darker;
+    border: 1px solid $border-primary;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    z-index: 100;
+    overflow: hidden;
   }
 
-  &__editor-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-
-    button {
-      padding: 4px 12px;
-      border-radius: 4px;
-      border: 1px solid $border-primary;
-      cursor: pointer;
-      font-size: $font-size-sm;
-    }
-  }
-
-  &__save-annotation-btn {
-    background: $accent;
-    color: #fff;
-    border-color: $accent !important;
-  }
-
-  &__cancel-btn {
-    background: transparent;
-    color: $text-muted;
-  }
-
-  &__list {
-    flex: 1;
-    overflow-y: auto;
-    padding: $spacing-sm 0;
-  }
-
-  &__empty {
-    color: $text-muted;
-    font-size: $font-size-sm;
-    text-align: center;
-    padding: $spacing-xl;
-  }
-
-  &__item {
+  &__menu-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
-    padding: $spacing-sm $spacing-lg;
+    padding: 8px 12px;
     cursor: pointer;
     border-bottom: 1px solid rgba($border-primary, 0.4);
 
-    &:hover {
-      background: rgba($accent, 0.08);
-    }
+    &:last-child { border-bottom: none; }
+
+    &:hover { background: rgba($accent, 0.08); }
   }
 
-  &__item-main {
-    flex: 1;
-    min-width: 0;
-  }
-
-  &__item-title {
+  &__menu-item-title {
     font-size: $font-size-sm;
-    font-weight: 500;
-    white-space: nowrap;
+    color: $text-primary;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
   }
 
-  &__item-pos {
+  &__menu-item-pos {
     font-size: 11px;
     color: $text-muted;
-  }
-
-  &__item-actions {
-    display: flex;
-    gap: 4px;
     flex-shrink: 0;
-  }
-
-  &__icon-btn {
-    background: transparent;
-    border: none;
-    color: $text-muted;
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-
-    &:hover {
-      color: $text-primary;
-    }
-
-    &--danger:hover {
-      color: #e57373;
-    }
   }
 }
 
@@ -213,26 +150,12 @@
 .annotation-editor {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-
-  &__title {
-    width: 100%;
-    padding: 6px 10px;
-    background: $bg-dark;
-    border: 1px solid $border-primary;
-    border-radius: 4px;
-    color: $text-primary;
-    font-size: $font-size-base;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: none;
-      border-color: $accent;
-    }
-  }
+  flex: 1;
+  min-height: 0;
 
   &__editor-wrap {
-    height: 260px;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     border: 1px solid $border-primary;
     border-radius: 4px;
@@ -247,8 +170,8 @@
 
 // Tiptap / ProseMirror rich editor
 .annotation-editor__editor-wrap .ProseMirror {
-  min-height: 244px;
-  padding: 10px 12px;
+  min-height: 100%;
+  padding: 12px 14px;
   outline: none;
   color: $text-primary;
   font-size: 13px;
@@ -294,7 +217,6 @@
   a  { color: var(--ap-a, $accent); text-decoration: underline; }
   hr { border: none; border-top: 1px solid $border-primary; margin: 8px 0; }
 
-  // Placeholder text
   p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     color: $text-muted;
