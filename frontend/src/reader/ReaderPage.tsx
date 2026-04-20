@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { EpubReader, type EpubReaderHandle } from './EpubReader'
 import { ReaderUI } from './ReaderUI'
 import { SettingsModal } from './SettingsModal'
 import { WordMinerPanel } from './WordMinerPanel/WordMinerPanel'
+import { DefinitionPopup } from './DefinitionPopup'
 import { useCustomCSS } from './useCustomCSS'
 import { useWordMiner } from './useWordMiner'
 import { useLibrary } from '../hooks/useLibrary'
@@ -10,7 +11,23 @@ import { useProxy } from '../hooks/useProxy'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { MinedWord } from '../services/ankiService'
 import { ankiQueue } from '../services/ankiQueueService'
+import { getWordsByBookId, DictionaryWord } from '../services/dictionaryStore'
+import { SelectionDefinitionState } from './useSelectionDefinition'
 import './reader.css'
+
+function dictWordToMined(w: DictionaryWord, bookId: string): MinedWord {
+  return {
+    surface: w.surface,
+    reading: w.reading,
+    baseForm: w.baseForm,
+    frequency: w.frequencies[0]?.frequency ?? 0,
+    definitions: w.definitions,
+    frequencies: w.frequencies,
+    addedToAnki: false,
+    bookId,
+    minedAt: w.minedAt,
+  }
+}
 
 export function ReaderPage() {
   const [file, setFile] = useState<Blob | null>(null)
@@ -39,6 +56,7 @@ export function ReaderPage() {
   const { mineWords, cancelMining } = useWordMiner({
     contentRef,
     bookId: bookId || '',
+    bookTitle,
     onMiningWord: setCurrentMiningWord,
     frequencySource,
     minFrequencyRank,
@@ -48,6 +66,13 @@ export function ReaderPage() {
   const [showWordMiner, setShowWordMiner] = useState(false)
   const [isMining, setIsMining] = useState(false)
   const [frequencySources, setFrequencySources] = useState<Array<{ id: number; name: string }>>([])
+  const [selectionDef, setSelectionDef] = useState<SelectionDefinitionState | null>(null)
+
+  const handleDefinition = useCallback((state: SelectionDefinitionState | null) => {
+    setSelectionDef(state)
+  }, [])
+
+  const dismissDefinition = useCallback(() => setSelectionDef(null), [])
 
   useEffect(() => {
     const fetchFrequencySources = async () => {
@@ -67,15 +92,9 @@ export function ReaderPage() {
 
   useEffect(() => {
     if (!bookId) return
-    const stored = localStorage.getItem(`yomitori-mined-words-${bookId}`)
-    if (stored) {
-      try {
-        const words = JSON.parse(stored) as MinedWord[]
-        setMinedWords(words)
-      } catch {
-        // ignore parse errors
-      }
-    }
+    getWordsByBookId(bookId).then(words => {
+      if (words.length > 0) setMinedWords(words.map(w => dictWordToMined(w, bookId)))
+    }).catch(() => {})
   }, [bookId])
 
   const handleToggleOrientation = () => {
@@ -205,9 +224,6 @@ export function ReaderPage() {
     try {
       const words = await mineWords()
       setMinedWords(words)
-      if (bookId) {
-        localStorage.setItem(`yomitori-mined-words-${bookId}`, JSON.stringify(words))
-      }
     } catch (err) {
       console.error('Mining failed:', err)
     } finally {
@@ -304,6 +320,7 @@ export function ReaderPage() {
           isVertical={isVertical}
           customCSS={css}
           scopeCSS={scopeCSS}
+          onDefinition={handleDefinition}
         />
       </div>
       <ReaderUI
@@ -348,6 +365,15 @@ export function ReaderPage() {
           words={minedWords}
           onClose={() => setShowWordMiner(false)}
           bookId={bookId}
+        />
+      )}
+      {selectionDef && (
+        <DefinitionPopup
+          entries={selectionDef.entries}
+          rect={selectionDef.rect}
+          isVertical={isVertical}
+          bookId={bookId}
+          onDismiss={dismissDefinition}
         />
       )}
       </div>

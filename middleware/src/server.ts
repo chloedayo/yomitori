@@ -1,5 +1,7 @@
 import * as http from 'http';
 import { initializeTokenizer, tokenizeText } from './utils/tokenizer.js';
+import { deinflect, extractBaseForms } from './utils/deinflect.js';
+import { mineWords } from './utils/miner.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -49,6 +51,84 @@ async function start() {
             res.end(JSON.stringify({ tokens }));
           } catch (err) {
             console.error('Tokenize error:', err);
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+          }
+        });
+        return;
+      }
+
+      if (pathname === '/deinflect' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk.toString(); });
+        req.on('end', () => {
+          try {
+            const { text } = JSON.parse(body);
+            if (!text || typeof text !== 'string') {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: 'text parameter required' }));
+              return;
+            }
+            const candidates = deinflect(text.trim());
+            res.writeHead(200);
+            res.end(JSON.stringify({ candidates }));
+          } catch (err) {
+            console.error('Deinflect error:', err);
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+          }
+        });
+        return;
+      }
+
+      if (pathname === '/extract-baseForms' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk.toString(); });
+        req.on('end', () => {
+          try {
+            const { text } = JSON.parse(body);
+            if (!text || typeof text !== 'string') {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: 'text parameter required' }));
+              return;
+            }
+            const baseForms = extractBaseForms(text.trim());
+            res.writeHead(200);
+            res.end(JSON.stringify({ baseForms }));
+          } catch (err) {
+            console.error('extract-baseForms error:', err);
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+          }
+        });
+        return;
+      }
+
+      if (pathname === '/mine-words' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk.toString(); });
+        req.on('end', async () => {
+          try {
+            const { text, frequencySource, minFrequencyRank, maxFrequencyRank, bookTitle } = JSON.parse(body);
+            if (!text || typeof text !== 'string') {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: 'text parameter required' }));
+              return;
+            }
+            const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+            console.log(`[mine-words] text=${text.length} chars, freq=${frequencySource ?? 'none'}, min=${minFrequencyRank ?? '-'}, max=${maxFrequencyRank ?? '-'}, book=${bookTitle ?? 'unknown'}`);
+            const result = await mineWords(
+              text.trim(),
+              backendUrl,
+              frequencySource ?? null,
+              minFrequencyRank ?? null,
+              maxFrequencyRank ?? null,
+              bookTitle ?? null
+            );
+            res.writeHead(200);
+            res.end(JSON.stringify(result));
+          } catch (err) {
+            console.error('mine-words error:', err);
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Internal server error' }));
           }

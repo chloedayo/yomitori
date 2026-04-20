@@ -30,7 +30,7 @@ export async function lookupWord(word: string): Promise<DictionaryEntry | null> 
   }
 }
 
-export async function batchLookup(words: string[]): Promise<Map<string, DictionaryEntry | null>> {
+export async function batchLookup(words: string[]): Promise<Map<string, DictionaryEntry[]>> {
   try {
     const url = useProxy('/api/dictionary/batch-lookup')
     const response = await fetch(url, {
@@ -41,18 +41,18 @@ export async function batchLookup(words: string[]): Promise<Map<string, Dictiona
     if (!response.ok) throw new Error(`Batch lookup failed: ${response.statusText}`)
 
     const data: Record<string, DictionaryEntry[]> = await response.json()
-    const results = new Map<string, DictionaryEntry | null>()
+    const results = new Map<string, DictionaryEntry[]>()
 
     for (const word of words) {
-      results.set(word, data[word]?.[0] ?? null)
+      results.set(word, data[word] ?? [])
     }
 
     return results
   } catch (err) {
     console.error('Batch lookup error:', err)
-    const results = new Map<string, DictionaryEntry | null>()
+    const results = new Map<string, DictionaryEntry[]>()
     for (const word of words) {
-      results.set(word, null)
+      results.set(word, [])
     }
     return results
   }

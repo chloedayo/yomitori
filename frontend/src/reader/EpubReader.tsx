@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle, memo } from 'react'
 import { useSwipeGesture } from './useSwipeGesture'
 import { parseEpub } from './EpubParser'
+import { useSelectionDefinition, SelectionDefinitionState } from './useSelectionDefinition'
 
 interface EpubReaderProps {
   file: Blob
@@ -10,6 +11,7 @@ interface EpubReaderProps {
   isVertical: boolean
   customCSS?: string
   scopeCSS?: (css: string) => string
+  onDefinition?: (state: SelectionDefinitionState | null) => void
 }
 
 export interface EpubReaderHandle {
@@ -25,12 +27,15 @@ export const EpubReader = memo(forwardRef<EpubReaderHandle, EpubReaderProps>(fun
     isVertical,
     customCSS,
     scopeCSS,
+    onDefinition,
   },
   ref
 ) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [totalChars, setTotalChars] = useState(0)
   const [_currentCharPos, _setCurrentCharPos] = useState(0)
+
+  useSelectionDefinition(contentRef, onDefinition ?? (() => {}))
 
   useImperativeHandle(ref, () => ({
     scrollToCharPos: (charPos: number) => {

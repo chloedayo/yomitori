@@ -223,6 +223,30 @@ src/main/kotlin/com/yomitori/
 |--------|----------|-------------|
 | GET | `/health` | Liveness check |
 | POST | `/tokenize` | Kuromoji tokenization |
+| POST | `/deinflect` | Rule-based deinflection (selection popup) |
+| POST | `/extract-baseForms` | Bulk base form extraction |
+| POST | `/mine-words` | Full mining pipeline (tokenize → lookup → filter → Anki queue) |
+
+**POST /deinflect:**
+```json
+// Request
+{ "text": "食べている" }
+
+// Response
+{ "candidates": [
+  { "startPos": 0, "surface": "食べている", "baseForm": "食べる", "reason": "te-iru" },
+  ...
+]}
+```
+
+**POST /mine-words:**
+```json
+// Request
+{ "text": "...", "frequencySource": "JPDB", "minFrequencyRank": 1, "maxFrequencyRank": 5000, "bookTitle": "本のタイトル" }
+
+// Response
+{ "words": [ { "expression": "...", "reading": "...", "definitions": [...], "frequencies": [...] } ], "anki": { "added": 0, "skipped": 0, "error": null } }
+```
 
 **POST /tokenize:**
 ```json
@@ -260,11 +284,21 @@ src/main/kotlin/com/yomitori/
 - Handles structured content definitions (HTML generation)
 - Batch inserts (1000 per transaction)
 
-### DictionaryStartupRunner
-- `@EventListener(ApplicationReadyEvent)`
-- Scans `YOMITORI_DICTIONARIES_PATH` for zips
-- Hash check against `dictionary_imports.path` — skips already-imported
-- Scans `{path}/frequency/` subdir for frequency dictionaries
+### StartupJobService
+- Single-threaded executor (`Executors.newSingleThreadExecutor`) — all DB-writing jobs serialized
+- `submitAll()` — called on startup; queues dict import → crawler → author extraction in order
+- `submitCrawler()`, `submitAuthorExtraction()`, `submitDictionaryImport()` — manual triggers from controllers go through the same queue
+- `submitJob(name, block)` — generic slot for watcher-triggered imports
+- Eliminates `SQLITE_BUSY` caused by concurrent writes on startup
+
+### AppStartupListener
+- `@EventListener(ApplicationReadyEvent)` → calls `startupJobService.submitAll()`
+- Thin — no logic of its own
+
+### DictionaryWatcherService
+- `java.nio.file.WatchService` on `YOMITORI_DICTIONARIES_PATH` and `.../frequency/`
+- `ENTRY_CREATE` events on `.zip` files → submits import to `StartupJobService` queue
+- Daemon thread, no restart needed to pick up new dictionaries
 
 ### DictionaryService
 - `lookup(word)`: joins `dictionary_entries` + `word_frequency` + `frequency_sources`
@@ -282,17 +316,20 @@ frontend/src/
 ├── components/       Reusable UI (BookCard, BookGrid, SearchForm, CardMenu, TabsMenu)
 ├── hooks/            useLibrary, useProxy, useLocalStorage, useAuthorAutocomplete
 ├── reader/           EPUB reader subsystem
-│   ├── EpubReader.tsx       Renders parsed EPUB chapters
-│   ├── EpubParser.ts        Parses EPUB zip → HTML chapters
-│   ├── ReaderPage.tsx       Top-level reader page + state
-│   ├── ReaderUI.tsx         Bottom control bar
-│   ├── SettingsModal.tsx    CSS editor + frequency filter settings
-│   ├── WordMinerPanel/      Results panel for mined words
-│   ├── useCustomCSS.ts      CSS persistence + scoping
-│   ├── useSwipeGesture.ts   Touch navigation
-│   └── useWordMiner.ts      Mining pipeline orchestration
-├── services/         ankiService, ankiQueueService
-├── views/            AuthorsView, HomePage, TitlesView
+│   ├── EpubReader.tsx            Renders parsed EPUB chapters; wires useSelectionDefinition
+│   ├── EpubParser.ts             Parses EPUB zip → HTML chapters
+│   ├── ReaderPage.tsx            Top-level reader page + state; mounts DefinitionPopup
+│   ├── ReaderUI.tsx              Bottom control bar
+│   ├── SettingsModal.tsx         CSS editor + frequency filter settings
+│   ├── DefinitionPopup.tsx       In-reader dictionary popup (select text → deinflect → lookup)
+│   ├── DefinitionPopup.css       Popup styles
+│   ├── useSelectionDefinition.ts mouseup → /deinflect → batchLookup → greedy match
+│   ├── WordMinerPanel/           Results panel for bulk-mined words
+│   ├── useCustomCSS.ts           CSS persistence + scoping
+│   ├── useSwipeGesture.ts        Touch navigation
+│   └── useWordMiner.ts           POST /mine-words to middleware (full pipeline)
+├── services/         ankiService, ankiQueueService, dictionaryStore (IndexedDB)
+├── views/            AuthorsView, DictionaryView, HomePage, TitlesView
 └── styles/           SCSS variables, mixins, global
 ```
 
@@ -314,26 +351,46 @@ User clicks Mine button
   ↓
 extractText() from rendered EPUB DOM
   ↓
-tokenizeText() → middleware Kuromoji (POST /tokenize)
+POST /mine-words → middleware
   ↓
-dedupeAndCount() → Map<baseForm, {word, count}>
+  tokenizeText() via Kuromoji (internal)
   ↓
-Chunked batches (1000 words) → POST /api/dictionary/batch-lookup
+  batchLookupBackend() → POST /api/dictionary/batch-lookup (8 parallel batches)
   ↓
-Filter by frequencySource + min/max rank
+  Filter by frequencySource + min/max rank
   ↓
-For each valid word: ankiQueue.addToQueue(word, deck)
+  enqueue() → ankiQueue (middleware-internal, setInterval worker)
+    → POST /api/proxy/anki → AnkiConnect → Lapis card
   ↓
-ankiQueueService worker → POST /api/proxy/anki
+Return word list to frontend
   ↓
-AnkiConnect (LAN) → card created with Lapis template
+Frontend upserts each word into IndexedDB (dictionaryStore)
 ```
 
-**Anki Queue (async):**
-- `ankiQueueService` uses internal `setInterval` worker
-- One card at a time → `addNote` AnkiConnect action
-- Dedupe by baseForm+bookId
-- Per-book mined count stored in `localStorage` (`yomitori-stats`)
+**In-Reader Definition Popup Flow:**
+```
+User selects text in EpubReader
+  ↓
+useSelectionDefinition: mouseup handler
+  ↓
+POST /deinflect → middleware → candidates[]
+  ↓
+batchLookup(uniqueBaseForms) → POST /api/dictionary/batch-lookup
+  ↓
+smartMatch(): greedy longest-match segmentation → SelectionEntry[]
+  ↓
+DefinitionPopup renders: expression, reading, definitions, alternates (see also)
+  ↓
+User clicks +Anki → addNote() via /api/proxy/anki
+User clicks +Dict → upsertWord() into IndexedDB
+User clicks kanji → lookupWord() → inline kanji result
+```
+
+**Anki Queue (middleware):**
+- Retry queue lives in `ankiQueue.ts` (middleware process)
+- 50 notes per batch → `addNotes` AnkiConnect action
+- Max 10 attempts per batch, 2.5s retry interval
+- Persists across frontend page reloads
 
 ---
 
@@ -400,8 +457,9 @@ Current migrations:
 
 ## Known Constraints
 
-- **SQLite**: single-writer bottleneck. For concurrent imports, serialize.
-- **Dictionary imports** blocking on startup — large dicts can delay backend readiness by ~30-60s.
+- **SQLite**: single-writer bottleneck. All writes go through `StartupJobService` single-threaded executor to prevent `SQLITE_BUSY`.
+- **Dictionary imports** on first run block the job queue for 30-60s — crawler and author extraction wait their turn.
 - **Kuromoji middleware** has ~100MB memory footprint.
 - **Mining pipeline** depends on EPUB DOM being fully rendered — caller must wait for chapters.
 - **AnkiConnect** requires Anki desktop running on LAN with AnkiConnect add-on.
+- **Middleware uses `network_mode: host`** — required for Anki (localhost:8765) and backend (localhost:8080) reachability; means middleware port is not exposed in docker-compose port mapping.

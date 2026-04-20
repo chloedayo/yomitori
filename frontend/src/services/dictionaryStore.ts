@@ -92,6 +92,17 @@ export async function getWordCount(): Promise<number> {
   return db.count('words')
 }
 
+export async function getWordsByBookId(bookId: string): Promise<DictionaryWord[]> {
+  const db = await getDB()
+  const all = await db.getAll('words')
+  return all.filter(w => w.bookIds.includes(bookId))
+}
+
+export async function getWord(baseForm: string): Promise<DictionaryWord | undefined> {
+  const db = await getDB()
+  return db.get('words', baseForm)
+}
+
 export async function clearDictionary(): Promise<void> {
   const db = await getDB()
   await db.clear('words')

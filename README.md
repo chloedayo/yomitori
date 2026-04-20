@@ -25,10 +25,11 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 ## The Good Stuff ♡
 
 - **Books. With anime on the cover.** That's the whole pitch.
-- **Local Yomichan Dictionaries** — Drop zips into `/dictionaries/`. No internet, no Jisho rate limits, no one knowing what words you're looking up at 2am.
-- **Word Mining with Frequency Filtering** — Tokenize your novel with Kuromoji, filter by frequency rank, auto-export to Anki as you read. 1000 words per batch — mine entire novels in seconds.
-- **Personal Dictionary** — Every word you mine and send to Anki gets saved locally (IndexedDB, so no size limits). Searchable, sortable, yours forever.
-- **Anki Integration (AnkiConnect)** — Mining results stream into Anki on your LAN. Works with Lapis template.
+- **In-Reader Dictionary Popup** — Select any text while reading → instant deinflected definition popup. Kanji drill-down, alternate forms, add to Anki or personal dictionary without leaving the page.
+- **Local Yomichan Dictionaries** — Drop zips into `/dictionaries/`. No internet, no Jisho rate limits, no one knowing what words you're looking up at 2am. Add new dicts while running — auto-imported, no restart needed.
+- **Word Mining with Frequency Filtering** — Tokenize your novel with Kuromoji, filter by frequency rank, auto-export to Anki as you read. Entire pipeline runs in middleware — mine 5000-word novels in seconds.
+- **Personal Dictionary** — Every word you look up or mine gets saved locally (IndexedDB). Searchable, sortable, filterable by kana row or frequency. Yours forever.
+- **Anki Integration (AnkiConnect)** — Mining results stream into Anki on your LAN. Works with Lapis template. Retry queue lives in middleware — survives page reloads.
 - **Vertical + Horizontal Reading** — 縦書き and 横書き, with persistent preference per session.
 - **Custom CSS Editor** — Live validation + preview. Style the reader however you want.
 
@@ -98,12 +99,12 @@ cd frontend && npm install && npm run dev
 ### First Run
 
 1. App starts (backend :8080, frontend :5173)
-2. Crawler runs on schedule (default: every hour)
-3. To index immediately:
+2. On startup: dictionary import → crawler → author extraction run automatically in sequence
+3. For 40k+ files, expect 2-5 minutes on first pass
+4. To re-index manually (queues behind any running job):
    ```bash
    curl -X POST http://localhost:8080/api/books/crawler/run
    ```
-4. For 40k+ files, expect 2-5 minutes on first pass.
 
 ---
 
@@ -115,7 +116,7 @@ Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yo
 1. Get a Yomichan dictionary zip (definition dict + frequency dict)
 2. Drop **definition dicts** into `./dictionaries/`
 3. Drop **frequency dicts** into `./dictionaries/frequency/`
-4. Restart backend — imports happen on startup, check logs for progress
+4. Backend imports on startup automatically — no restart needed for new dicts added while running
 
 **Mining:**
 1. Open a book in the reader
@@ -296,7 +297,7 @@ lsof -i :8080  # or 5173, 8888
 
 **Slow first run?** Normal for 40k+ files. Watch progress:
 ```bash
-docker-compose logs backend | grep "Indexed"
+docker-compose logs backend | grep "job-queue\|Crawler done\|Author extraction"
 ```
 
 ---
