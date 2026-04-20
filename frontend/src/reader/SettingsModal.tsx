@@ -182,7 +182,7 @@ export function SettingsModal({
               {frequencySource && (() => {
                 const selectedSource = frequencySources.find(s => s.name === frequencySource)
                 if (!selectedSource) return null
-                if (!selectedSource.isNumeric) {
+                if (selectedSource.isNumeric === false) {
                   return (
                     <div style={styles.settingGroup}>
                       <div style={styles.nonNumericWarning}>

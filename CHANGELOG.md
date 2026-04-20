@@ -2,6 +2,46 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.3.1] - 2026-04-20
+
+### Added
+
+- **Hardcore Quiz Mode**
+  - Toggle in quiz config — one wrong answer ends the session immediately
+  - Works in both scheduled/custom and endless modes
+  - Wrong answer on exit also fails the current card (consistent scoring)
+  - 💀 badge in session history for hardcore sessions
+  - Dedicated Hardcore stats section (tab-toggled alongside Endless stats)
+
+- **Quiz Session Bar**
+  - Always-visible strip above quiz card: mode label, questions remaining (hidden in endless), hardcore skull
+  - Exit button (×) — marks current card as wrong before going to results
+
+- **Screen Shake on Wrong Answer**
+  - Damped oscillation animation on wrong answers (toggleable in quiz config)
+  - Preference persisted to localStorage
+
+- **Endless & Hardcore Stats Dashboard**
+  - Endless: 8-stat grid (answered, correct, wrong, accuracy, best streak, sessions, avg, longest) + accuracy/cards-per-session charts
+  - Hardcore: 3-stat grid (sessions, best streak, avg score) + "Best score — last 14 days" date-bucketed bar chart (always 14 bars, empty days shown)
+  - Tab toggle animates with slide-up/down; chart bars grow from bottom on tab switch
+  - Only tab toggle shown when both endless and hardcore sessions exist
+
+- **Session History: Collapsible**
+  - Shows last 5 sessions by default; `+N more` button expands to 30
+  - Mode badges grouped in fixed-width div for vertical alignment of stats
+  - Expanding/collapsing no longer re-renders the rest of the page (extracted to `SessionHistory` component)
+
+### Changed
+
+- Quiz results buttons renamed: "Config" → "New Session", "Again" → "Retry"; both stretch to fill row
+- Stats grids use CSS `grid` with equal columns (4-col for endless, 3-col for hardcore) for snug fill
+
+### Fixed
+
+- Endless sessions were being saved with `mode: 'scheduled'` — stale closure in save effect; fixed with `sessionMetaRef` (synchronous snapshot before screen transition)
+- StatsView required page refresh to show latest session — async save race fixed with module-level `_pendingSave` promise + `awaitPendingSave()` before load
+
 ## [0.3.0] - 2026-04-20
 
 ### Added

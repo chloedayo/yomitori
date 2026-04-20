@@ -120,6 +120,7 @@ class AnkiQueueService {
             surface: word.surface,
             reading: word.reading,
             definitions: word.definitions,
+            definitionEntries: word.definitionEntries ?? [],
             frequencies: word.frequencies,
             bookId: word.bookId,
             minedAt: word.minedAt,

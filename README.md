@@ -32,6 +32,7 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 - **Anki Integration (AnkiConnect)** — Mining results stream into Anki on your LAN. Works with Lapis template. Retry queue lives in middleware — survives page reloads.
 - **Vertical + Horizontal Reading** — 縦書き and 横書き, with persistent preference per session.
 - **Custom CSS Editor** — Live validation + preview. Style the reader however you want.
+- **SRS Quiz System (ARIA)** — Spaced repetition for your mined vocabulary. SM2-extended algorithm with speed weighting, consistency bonus, and difficulty penalty. Scheduled, custom, endless, and hardcore (one mistake ends it) modes. Stats dashboard with accuracy rings, interval histograms, activity heatmap, and per-mode session charts.
 
 ## The Rest of the Stuff
 

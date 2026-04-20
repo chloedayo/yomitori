@@ -6,6 +6,11 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
+data class DefinitionEntryDto(
+    val dictionaryName: String,
+    val definition: String
+)
+
 data class WordFrequencyDto(
     val sourceName: String,
     val frequency: Long,
@@ -16,6 +21,7 @@ data class DictionaryEntryDto(
     val expression: String,
     val reading: String,
     val definitions: List<String>,
+    val definitionEntries: List<DefinitionEntryDto> = emptyList(),
     val dictionaryName: String,
     val frequencies: List<WordFrequencyDto> = emptyList()
 )
@@ -23,6 +29,7 @@ data class DictionaryEntryDto(
 data class FrequencySourceDto(
     val id: Long,
     val name: String,
+    @com.fasterxml.jackson.annotation.JsonProperty("isNumeric")
     val isNumeric: Boolean
 )
 
@@ -57,6 +64,9 @@ class DictionaryController(
                 reading = result.reading,
                 definitions = result.definitions,
                 dictionaryName = result.dictionaryName,
+                definitionEntries = result.definitionEntries.map { de ->
+                    DefinitionEntryDto(dictionaryName = de.dictionaryName, definition = de.definition)
+                },
                 frequencies = result.frequencies.map { freq ->
                     WordFrequencyDto(
                         sourceName = freq.sourceName,
@@ -83,11 +93,15 @@ class DictionaryController(
                     expression = result.expression,
                     reading = result.reading,
                     definitions = result.definitions,
+                    definitionEntries = result.definitionEntries.map { de ->
+                        DefinitionEntryDto(dictionaryName = de.dictionaryName, definition = de.definition)
+                    },
                     dictionaryName = result.dictionaryName,
                     frequencies = result.frequencies.map { freq ->
                         WordFrequencyDto(
                             sourceName = freq.sourceName,
-                            frequency = freq.frequency
+                            frequency = freq.frequency,
+                            frequencyTag = freq.frequencyTag
                         )
                     }
                 )

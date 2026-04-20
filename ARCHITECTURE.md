@@ -330,10 +330,60 @@ frontend/src/
 │   ├── useCustomCSS.ts           CSS persistence + scoping
 │   ├── useSwipeGesture.ts        Touch navigation
 │   └── useWordMiner.ts           POST /mine-words to middleware (full pipeline)
-├── services/         ankiService, ankiQueueService, dictionaryStore (IndexedDB)
-├── views/            AuthorsView, DictionaryView, HomePage, TitlesView
+├── services/         ankiService, ankiQueueService, dictionaryStore, reviewStore (IndexedDB)
+├── views/
+│   ├── QuizView/     SRS quiz UI — config, quiz card, results, session bar
+│   ├── StatsView/    Review stats dashboard + session history
+│   ├── AuthorsView, DictionaryView, HomePage, TitlesView
 └── styles/           SCSS variables, mixins, global
 ```
+
+---
+
+## SRS System (Client-Side)
+
+All review state lives in **IndexedDB** (`yomitori-reviews`) — no backend involvement.
+
+### ARIA Algorithm (`reviewStore.ts`)
+Adaptive Response Interval Algorithm — extends SM2 with three layers:
+
+| Layer | What it does |
+|-------|-------------|
+| Speed weighting | Response time < 30% of limit → ease bonus; > 70% → ease penalty |
+| Consistency factor | Rolling 5-answer window: ≥80% correct → 10% interval bonus |
+| Difficulty penalty | Lifetime wrong ratio shrinks future intervals (max 30% reduction) |
+
+**Status transitions:**
+- `new` → `learning` (first answer)
+- `learning` → `reviewing` (interval ≥ 7 days)
+- `reviewing` → `known` (interval ≥ 21 days AND streak ≥ 5)
+- Any wrong → back to interval = 1 day
+
+### Quiz Modes
+
+| Mode | Description |
+|------|-------------|
+| Scheduled | ARIA-selected due cards; new words injected at ~15% of session size |
+| Custom | Filter by frequency source, rank range, or status; optional session size cap |
+| Endless | No card limit; runs until manually exited |
+| Hardcore | Any of the above + one wrong answer ends the session immediately |
+
+### IndexedDB Schema
+
+**`reviews` store** (key: `baseForm`):
+```ts
+{ baseForm, interval, easeFactor, dueDate, streak, correctCount, incorrectCount, recentResults, status, lastReviewed }
+```
+
+**`meta` store** (key: string):
+| Key | Value |
+|-----|-------|
+| `streak` | `{ streak: number, lastDate: string }` |
+| `activity` | `{ dates: Record<string, number> }` (reviews per day) |
+| `sessions` | `{ sessions: QuizSession[] }` (last 100) |
+
+### Session Save Race Fix
+`saveSession()` returns a `Promise<void>` tracked in module-level `_pendingSave`. StatsView calls `awaitPendingSave()` before loading — ensures the last session is persisted before stats render.
 
 ### Key Flows
 

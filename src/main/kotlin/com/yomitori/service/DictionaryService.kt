@@ -13,10 +13,16 @@ data class FrequencyInfo(
     val frequencyTag: String? = null
 )
 
+data class DefinitionEntry(
+    val dictionaryName: String,
+    val definition: String
+)
+
 data class DictionaryLookupResult(
     val expression: String,
     val reading: String,
     val definitions: List<String>,
+    val definitionEntries: List<DefinitionEntry>,
     val dictionaryName: String,
     val frequencies: List<FrequencyInfo> = emptyList()
 )
@@ -29,32 +35,39 @@ class DictionaryService(
     private val frequencySourceRepository: FrequencySourceRepository
 ) {
     fun lookup(word: String): List<DictionaryLookupResult> {
-        val results = mutableListOf<DictionaryLookupResult>()
+        val entries = (entryRepository.findByExpression(word) + entryRepository.findByReading(word))
+            .distinctBy { it.id }
 
-        val byExpression = entryRepository.findByExpression(word)
-        val byReading = entryRepository.findByReading(word)
+        if (entries.isEmpty()) return emptyList()
 
-        (byExpression + byReading).distinctBy { it.id }.forEach { entry ->
-            val dictName = importRepository.findById(entry.dictId).orElse(null)?.name ?: "Unknown"
-            val frequencies = wordFrequencyRepository.findByWord(word).map { freq ->
-                val source = frequencySourceRepository.findById(freq.sourceId).orElse(null)
+        val frequencies = wordFrequencyRepository.findByWord(word)
+            .groupBy { it.sourceId }
+            .map { (sourceId, freqs) ->
+                val source = frequencySourceRepository.findById(sourceId).orElse(null)
+                val best = freqs.minByOrNull { it.frequency } ?: freqs.first()
                 FrequencyInfo(
                     sourceName = source?.name ?: "Unknown",
-                    frequency = freq.frequency,
-                    frequencyTag = freq.frequencyTag
+                    frequency = best.frequency,
+                    frequencyTag = best.frequencyTag
                 )
             }
 
-            results.add(DictionaryLookupResult(
-                expression = entry.expression,
-                reading = entry.reading,
-                definitions = listOf(entry.definition),
-                dictionaryName = dictName,
-                frequencies = frequencies
-            ))
-        }
-
-        return results
+        return entries
+            .groupBy { "${it.expression}::${it.reading}" }
+            .map { (_, group) ->
+                val defEntries = group.map { entry ->
+                    val dictName = importRepository.findById(entry.dictId).orElse(null)?.name ?: "Unknown"
+                    DefinitionEntry(dictionaryName = dictName, definition = entry.definition)
+                }
+                DictionaryLookupResult(
+                    expression = group.first().expression,
+                    reading = group.first().reading,
+                    definitions = defEntries.map { it.definition },
+                    definitionEntries = defEntries,
+                    dictionaryName = defEntries.first().dictionaryName,
+                    frequencies = frequencies
+                )
+            }
     }
 
     fun batchLookup(words: List<String>): Map<String, List<DictionaryLookupResult>> {

@@ -16,7 +16,7 @@ data class FrequencySource(
     @Column(nullable = false)
     val path: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 1")
     val isNumeric: Boolean = true,
 
     @Column(nullable = false)

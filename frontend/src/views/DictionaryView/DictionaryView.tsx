@@ -1,11 +1,43 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getAllWords, searchWords, getWordCount, clearDictionary, DictionaryWord } from '../../services/dictionaryStore'
+import { getAllReviews, WordReview } from '../../services/reviewStore'
 import { useProxy } from '../../hooks/useProxy'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
 import TuneIcon from '@mui/icons-material/Tune'
 import './style.scss'
+
+const STATUS_COLOR: Record<WordReview['status'], string> = {
+  new:       '#4a4a5a',
+  learning:  '#f59e0b',
+  reviewing: '#5a9fd4',
+  known:     '#4caf50',
+}
+
+function ReviewRow({ review }: { review: WordReview }) {
+  const total = review.correctCount + review.incorrectCount
+  const accuracy = total > 0 ? Math.round((review.correctCount / total) * 100) : null
+  return (
+    <div className="dict-review-row">
+      <span
+        className="dict-review-status"
+        style={{ background: STATUS_COLOR[review.status] }}
+      >
+        {review.status}
+      </span>
+      {review.streak > 0 && (
+        <span className="dict-review-streak">🔥 {review.streak}</span>
+      )}
+      {accuracy !== null && (
+        <span className="dict-review-accuracy">{accuracy}% ({total}×)</span>
+      )}
+      {review.interval > 0 && (
+        <span className="dict-review-interval">∿ {review.interval}d</span>
+      )}
+    </div>
+  )
+}
 
 const KANA_ROWS: { label: string; set: Set<string> }[] = [
   { label: 'あ', set: new Set('あいうえおアイウエオ') },
@@ -54,6 +86,8 @@ export function DictionaryView() {
   const [freqSource, setFreqSource] = useState<string | null>(null)
   const [freqMin, setFreqMin] = useState<number | null>(null)
   const [freqMax, setFreqMax] = useState<number | null>(null)
+  const [reviewMap, setReviewMap] = useState<Map<string, WordReview>>(new Map())
+  const [statusFilter, setStatusFilter] = useState<WordReview['status'] | null>(null)
 
   useEffect(() => {
     const url = useProxy('/api/dictionary/frequency-sources')
@@ -63,13 +97,18 @@ export function DictionaryView() {
       .catch(() => {})
   }, [])
 
+
   const load = useCallback(async () => {
     setIsLoading(true)
     try {
       const results = query ? await searchWords(query) : await getAllWords()
+      const currentReviews = await getAllReviews()
+      const currentMap = new Map(currentReviews.map(r => [r.baseForm, r]))
+      setReviewMap(currentMap)
       const filtered = results.filter(w =>
         (query || !kanaFilter || matchesKanaRow(w, kanaFilter)) &&
-        matchesFrequency(w, freqSource, freqMin, freqMax)
+        matchesFrequency(w, freqSource, freqMin, freqMax) &&
+        (!statusFilter || currentMap.get(w.baseForm)?.status === statusFilter)
       )
       const sorted = [...filtered].sort((a, b) =>
         sortBy === 'recent'
@@ -81,7 +120,7 @@ export function DictionaryView() {
     } finally {
       setIsLoading(false)
     }
-  }, [query, sortBy, kanaFilter, freqSource, freqMin, freqMax])
+  }, [query, sortBy, kanaFilter, freqSource, freqMin, freqMax, statusFilter])
 
   useEffect(() => {
     load()
@@ -104,6 +143,18 @@ export function DictionaryView() {
             <SearchIcon sx={{ fontSize: '20px' }} />
           </button>
           <span className="dict-count">{count} words</span>
+          <div className="dict-status-filter">
+            {(['new', 'learning', 'reviewing', 'known'] as const).map(s => (
+              <button
+                key={s}
+                className={`dict-status-btn dict-status-btn--${s}${statusFilter === s ? ' dict-status-btn--active' : ''}`}
+                onClick={() => setStatusFilter(statusFilter === s ? null : s)}
+                title={s}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="dictionary-toolbar-right">
           <button
@@ -219,13 +270,23 @@ export function DictionaryView() {
                 <span className="dict-reading">【{word.reading}】</span>
               )}
             </div>
-            <div className="dict-definition">{word.definitions[0]}</div>
+            <div className="dict-definition">
+              {word.definitionEntries?.[0] ? (
+                <>
+                  <span className="dict-def-source">{word.definitionEntries[0].dictionaryName}</span>
+                  {word.definitionEntries[0].definition}
+                </>
+              ) : word.definitions[0]}
+            </div>
             <div className="dict-meta">
               {word.bookIds.length} {word.bookIds.length === 1 ? 'book' : 'books'}
               {word.frequencies.length > 0 && (
                 <span className="dict-freq"> · {word.frequencies[0].sourceName}: #{word.frequencies[0].frequency}</span>
               )}
             </div>
+            {reviewMap.has(word.baseForm) && (
+              <ReviewRow review={reviewMap.get(word.baseForm)!} />
+            )}
           </div>
         ))}
       </div>

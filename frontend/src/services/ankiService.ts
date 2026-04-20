@@ -11,6 +11,7 @@ export interface MinedWord {
   baseForm: string
   frequency: number
   definitions: string[]
+  definitionEntries: Array<{ dictionaryName: string; definition: string }>
   frequencies: DictionaryFrequency[]
   addedToAnki: boolean
   bookId: string
