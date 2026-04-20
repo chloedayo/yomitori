@@ -368,6 +368,7 @@ export function ReaderPage() {
               onDelete={deleteAnnotation}
               onSave={saveAnnotations}
               onJumpTo={handleJumpToAnnotation}
+              bookTitle={bookTitle}
             />
           )}
         </div>

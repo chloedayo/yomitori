@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
-import { AnnotationSettings, AnnotationEditorColors, AnnotationPreviewColors } from '../hooks/useAnnotationSettings'
+import { AnnotationSettings, AnnotationContentColors } from '../hooks/useAnnotationSettings'
 
 interface FrequencySource {
   id: number
@@ -250,48 +250,21 @@ export function SettingsModal({
                 <label className="settings-toggle">
                   <input
                     type="checkbox"
-                    checked={annotationSettings.editorHighlightEnabled}
-                    onChange={e => onAnnotationSettingsChange({ editorHighlightEnabled: e.target.checked })}
+                    checked={annotationSettings.contentColorsEnabled}
+                    onChange={e => onAnnotationSettingsChange({ contentColorsEnabled: e.target.checked })}
                   />
-                  Editor syntax highlighting
+                  Custom content colors
                 </label>
-                {annotationSettings.editorHighlightEnabled && (
+                {annotationSettings.contentColorsEnabled && (
                   <div className="settings-color-grid">
-                    {(Object.keys(annotationSettings.editorColors) as (keyof AnnotationEditorColors)[]).map(key => (
+                    {(Object.keys(annotationSettings.contentColors) as (keyof AnnotationContentColors)[]).map(key => (
                       <label key={key} className="settings-color-row">
                         <span>{key}</span>
                         <input
                           type="color"
-                          value={annotationSettings.editorColors[key]}
+                          value={annotationSettings.contentColors[key]}
                           onChange={e => onAnnotationSettingsChange({
-                            editorColors: { ...annotationSettings.editorColors, [key]: e.target.value }
-                          })}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="settings-section">
-                <label className="settings-toggle">
-                  <input
-                    type="checkbox"
-                    checked={annotationSettings.previewColorsEnabled}
-                    onChange={e => onAnnotationSettingsChange({ previewColorsEnabled: e.target.checked })}
-                  />
-                  Preview element colors
-                </label>
-                {annotationSettings.previewColorsEnabled && (
-                  <div className="settings-color-grid">
-                    {(Object.keys(annotationSettings.previewColors) as (keyof AnnotationPreviewColors)[]).map(key => (
-                      <label key={key} className="settings-color-row">
-                        <span>{key}</span>
-                        <input
-                          type="color"
-                          value={annotationSettings.previewColors[key]}
-                          onChange={e => onAnnotationSettingsChange({
-                            previewColors: { ...annotationSettings.previewColors, [key]: e.target.value }
+                            contentColors: { ...annotationSettings.contentColors, [key]: e.target.value }
                           })}
                         />
                       </label>

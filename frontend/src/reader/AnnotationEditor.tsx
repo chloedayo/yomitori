@@ -25,16 +25,16 @@ export function AnnotationEditor({
 }: AnnotationEditorProps) {
   const lastEmittedRef = useRef(body)
 
-  const previewStyle: React.CSSProperties = settings.previewColorsEnabled
+  const previewStyle: React.CSSProperties = settings.contentColorsEnabled
     ? {
-        '--ap-h1': settings.previewColors.h1,
-        '--ap-h2': settings.previewColors.h2,
-        '--ap-h3': settings.previewColors.h3,
-        '--ap-strong': settings.previewColors.strong,
-        '--ap-em': settings.previewColors.em,
-        '--ap-code': settings.previewColors.code,
-        '--ap-blockquote': settings.previewColors.blockquote,
-        '--ap-a': settings.previewColors.a,
+        '--ap-h1': settings.contentColors.h1,
+        '--ap-h2': settings.contentColors.h2,
+        '--ap-h3': settings.contentColors.h3,
+        '--ap-strong': settings.contentColors.strong,
+        '--ap-em': settings.contentColors.em,
+        '--ap-code': settings.contentColors.code,
+        '--ap-blockquote': settings.contentColors.blockquote,
+        '--ap-a': settings.contentColors.a,
       } as React.CSSProperties
     : {}
 

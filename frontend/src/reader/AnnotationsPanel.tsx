@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import SaveIcon from '@mui/icons-material/Save'
 import MenuIcon from '@mui/icons-material/Menu'
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import { Annotation } from '../services/annotationStore'
 import { AnnotationEditor } from './AnnotationEditor'
 import { AnnotationSettings } from '../hooks/useAnnotationSettings'
@@ -21,6 +22,7 @@ interface AnnotationsPanelProps {
   onDelete: (id: string) => Promise<void>
   onSave: () => Promise<void>
   onJumpTo: (charPos: number) => void
+  bookTitle?: string | null
 }
 
 export function AnnotationsPanel({
@@ -35,6 +37,7 @@ export function AnnotationsPanel({
   onUpdate,
   onSave,
   onJumpTo,
+  bookTitle,
 }: AnnotationsPanelProps) {
   const primaryNote = annotations[0] ?? null
   const oldNotes = annotations.slice(1)
@@ -70,6 +73,17 @@ export function AnnotationsPanel({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [menuOpen])
+
+  const handleDownload = () => {
+    const safe = (bookTitle || 'note').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim() || 'note'
+    const blob = new Blob([body], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${safe}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const handleSave = async () => {
     if (saving) return
@@ -123,6 +137,14 @@ export function AnnotationsPanel({
               )}
             </div>
           )}
+          <button
+            className="annotations-panel__download-btn"
+            onClick={handleDownload}
+            title="Save as .md"
+            disabled={!body.trim()}
+          >
+            <FileDownloadIcon fontSize="small" />
+          </button>
           <button
             className={`annotations-panel__save-btn${isDirty ? ' annotations-panel__save-btn--dirty' : ''}`}
             onClick={handleSave}

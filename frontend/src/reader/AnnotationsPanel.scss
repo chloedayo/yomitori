@@ -61,6 +61,21 @@
     }
   }
 
+  &__download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: transparent;
+    border: 1px solid $border-primary;
+    border-radius: 4px;
+    color: $text-muted;
+    cursor: pointer;
+
+    &:hover { color: $text-primary; border-color: $text-muted; }
+    &:disabled { opacity: 0.3; cursor: default; }
+  }
+
   &__close-btn {
     background: transparent;
     border: none;
