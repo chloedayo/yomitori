@@ -17,5 +17,8 @@ data class FrequencySource(
     val path: String,
 
     @Column(nullable = false)
+    val isNumeric: Boolean = true,
+
+    @Column(nullable = false)
     val loadedAt: LocalDateTime = LocalDateTime.now()
 )

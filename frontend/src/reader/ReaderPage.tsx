@@ -53,6 +53,7 @@ export function ReaderPage() {
   const [frequencySource, setFrequencySource] = useLocalStorage<string | null>('yomitori-frequency-source', null)
   const [minFrequencyRank, setMinFrequencyRank] = useLocalStorage<number | null>('yomitori-frequency-min', null)
   const [maxFrequencyRank, setMaxFrequencyRank] = useLocalStorage<number | null>('yomitori-frequency-max', null)
+  const [frequencyTagFilter, setFrequencyTagFilter] = useLocalStorage<string | null>('yomitori-frequency-tag', null)
   const { mineWords, cancelMining } = useWordMiner({
     contentRef,
     bookId: bookId || '',
@@ -61,11 +62,12 @@ export function ReaderPage() {
     frequencySource,
     minFrequencyRank,
     maxFrequencyRank,
+    frequencyTagFilter,
   })
   const [minedWords, setMinedWords] = useState<MinedWord[]>([])
   const [showWordMiner, setShowWordMiner] = useState(false)
   const [isMining, setIsMining] = useState(false)
-  const [frequencySources, setFrequencySources] = useState<Array<{ id: number; name: string }>>([])
+  const [frequencySources, setFrequencySources] = useState<Array<{ id: number; name: string; isNumeric: boolean }>>([])
   const [selectionDef, setSelectionDef] = useState<SelectionDefinitionState | null>(null)
 
   const handleDefinition = useCallback((state: SelectionDefinitionState | null) => {
@@ -358,6 +360,8 @@ export function ReaderPage() {
         onMinFrequencyRankChange={setMinFrequencyRank}
         maxFrequencyRank={maxFrequencyRank}
         onMaxFrequencyRankChange={setMaxFrequencyRank}
+        frequencyTagFilter={frequencyTagFilter}
+        onFrequencyTagFilterChange={setFrequencyTagFilter}
         frequencySources={frequencySources}
       />
       {showWordMiner && bookId && (

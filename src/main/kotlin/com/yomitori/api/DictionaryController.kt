@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*
 
 data class WordFrequencyDto(
     val sourceName: String,
-    val frequency: Long
+    val frequency: Long,
+    val frequencyTag: String? = null
 )
 
 data class DictionaryEntryDto(
@@ -21,7 +22,8 @@ data class DictionaryEntryDto(
 
 data class FrequencySourceDto(
     val id: Long,
-    val name: String
+    val name: String,
+    val isNumeric: Boolean
 )
 
 data class BatchLookupRequest @JsonCreator constructor(
@@ -38,7 +40,7 @@ class DictionaryController(
     @GetMapping("/frequency-sources")
     fun getFrequencySources(): ResponseEntity<List<FrequencySourceDto>> {
         val sources = frequencySourceRepository.findAll()
-        val dtos = sources.map { FrequencySourceDto(it.id!!, it.name) }
+        val dtos = sources.map { FrequencySourceDto(it.id!!, it.name, it.isNumeric) }
         return ResponseEntity.ok(dtos)
     }
 
@@ -58,7 +60,8 @@ class DictionaryController(
                 frequencies = result.frequencies.map { freq ->
                     WordFrequencyDto(
                         sourceName = freq.sourceName,
-                        frequency = freq.frequency
+                        frequency = freq.frequency,
+                        frequencyTag = freq.frequencyTag
                     )
                 }
             )

@@ -217,7 +217,6 @@ class DictionaryParserService(
     fun loadFrequencyDictionary(zipFile: File) {
         val dictName = zipFile.name.substringBeforeLast(".zip")
 
-        // Check if already loaded
         if (frequencySourceRepository.findByName(dictName) != null) {
             logger.info("Frequency dictionary already loaded: {}", dictName)
             return
@@ -227,8 +226,7 @@ class DictionaryParserService(
         try {
             unzipFile(zipFile, tempDir.toFile())
 
-            // Create frequency source entry
-            val source = frequencySourceRepository.save(FrequencySource(
+            var source = frequencySourceRepository.save(FrequencySource(
                 name = dictName,
                 path = zipFile.absolutePath,
                 loadedAt = LocalDateTime.now()
@@ -241,6 +239,7 @@ class DictionaryParserService(
             var totalFreq = 0
             val batchSize = 1000
             val batch = mutableListOf<WordFrequency>()
+            var hasStringFreq = false
 
             metaBankFiles.forEach { file ->
                 try {
@@ -252,21 +251,22 @@ class DictionaryParserService(
                             val mode = entry[1] as? String
 
                             if (expression != null && mode == "freq") {
-                                val (reading, frequency) = parseFrequencyEntry(entry)
+                                val (reading, frequency, tag) = parseFrequencyEntry(entry)
 
-                                if (frequency != null) {
-                                    batch.add(WordFrequency(
-                                        word = expression,
-                                        reading = reading,
-                                        frequency = frequency,
-                                        sourceId = source.id!!
-                                    ))
-                                    totalFreq++
+                                if (tag != null) hasStringFreq = true
 
-                                    if (batch.size >= batchSize) {
-                                        wordFrequencyRepository.saveAll(batch)
-                                        batch.clear()
-                                    }
+                                batch.add(WordFrequency(
+                                    word = expression,
+                                    reading = reading,
+                                    frequency = frequency,
+                                    frequencyTag = tag,
+                                    sourceId = source.id!!
+                                ))
+                                totalFreq++
+
+                                if (batch.size >= batchSize) {
+                                    wordFrequencyRepository.saveAll(batch)
+                                    batch.clear()
                                 }
                             }
                         }
@@ -280,33 +280,42 @@ class DictionaryParserService(
                 wordFrequencyRepository.saveAll(batch)
             }
 
-            logger.info("Loaded {} frequency entries from {}", totalFreq, dictName)
+            if (hasStringFreq) {
+                source = frequencySourceRepository.save(source.copy(isNumeric = false))
+            }
+
+            logger.info("Loaded {} frequency entries from {} (numeric={})", totalFreq, dictName, source.isNumeric)
         } finally {
             @OptIn(kotlin.io.path.ExperimentalPathApi::class)
             tempDir.deleteRecursively()
         }
     }
 
-    private fun parseFrequencyEntry(entry: List<*>): Pair<String, Long?> {
-        val freqData = entry.getOrNull(2) as? Map<*, *> ?: return Pair("", null)
+    private fun parseFrequencyEntry(entry: List<*>): Triple<String, Long, String?> {
+        val freqData = entry.getOrNull(2) as? Map<*, *> ?: return Triple("", 0L, null)
 
-        val reading = when {
-            freqData.containsKey("reading") -> (freqData["reading"] as? String) ?: ""
-            else -> ""
-        }
+        val reading = (freqData["reading"] as? String) ?: ""
 
-        val frequency = when {
-            freqData.containsKey("frequency") -> {
-                val freqObj = freqData["frequency"] as? Map<*, *>
-                (freqObj?.get("value") as? Number)?.toLong()
-            }
-            freqData.containsKey("value") -> {
-                (freqData["value"] as? Number)?.toLong()
-            }
+        val rawFreq = when {
+            freqData.containsKey("frequency") -> freqData["frequency"]
+            freqData.containsKey("value") -> freqData["value"]
             else -> null
         }
 
-        return Pair(reading, frequency)
+        return when {
+            rawFreq is Number -> Triple(reading, rawFreq.toLong(), null)
+            rawFreq is Map<*, *> -> {
+                val value = rawFreq["value"]
+                val displayValue = rawFreq["displayValue"] as? String
+                when {
+                    value is Number -> Triple(reading, value.toLong(), displayValue)
+                    displayValue != null -> Triple(reading, 0L, displayValue)
+                    else -> Triple(reading, 0L, null)
+                }
+            }
+            rawFreq is String -> Triple(reading, 0L, rawFreq)
+            else -> Triple(reading, 0L, null)
+        }
     }
 
     private fun hashPath(path: String): String {

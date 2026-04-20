@@ -6,7 +6,7 @@ export interface WordEntry {
   expression: string
   reading: string
   definitions: string[]
-  frequencies: { sourceName: string; frequency: number }[]
+  frequencies: { sourceName: string; frequency: number; frequencyTag?: string }[]
   dictionaryName: string
 }
 
@@ -17,7 +17,7 @@ export interface MineResult {
 
 const BATCH = 1000
 const CONCURRENCY = 8
-const SENT_RE = /[。！？…\n\r]/
+const SENT_RE = /[^。！？….\n\r]*[。！？….][^\S\n\r]*|[^。！？….\n\r]+$/gm
 const KANA_ONLY_RE = /^[\u3040-\u30ff]+$/
 
 async function lookupBatch(
@@ -57,7 +57,7 @@ async function batchLookupBackend(
 
 function buildSentenceMap(text: string): Map<string, string> {
   const sentenceMap = new Map<string, string>()
-  const sentences = text.split(SENT_RE).map(s => s.trim()).filter(s => s.length > 0)
+  const sentences = (text.match(SENT_RE) ?? []).map(s => s.trim()).filter(s => s.length > 1)
   for (const sentence of sentences) {
     for (const token of tokenizeText(sentence)) {
       if (!KANA_ONLY_RE.test(token.baseForm) && !sentenceMap.has(token.baseForm))
@@ -73,6 +73,7 @@ export async function mineWords(
   frequencySource: string | null,
   minFrequencyRank: number | null,
   maxFrequencyRank: number | null,
+  frequencyTagFilter: string | null,
   bookTitle: string | null
 ): Promise<MineResult> {
   console.log(`[miner] received ${text.length} chars — tokenizing with Kuromoji`)
@@ -95,11 +96,16 @@ export async function mineWords(
 
     if (frequencySource) {
       const freq = entry.frequencies?.find(f => f.sourceName === frequencySource)
-      if (!freq) continue
-      const inRange =
-        (minFrequencyRank == null || freq.frequency >= minFrequencyRank) &&
-        (maxFrequencyRank == null || freq.frequency <= maxFrequencyRank)
-      if (!inRange) continue
+      if (freq) {
+        if (frequencyTagFilter != null) {
+          if (freq.frequencyTag !== frequencyTagFilter) continue
+        } else {
+          const inRange =
+            (minFrequencyRank == null || freq.frequency >= minFrequencyRank) &&
+            (maxFrequencyRank == null || freq.frequency <= maxFrequencyRank)
+          if (!inRange) continue
+        }
+      }
     }
 
     words.push(entry)

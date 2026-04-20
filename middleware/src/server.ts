@@ -109,20 +109,21 @@ async function start() {
         req.on('data', chunk => { body += chunk.toString(); });
         req.on('end', async () => {
           try {
-            const { text, frequencySource, minFrequencyRank, maxFrequencyRank, bookTitle } = JSON.parse(body);
+            const { text, frequencySource, minFrequencyRank, maxFrequencyRank, frequencyTagFilter, bookTitle } = JSON.parse(body);
             if (!text || typeof text !== 'string') {
               res.writeHead(400);
               res.end(JSON.stringify({ error: 'text parameter required' }));
               return;
             }
             const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
-            console.log(`[mine-words] text=${text.length} chars, freq=${frequencySource ?? 'none'}, min=${minFrequencyRank ?? '-'}, max=${maxFrequencyRank ?? '-'}, book=${bookTitle ?? 'unknown'}`);
+            console.log(`[mine-words] text=${text.length} chars, freq=${frequencySource ?? 'none'}, min=${minFrequencyRank ?? '-'}, max=${maxFrequencyRank ?? '-'}, tag=${frequencyTagFilter ?? '-'}, book=${bookTitle ?? 'unknown'}`);
             const result = await mineWords(
               text.trim(),
               backendUrl,
               frequencySource ?? null,
               minFrequencyRank ?? null,
               maxFrequencyRank ?? null,
+              frequencyTagFilter ?? null,
               bookTitle ?? null
             );
             res.writeHead(200);

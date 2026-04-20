@@ -110,6 +110,7 @@ src/main/kotlin/com/yomitori/
 | id | BIGINT PK AUTO | |
 | name | TEXT NOT NULL UNIQUE | Display name |
 | path | TEXT NOT NULL | Source zip path |
+| is_numeric | INTEGER NOT NULL DEFAULT 1 | 1 = numeric ranks, 0 = string labels |
 | loaded_at | TIMESTAMP | |
 
 ### `word_frequency`
@@ -118,7 +119,8 @@ src/main/kotlin/com/yomitori/
 | id | BIGINT PK AUTO | |
 | word | TEXT NOT NULL | Indexed |
 | reading | TEXT NOT NULL | |
-| frequency | BIGINT NOT NULL | Rank (lower = more common) |
+| frequency | BIGINT NOT NULL | Numeric rank; 0 for string-label dicts |
+| frequency_tag | TEXT | String label (e.g. "A1", "idol") — null for numeric dicts |
 | source_id | BIGINT NOT NULL | → frequency_sources.id, indexed |
 
 ---
@@ -452,6 +454,7 @@ Current migrations:
 - V002 — cover extraction status + retroactive author extraction
 - V003 — dictionary tables
 - V004 — frequency source + word frequency tables
+- V005 — frequency_tag on word_frequency, is_numeric on frequency_sources
 
 ---
 

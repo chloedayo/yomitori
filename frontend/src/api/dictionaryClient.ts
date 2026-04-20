@@ -3,6 +3,13 @@ import { useProxy } from '../hooks/useProxy'
 export interface WordFrequency {
   sourceName: string
   frequency: number
+  frequencyTag?: string
+}
+
+export interface FrequencySource {
+  id: number
+  name: string
+  isNumeric: boolean
 }
 
 export interface DictionaryEntry {
