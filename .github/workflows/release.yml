@@ -1,0 +1,160 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            tauri_args: ""
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            tauri_args: ""
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            tauri_args: "--target aarch64-apple-darwin"
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Java / Gradle ──────────────────────────────────────────────────────
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      # ── Node / npm ─────────────────────────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # ── Rust ───────────────────────────────────────────────────────────────
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: launcher
+
+      # ── Bun ────────────────────────────────────────────────────────────────
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # ── Linux system deps ──────────────────────────────────────────────────
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
+            librsvg2-dev patchelf
+
+      # ── Frontend ───────────────────────────────────────────────────────────
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          VITE_MIDDLEWARE_URL: http://localhost:3000
+        run: |
+          npm ci
+          npm run build
+
+      # ── Backend JAR ────────────────────────────────────────────────────────
+      - name: Build backend JAR
+        run: ./gradlew bootJar -x test --build-cache --no-daemon
+
+      - name: Locate JAR
+        id: jar
+        shell: bash
+        run: |
+          JAR=$(ls build/libs/*-[0-9]*.jar | grep -v plain | head -1)
+          echo "path=$JAR" >> "$GITHUB_OUTPUT"
+
+      # ── jlink minimal JRE ──────────────────────────────────────────────────
+      - name: Create minimal JRE (Linux/Mac)
+        if: matrix.platform != 'windows-latest'
+        shell: bash
+        run: |
+          mkdir -p launcher/resources
+          MODULES=$(jdeps --multi-release 21 --ignore-missing-deps \
+              --print-module-deps "${{ steps.jar.outputs.path }}" 2>/dev/null \
+              || echo "java.base,java.sql,java.net.http,java.naming")
+          jlink --no-header-files --no-man-pages --compress=2 --strip-debug \
+              --add-modules "$MODULES" \
+              --output launcher/resources/jre
+
+      - name: Create minimal JRE (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force launcher\resources | Out-Null
+          $jar = "${{ steps.jar.outputs.path }}"
+          $modules = (jdeps --multi-release 21 --ignore-missing-deps `
+              --print-module-deps $jar 2>$null) -join ","
+          if (-not $modules) { $modules = "java.base,java.sql,java.net.http,java.naming" }
+          jlink --no-header-files --no-man-pages --compress=2 --strip-debug `
+              --add-modules $modules `
+              --output launcher\resources\jre
+
+      # ── Copy JAR ───────────────────────────────────────────────────────────
+      - name: Copy JAR to resources
+        shell: bash
+        run: cp "${{ steps.jar.outputs.path }}" launcher/resources/yomitori.jar
+
+      # ── Middleware binary ──────────────────────────────────────────────────
+      - name: Build middleware binary
+        shell: bash
+        run: |
+          mkdir -p launcher/binaries
+          cd middleware
+          npm ci --legacy-peer-deps
+          npm run build
+          BIN="yomitori-middleware-${{ matrix.target }}"
+          if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then BIN="${BIN}.exe"; fi
+          bun build --compile --target=bun --outfile "../launcher/binaries/$BIN" dist/server.js
+
+      # ── Backend sidecar shim ───────────────────────────────────────────────
+      - name: Copy backend sidecar (Linux/Mac)
+        if: matrix.platform != 'windows-latest'
+        run: |
+          cp scripts/yomitori-backend.sh \
+              launcher/binaries/yomitori-backend-${{ matrix.target }}
+          chmod +x launcher/binaries/yomitori-backend-${{ matrix.target }}
+
+      - name: Copy backend sidecar (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          Copy-Item scripts\yomitori-backend.bat `
+              launcher\binaries\yomitori-backend-${{ matrix.target }}.exe
+
+      # ── Tauri build ────────────────────────────────────────────────────────
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: launcher
+          args: ${{ matrix.tauri_args }}
+          tagName: ${{ github.ref_name }}
+          releaseName: "Yomitori ${{ github.ref_name }}"
+          releaseBody: "See CHANGELOG.md for details."
+          releaseDraft: true
+          prerelease: false
