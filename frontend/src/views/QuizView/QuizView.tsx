@@ -76,6 +76,7 @@ export function QuizView() {
   const [stats, setStats] = useState<ReviewStats | null>(null)
   const [sessionSize, setSessionSize] = useState<number | ''>(25)
   const [timeLimit, setTimeLimit] = useState(15)
+  const [isLooping, setIsLooping] = useState(false)
 
   // custom mode filters
   const [freqSources, setFreqSources] = useState<FrequencySource[]>([])
@@ -319,12 +320,23 @@ export function QuizView() {
         if (size) enriched = enriched.slice(0, size)
       }
 
+      if (enriched.length === 0) { setNoWords(true); setLoading(false); return }
+
+      const requestedSize = endless ? null : (typeof sessionSize === 'number' && sessionSize > 0 ? sessionSize : null)
+      let looping = false
+      if (requestedSize && enriched.length < requestedSize) {
+        looping = true
+        const base = [...enriched]
+        while (enriched.length < requestedSize) {
+          enriched.push(...base.slice(0, requestedSize - enriched.length))
+        }
+      }
+      setIsLooping(looping)
+
       for (let i = enriched.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [enriched[i], enriched[j]] = [enriched[j], enriched[i]]
       }
-
-      if (enriched.length === 0) { setNoWords(true); setLoading(false); return }
 
       setIsEndless(endless)
       setSessionStreak(0)
@@ -543,6 +555,11 @@ export function QuizView() {
         {!isEndless && (
           <div className="quiz-progress-bar">
             <div className="quiz-progress-bar__fill" style={{ width: `${progress * 100}%` }} />
+          </div>
+        )}
+        {isLooping && (
+          <div className="quiz-loop-warning">
+            ⚠ Session size exceeds your word count — words repeat. Repeated reviews in one session distort SRS intervals.
           </div>
         )}
         <div className="quiz-card-area">
