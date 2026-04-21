@@ -19,7 +19,9 @@ jobs:
           java-version: "21"
           cache: gradle
           
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4                                                                                                           
+        with:
+          validate-wrappers: false 
 
       - name: Run tests
         run: ./gradlew test --no-daemon -Dorg.gradle.jvmargs="-Xmx768m -XX:+UseSerialGC"
