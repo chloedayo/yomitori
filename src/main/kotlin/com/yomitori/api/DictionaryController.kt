@@ -42,7 +42,8 @@ data class DictionaryImportDto(
 
 data class BatchLookupRequest @JsonCreator constructor(
     val words: List<String>,
-    val primaryDictName: String? = null
+    val primaryDictName: String? = null,
+    val primaryDictOnly: Boolean = false
 )
 
 @RestController
@@ -109,7 +110,7 @@ class DictionaryController(
             return ResponseEntity.badRequest().build()
         }
 
-        val results = dictionaryService.batchLookup(request.words, request.primaryDictName)
+        val results = dictionaryService.batchLookup(request.words, request.primaryDictName, request.primaryDictOnly)
         val dtos = results.mapValues { (_, entries) ->
             entries.map { result ->
                 DictionaryEntryDto(
