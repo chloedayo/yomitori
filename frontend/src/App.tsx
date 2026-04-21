@@ -25,6 +25,7 @@ function App() {
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [lastSearchParams, setLastSearchParams] = useState<SearchParams>({ title: '', page: 0, pageSize: DEFAULT_PAGE_SIZE });
   const [error, setError] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -52,8 +53,11 @@ function App() {
     setError(null);
     setCurrentPage(0);
 
+    const searchParams = { ...params, page: 0, pageSize: DEFAULT_PAGE_SIZE };
+    setLastSearchParams(searchParams);
+
     try {
-      const results = await bookClient.search({ ...params, page: 0 });
+      const results = await bookClient.search(searchParams);
       setSearchResults(results);
     } catch (err) {
       setError(`${ERROR_MESSAGES.SEARCH_FAILED}: ${err}`);
@@ -68,10 +72,7 @@ function App() {
     setError(null);
 
     try {
-      const results = await bookClient.search({
-        page: newPage,
-        pageSize: DEFAULT_PAGE_SIZE,
-      });
+      const results = await bookClient.search({ ...lastSearchParams, page: newPage });
       setSearchResults(results);
       setCurrentPage(newPage);
     } catch (err) {
