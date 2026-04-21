@@ -6,7 +6,9 @@
     "increment": "node increment-version.js",
     "dev": "npm run increment && vite",
     "build": "npm run increment && tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit --skipLibCheck",
+    "test": "vitest run"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
