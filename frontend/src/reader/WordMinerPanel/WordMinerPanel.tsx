@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 import { MinedWord } from '../../services/ankiService'
 import './style.scss'
 
@@ -42,7 +43,7 @@ export function WordMinerPanel({
                 <strong>{word.surface}</strong>
                 {word.reading && <span className="reading">({word.reading})</span>}
               </div>
-              <div className="word-definition">{word.definitions[0]}</div>
+              <div className="word-definition" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(word.definitions[0] ?? '') }} />
               <div className="word-meta">Freq: {word.frequency}</div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import DOMPurify from 'dompurify'
 import { getAllWords, searchWords, getWordCount, clearDictionary, DictionaryWord } from '../../services/dictionaryStore'
 import { getAllReviews, WordReview } from '../../services/reviewStore'
 import { useProxy } from '../../hooks/useProxy'
@@ -274,9 +275,9 @@ export function DictionaryView() {
               {word.definitionEntries?.[0] ? (
                 <>
                   <span className="dict-def-source">{word.definitionEntries[0].dictionaryName}</span>
-                  {word.definitionEntries[0].definition}
+                  <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(word.definitionEntries[0].definition) }} />
                 </>
-              ) : word.definitions[0]}
+              ) : <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(word.definitions[0] ?? '') }} />}
             </div>
             <div className="dict-meta">
               {word.bookIds.length} {word.bookIds.length === 1 ? 'book' : 'books'}
