@@ -7,6 +7,11 @@ interface FrequencySource {
   isNumeric: boolean
 }
 
+interface DictionaryImport {
+  id: string
+  name: string
+}
+
 interface SettingsModalProps {
   isOpen: boolean
   onClose: () => void
@@ -23,6 +28,9 @@ interface SettingsModalProps {
   frequencyTagFilter: string | null
   onFrequencyTagFilterChange: (tag: string | null) => void
   frequencySources: FrequencySource[]
+  definitionDicts: DictionaryImport[]
+  primaryDictName: string | null
+  onPrimaryDictNameChange: (name: string | null) => void
   annotationSettings: AnnotationSettings
   onAnnotationSettingsChange: (patch: Partial<AnnotationSettings>) => void
 }
@@ -43,6 +51,9 @@ export function SettingsModal({
   frequencyTagFilter,
   onFrequencyTagFilterChange,
   frequencySources,
+  definitionDicts,
+  primaryDictName,
+  onPrimaryDictNameChange,
   annotationSettings,
   onAnnotationSettingsChange,
 }: SettingsModalProps) {
@@ -179,6 +190,22 @@ export function SettingsModal({
             />
           ) : activeTab === 'frequency' ? (
             <div style={styles.frequencySettings}>
+              {definitionDicts.length > 0 && (
+                <div style={styles.settingGroup}>
+                  <label style={styles.label}>Primary Definition Dictionary</label>
+                  <select
+                    value={primaryDictName || ''}
+                    onChange={(e) => onPrimaryDictNameChange(e.target.value || null)}
+                    style={styles.select}
+                  >
+                    <option value="">No preference</option>
+                    {definitionDicts.map((d) => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
+                  <p style={styles.hint}>This dictionary's definition appears first when mining and in popup lookups.</p>
+                </div>
+              )}
               <div style={styles.settingGroup}>
                 <label style={styles.label}>Frequency Dictionary Source</label>
                 <select

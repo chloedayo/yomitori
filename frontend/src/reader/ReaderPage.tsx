@@ -60,6 +60,7 @@ export function ReaderPage() {
   const [minFrequencyRank, setMinFrequencyRank] = useLocalStorage<number | null>('yomitori-frequency-min', null)
   const [maxFrequencyRank, setMaxFrequencyRank] = useLocalStorage<number | null>('yomitori-frequency-max', null)
   const [frequencyTagFilter, setFrequencyTagFilter] = useLocalStorage<string | null>('yomitori-frequency-tag', null)
+  const [primaryDictName, setPrimaryDictName] = useLocalStorage<string | null>('yomitori-primary-dict', null)
   const { mineWords, cancelMining } = useWordMiner({
     contentRef,
     bookId: bookId || '',
@@ -69,11 +70,13 @@ export function ReaderPage() {
     minFrequencyRank,
     maxFrequencyRank,
     frequencyTagFilter,
+    primaryDictName,
   })
   const [minedWords, setMinedWords] = useState<MinedWord[]>([])
   const [showWordMiner, setShowWordMiner] = useState(false)
   const [isMining, setIsMining] = useState(false)
   const [frequencySources, setFrequencySources] = useState<Array<{ id: number; name: string; isNumeric: boolean }>>([])
+  const [definitionDicts, setDefinitionDicts] = useState<Array<{ id: string; name: string }>>([])
   const [selectionDef, setSelectionDef] = useState<SelectionDefinitionState | null>(null)
   const [showAnnotations, setShowAnnotations] = useState(false)
   const [pendingInlineAnnotation, setPendingInlineAnnotation] = useState<{ rawText: string; rect: SelectionDefinitionState['rect']; editId?: string; initialText?: string } | null>(null)
@@ -140,15 +143,22 @@ export function ReaderPage() {
       try {
         const url = useProxy('/api/dictionary/frequency-sources')
         const response = await fetch(url)
-        if (response.ok) {
-          const sources = await response.json()
-          setFrequencySources(sources)
-        }
+        if (response.ok) setFrequencySources(await response.json())
       } catch (err) {
         console.error('Error fetching frequency sources:', err)
       }
     }
+    const fetchDefinitionDicts = async () => {
+      try {
+        const url = useProxy('/api/dictionary/imports')
+        const response = await fetch(url)
+        if (response.ok) setDefinitionDicts(await response.json())
+      } catch (err) {
+        console.error('Error fetching dictionary imports:', err)
+      }
+    }
     fetchFrequencySources()
+    fetchDefinitionDicts()
   }, [])
 
   useEffect(() => {
@@ -457,6 +467,9 @@ export function ReaderPage() {
         frequencyTagFilter={frequencyTagFilter}
         onFrequencyTagFilterChange={setFrequencyTagFilter}
         frequencySources={frequencySources}
+        definitionDicts={definitionDicts}
+        primaryDictName={primaryDictName}
+        onPrimaryDictNameChange={setPrimaryDictName}
         annotationSettings={annotationSettings}
         onAnnotationSettingsChange={updateSettings}
       />

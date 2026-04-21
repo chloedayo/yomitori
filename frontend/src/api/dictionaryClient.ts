@@ -43,13 +43,29 @@ export async function lookupWord(word: string): Promise<DictionaryEntry | null> 
   }
 }
 
-export async function batchLookup(words: string[]): Promise<Map<string, DictionaryEntry[]>> {
+export interface DictionaryImport {
+  id: string
+  name: string
+}
+
+export async function fetchDictionaryImports(): Promise<DictionaryImport[]> {
+  try {
+    const url = useProxy('/api/dictionary/imports')
+    const response = await fetch(url)
+    if (!response.ok) return []
+    return await response.json()
+  } catch {
+    return []
+  }
+}
+
+export async function batchLookup(words: string[], primaryDictName?: string | null): Promise<Map<string, DictionaryEntry[]>> {
   try {
     const url = useProxy('/api/dictionary/batch-lookup')
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ words })
+      body: JSON.stringify({ words, primaryDictName: primaryDictName ?? undefined })
     })
     if (!response.ok) throw new Error(`Batch lookup failed: ${response.statusText}`)
 

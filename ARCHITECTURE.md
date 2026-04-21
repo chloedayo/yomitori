@@ -171,9 +171,10 @@ src/main/kotlin/com/yomitori/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/imports` | List all imported definition dictionaries |
 | GET | `/frequency-sources` | List available frequency dictionaries |
 | GET | `/lookup?word=` | Single word lookup |
-| POST | `/batch-lookup` | Bulk word lookup (up to 1000 words) |
+| POST | `/batch-lookup` | Bulk word lookup; optional `primaryDictName` sorts that dict first |
 | POST | `/reimport` | Wipe all dictionary data and re-import from disk |
 
 **GET /lookup response:**
