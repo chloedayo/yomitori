@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 import DOMPurify from 'dompurify'
 import { SelectionEntry, SelectionRect } from './useSelectionDefinition'
-import { addNote, getDeckNames, checkConnection, isNoteInAnki } from '../services/ankiService'
+import { addNote, getDeckNames, checkConnection, canAddBatch } from '../services/ankiService'
 import { upsertWord, getWord } from '../services/dictionaryStore'
 import { lookupWord, DictionaryEntry } from '../api/dictionaryClient'
 import './DefinitionPopup.css'
@@ -131,41 +131,41 @@ export function DefinitionPopup({ entries, rect, rawText, isVertical, bookId, on
 
     async function checkInitialStatuses() {
       const ankiOnline = await checkConnection()
+      if (cancelled) return
+
+      // Collect all expressions for one batch call
+      const allExpressions: string[] = []
+      for (const { entry, alternates } of entries) {
+        allExpressions.push(entry.expression)
+        alternates.forEach(alt => allExpressions.push(alt.expression))
+      }
+
+      const ankiMap = ankiOnline ? await canAddBatch(allExpressions) : {}
+      if (cancelled) return
 
       for (const { baseForm, entry, alternates } of entries) {
         if (cancelled) return
 
-        // Dict check for main entry
         const saved = await getWord(baseForm)
         if (cancelled) return
         if (saved) {
           setStatuses(prev => ({ ...prev, [baseForm]: { ...{ anki: 'idle', dict: 'idle' }, ...prev[baseForm], dict: 'ok' } }))
         }
 
-        // Anki check for main entry
         if (!ankiOnline) {
           setStatuses(prev => ({ ...prev, [baseForm]: { ...{ anki: 'idle', dict: 'idle' }, ...prev[baseForm], anki: 'offline' } }))
-        } else {
-          const inAnki = await isNoteInAnki(entry.expression)
-          if (cancelled) return
-          if (inAnki) {
-            setStatuses(prev => ({ ...prev, [baseForm]: { ...{ anki: 'idle', dict: 'idle' }, ...prev[baseForm], anki: 'ok' } }))
-          }
+        } else if (ankiMap[entry.expression] === false) {
+          setStatuses(prev => ({ ...prev, [baseForm]: { ...{ anki: 'idle', dict: 'idle' }, ...prev[baseForm], anki: 'ok' } }))
         }
 
-        // Check alternates
         for (let j = 0; j < alternates.length; j++) {
-          const alt = alternates[j]
           if (cancelled) return
+          const alt = alternates[j]
           const altKey = `${baseForm}::${j}::${alt.expression}`
           if (!ankiOnline) {
             setAltStatuses(prev => ({ ...prev, [altKey]: { ...{ anki: 'idle', dict: 'idle' }, ...prev[altKey], anki: 'offline' } }))
-          } else {
-            const altInAnki = await isNoteInAnki(alt.expression)
-            if (cancelled) return
-            if (altInAnki) {
-              setAltStatuses(prev => ({ ...prev, [altKey]: { ...{ anki: 'idle', dict: 'idle' }, ...prev[altKey], anki: 'ok' } }))
-            }
+          } else if (ankiMap[alt.expression] === false) {
+            setAltStatuses(prev => ({ ...prev, [altKey]: { ...{ anki: 'idle', dict: 'idle' }, ...prev[altKey], anki: 'ok' } }))
           }
         }
       }
