@@ -182,9 +182,9 @@ export async function getDueCards(sessionSize: number | null): Promise<WordRevie
   })
 
   const limit = sessionSize ?? due.length
-  const newSlots = Math.max(3, Math.floor(limit * 0.15))
+  const newSlots = Math.floor(limit * 0.15)
   const newCards = all.filter(r => r.status === 'new').slice(0, newSlots)
-  const combined = [...due.slice(0, limit), ...newCards]
+  const combined = [...due.slice(0, limit - newCards.length), ...newCards]
 
   // Shuffle new words into the deck at intervals rather than end
   for (let i = newCards.length - 1; i >= 0; i--) {
