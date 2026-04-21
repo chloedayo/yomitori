@@ -109,7 +109,7 @@ async function start() {
         req.on('data', chunk => { body += chunk.toString(); });
         req.on('end', async () => {
           try {
-            const { text, frequencySource, minFrequencyRank, maxFrequencyRank, frequencyTagFilter, bookTitle } = JSON.parse(body);
+            const { text, frequencySource, minFrequencyRank, maxFrequencyRank, frequencyTagFilter, bookTitle, primaryDictName } = JSON.parse(body);
             if (!text || typeof text !== 'string') {
               res.writeHead(400);
               res.end(JSON.stringify({ error: 'text parameter required' }));
@@ -124,7 +124,8 @@ async function start() {
               minFrequencyRank ?? null,
               maxFrequencyRank ?? null,
               frequencyTagFilter ?? null,
-              bookTitle ?? null
+              bookTitle ?? null,
+              primaryDictName ?? null
             );
             res.writeHead(200);
             res.end(JSON.stringify(result));

@@ -23,13 +23,14 @@ const KANA_ONLY_RE = /^[\u3040-\u30ff]+$/
 async function lookupBatch(
   batch: string[],
   backendUrl: string,
-  results: Map<string, WordEntry | null>
+  results: Map<string, WordEntry | null>,
+  primaryDictName: string | null
 ): Promise<void> {
   try {
     const res = await fetch(`${backendUrl}/api/dictionary/batch-lookup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ words: batch }),
+      body: JSON.stringify({ words: batch, primaryDictName: primaryDictName ?? undefined }),
       signal: AbortSignal.timeout(30000),
     })
     if (!res.ok) { for (const w of batch) results.set(w, null); return }
@@ -42,14 +43,15 @@ async function lookupBatch(
 
 async function batchLookupBackend(
   words: string[],
-  backendUrl: string
+  backendUrl: string,
+  primaryDictName: string | null
 ): Promise<Map<string, WordEntry | null>> {
   const results = new Map<string, WordEntry | null>()
   const batches: string[][] = []
   for (let i = 0; i < words.length; i += BATCH) batches.push(words.slice(i, i + BATCH))
 
   for (let i = 0; i < batches.length; i += CONCURRENCY) {
-    await Promise.all(batches.slice(i, i + CONCURRENCY).map(b => lookupBatch(b, backendUrl, results)))
+    await Promise.all(batches.slice(i, i + CONCURRENCY).map(b => lookupBatch(b, backendUrl, results, primaryDictName)))
   }
 
   return results
@@ -74,7 +76,8 @@ export async function mineWords(
   minFrequencyRank: number | null,
   maxFrequencyRank: number | null,
   frequencyTagFilter: string | null,
-  bookTitle: string | null
+  bookTitle: string | null,
+  primaryDictName: string | null
 ): Promise<MineResult> {
   console.log(`[miner] received ${text.length} chars — tokenizing with Kuromoji`)
 
@@ -84,7 +87,7 @@ export async function mineWords(
   const totalBatches = Math.ceil(allBaseForms.size / BATCH)
   console.log(`[miner] tokenize done — ${allBaseForms.size} unique baseForms → ${totalBatches} batches (${CONCURRENCY} parallel)`)
 
-  const dictResults = await batchLookupBackend([...allBaseForms], backendUrl)
+  const dictResults = await batchLookupBackend([...allBaseForms], backendUrl, primaryDictName)
 
   console.log(`[miner] lookup done — filtering`)
 

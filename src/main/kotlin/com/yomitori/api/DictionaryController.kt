@@ -2,6 +2,7 @@ package com.yomitori.api
 
 import com.yomitori.service.DictionaryService
 import com.yomitori.service.StartupJobService
+import com.yomitori.repository.DictionaryImportRepository
 import com.yomitori.repository.FrequencySourceRepository
 import com.fasterxml.jackson.annotation.JsonCreator
 import org.springframework.http.ResponseEntity
@@ -34,8 +35,14 @@ data class FrequencySourceDto(
     val isNumeric: Boolean
 )
 
+data class DictionaryImportDto(
+    val id: String,
+    val name: String
+)
+
 data class BatchLookupRequest @JsonCreator constructor(
-    val words: List<String>
+    val words: List<String>,
+    val primaryDictName: String? = null
 )
 
 @RestController
@@ -43,6 +50,7 @@ data class BatchLookupRequest @JsonCreator constructor(
 class DictionaryController(
     private val dictionaryService: DictionaryService,
     private val startupJobService: StartupJobService,
+    private val dictionaryImportRepository: DictionaryImportRepository,
     private val frequencySourceRepository: FrequencySourceRepository
 ) {
 
@@ -50,6 +58,13 @@ class DictionaryController(
     fun reimport(): ResponseEntity<Map<String, String>> {
         startupJobService.submitDictionaryReimport()
         return ResponseEntity.ok(mapOf("status" to "queued"))
+    }
+
+    @GetMapping("/imports")
+    fun getImports(): ResponseEntity<List<DictionaryImportDto>> {
+        val imports = dictionaryImportRepository.findAll()
+            .map { DictionaryImportDto(id = it.id, name = it.name) }
+        return ResponseEntity.ok(imports)
     }
 
     @GetMapping("/frequency-sources")
@@ -94,7 +109,7 @@ class DictionaryController(
             return ResponseEntity.badRequest().build()
         }
 
-        val results = dictionaryService.batchLookup(request.words)
+        val results = dictionaryService.batchLookup(request.words, request.primaryDictName)
         val dtos = results.mapValues { (_, entries) ->
             entries.map { result ->
                 DictionaryEntryDto(

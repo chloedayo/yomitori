@@ -34,7 +34,7 @@ class DictionaryService(
     private val wordFrequencyRepository: WordFrequencyRepository,
     private val frequencySourceRepository: FrequencySourceRepository
 ) {
-    fun lookup(word: String): List<DictionaryLookupResult> {
+    fun lookup(word: String, primaryDictName: String? = null): List<DictionaryLookupResult> {
         val entries = (entryRepository.findByExpression(word) + entryRepository.findByReading(word))
             .distinctBy { it.id }
 
@@ -55,9 +55,12 @@ class DictionaryService(
         return entries
             .groupBy { "${it.expression}::${it.reading}" }
             .map { (_, group) ->
-                val defEntries = group.map { entry ->
+                var defEntries = group.map { entry ->
                     val dictName = importRepository.findById(entry.dictId).orElse(null)?.name ?: "Unknown"
                     DefinitionEntry(dictionaryName = dictName, definition = entry.definition)
+                }
+                if (primaryDictName != null) {
+                    defEntries = defEntries.sortedWith(compareBy { if (it.dictionaryName == primaryDictName) 0 else 1 })
                 }
                 DictionaryLookupResult(
                     expression = group.first().expression,
@@ -70,9 +73,9 @@ class DictionaryService(
             }
     }
 
-    fun batchLookup(words: List<String>): Map<String, List<DictionaryLookupResult>> {
+    fun batchLookup(words: List<String>, primaryDictName: String? = null): Map<String, List<DictionaryLookupResult>> {
         return words.associate { word ->
-            word to lookup(word)
+            word to lookup(word, primaryDictName)
         }
     }
 }
