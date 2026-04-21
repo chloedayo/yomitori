@@ -4,6 +4,7 @@ mod tray;
 
 use commands::{get_books_path, open_file_dialog, start_sidecars};
 use sidecar::{kill_all, SidecarState};
+#[allow(unused_imports)]
 use tauri::Manager;
 
 pub fn run() {
