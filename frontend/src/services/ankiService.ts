@@ -70,19 +70,22 @@ export async function checkConnection(): Promise<boolean> {
 }
 
 export async function isNoteInAnki(expression: string): Promise<boolean> {
+  const result = await canAddBatch([expression])
+  return result[expression] === false
+}
+
+export async function canAddBatch(expressions: string[]): Promise<Record<string, boolean>> {
   try {
     const middlewareUrl = useMiddlewareProxy('/anki/can-add')
     const res = await fetch(middlewareUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expressions: [expression] }),
+      body: JSON.stringify({ expressions }),
     })
-    if (!res.ok) return false
-    const result: Record<string, boolean> = await res.json()
-    // canAddNotes returns true = CAN add (not in Anki yet), false = already exists
-    return result[expression] === false
+    if (!res.ok) return {}
+    return await res.json() as Record<string, boolean>
   } catch {
-    return false
+    return {}
   }
 }
 
