@@ -30,7 +30,7 @@ async function lookupBatch(
     const res = await fetch(`${backendUrl}/api/dictionary/batch-lookup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ words: batch, primaryDictName: primaryDictName ?? undefined }),
+      body: JSON.stringify({ words: batch, primaryDictName: primaryDictName ?? undefined, primaryDictOnly: primaryDictName != null }),
       signal: AbortSignal.timeout(30000),
     })
     if (!res.ok) { for (const w of batch) results.set(w, null); return }
