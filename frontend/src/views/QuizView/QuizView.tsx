@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { toHiragana as wanaToHiragana } from 'wanakana'
 import {
   getDueCards,
   submitAnswer,
@@ -39,14 +40,8 @@ interface SessionResult {
 const TIME_LIMITS = [5, 10, 15, 20, 30, 60] as const
 const STATUS_OPTIONS = ['new', 'learning', 'reviewing', 'known'] as const
 
-function toHiragana(str: string): string {
-  return str.replace(/[\u30A1-\u30F6]/g, ch =>
-    String.fromCharCode(ch.charCodeAt(0) - 0x60)
-  )
-}
-
 function normalizeReading(r: string): string {
-  return toHiragana(r.trim().replace(/\s+/g, ''))
+  return wanaToHiragana(r.trim().replace(/\s+/g, ''), { passRomaji: false })
 }
 
 function TimerArc({ ratio, timeLimit }: { ratio: number; timeLimit: number }) {
