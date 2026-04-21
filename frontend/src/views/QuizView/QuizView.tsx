@@ -76,7 +76,7 @@ export function QuizView() {
   const [stats, setStats] = useState<ReviewStats | null>(null)
   const [sessionSize, setSessionSize] = useState<number | ''>(25)
   const [timeLimit, setTimeLimit] = useState(15)
-  const [isLooping, setIsLooping] = useState(false)
+  const [wordCount, setWordCount] = useState<number>(0)
 
   // custom mode filters
   const [freqSources, setFreqSources] = useState<FrequencySource[]>([])
@@ -114,6 +114,7 @@ export function QuizView() {
 
   useEffect(() => {
     getReviewStats().then(setStats).catch(() => {})
+    getAllWords().then(w => setWordCount(w.length)).catch(() => {})
     const url = useProxy('/api/dictionary/frequency-sources')
     fetch(url).then(r => r.ok ? r.json() : []).then(setFreqSources).catch(() => {})
   }, [])
@@ -323,15 +324,12 @@ export function QuizView() {
       if (enriched.length === 0) { setNoWords(true); setLoading(false); return }
 
       const requestedSize = endless ? null : (typeof sessionSize === 'number' && sessionSize > 0 ? sessionSize : null)
-      let looping = false
       if (requestedSize && enriched.length < requestedSize) {
-        looping = true
         const base = [...enriched]
         while (enriched.length < requestedSize) {
           enriched.push(...base.slice(0, requestedSize - enriched.length))
         }
       }
-      setIsLooping(looping)
 
       for (let i = enriched.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -502,6 +500,11 @@ export function QuizView() {
               />
               <span className="quiz-size-hint">cards</span>
             </div>
+            {typeof sessionSize === 'number' && wordCount > 0 && sessionSize > wordCount && (
+              <div className="quiz-loop-warning">
+                ⚠ {sessionSize} &gt; {wordCount} words — deck will loop. Repeated reviews in one session distort SRS intervals.
+              </div>
+            )}
 
             <div className="quiz-config__row">
               <label>Hardcore</label>
@@ -555,11 +558,6 @@ export function QuizView() {
         {!isEndless && (
           <div className="quiz-progress-bar">
             <div className="quiz-progress-bar__fill" style={{ width: `${progress * 100}%` }} />
-          </div>
-        )}
-        {isLooping && (
-          <div className="quiz-loop-warning">
-            ⚠ Session size exceeds your word count — words repeat. Repeated reviews in one session distort SRS intervals.
           </div>
         )}
         <div className="quiz-card-area">
