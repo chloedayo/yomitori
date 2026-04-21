@@ -44,3 +44,6 @@ books/
 .dictionaries/
 dictionaries/**/*.zip
 dictionaries/*.zip
+
+# Session memory
+.remember/

@@ -230,6 +230,7 @@ src/main/kotlin/com/yomitori/
 | POST | `/deinflect` | Rule-based deinflection (selection popup) |
 | POST | `/extract-baseForms` | Bulk base form extraction |
 | POST | `/mine-words` | Full mining pipeline (tokenize → lookup → filter → Anki queue) |
+| POST | `/anki/can-add` | Batch duplicate check via AnkiConnect `canAddNotes`; returns `{ [expression]: boolean }` |
 
 **POST /deinflect:**
 ```json
@@ -285,7 +286,8 @@ src/main/kotlin/com/yomitori/
 ### DictionaryParserService
 - Unzips Yomichan-format dictionary zips
 - Parses `term_bank_*.json` (entries) and `term_meta_bank_*.json` (frequency)
-- Handles structured content definitions (HTML generation)
+- Converts Yomichan structured content to HTML (`buildHtmlFromContent`) — preserves `<ruby>`, `<rt>`, `<span>`, `<br>`, `<li>` etc.
+- Frontend renders definitions via `dangerouslySetInnerHTML` + DOMPurify sanitization
 - Batch inserts (1000 per transaction)
 
 ### StartupJobService
