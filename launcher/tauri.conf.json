@@ -1,0 +1,60 @@
+{
+    "productName": "yomitori",
+    "version": "0.3.3",
+    "identifier": "com.yomitori.app",
+    "build": {
+        "frontendDist": "../frontend/dist",
+        "devUrl": "http://localhost:5173",
+        "beforeDevCommand": "npm run dev",
+        "beforeBuildCommand": ""
+    },
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "externalBin": [
+            "binaries/yomitori-backend",
+            "binaries/yomitori-middleware"
+        ],
+        "resources": {
+            "resources/jre": "jre",
+            "resources/yomitori.jar": "yomitori.jar"
+        },
+        "linux": {
+            "deb": { "depends": [] },
+            "appimage": { "bundleMediaFramework": true }
+        },
+        "windows": {
+            "nsis": {}
+        },
+        "macOS": {
+            "minimumSystemVersion": "10.15"
+        }
+    },
+    "app": {
+        "windows": [
+            {
+                "title": "yomitori",
+                "width": 1280,
+                "height": 860,
+                "minWidth": 800,
+                "minHeight": 600,
+                "resizable": true,
+                "fullscreen": false
+            }
+        ],
+        "trayIcon": {
+            "iconPath": "icons/32x32.png",
+            "iconAsTemplate": true
+        },
+        "security": {
+            "csp": "default-src 'self'; connect-src 'self' http://localhost:8080 http://localhost:3000 ipc: http://ipc.localhost; img-src 'self' data: http://localhost:8080 asset: https://asset.localhost; script-src 'self'; style-src 'self' 'unsafe-inline'"
+        }
+    }
+}
