@@ -27,6 +27,21 @@ export interface AnkiAddResult {
   error: string | null
 }
 
+export async function canAddNotesForExpressions(
+  expressions: string[],
+  deckName: string
+): Promise<Record<string, boolean>> {
+  const notes = expressions.map(expr => ({
+    deckName,
+    modelName: 'Lapis',
+    fields: { Expression: expr },
+    options: { allowDuplicate: false, duplicateScope: 'deck' },
+    tags: [],
+  }))
+  const results = await invoke('canAddNotes', { notes }) as boolean[]
+  return Object.fromEntries(expressions.map((expr, i) => [expr, results[i] ?? true]))
+}
+
 export async function addNotesToAnki(
   notes: AnkiNote[],
   deckName: string,

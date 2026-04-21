@@ -2,6 +2,7 @@ import * as http from 'http';
 import { initializeTokenizer, tokenizeText } from './utils/tokenizer.js';
 import { deinflect, extractBaseForms } from './utils/deinflect.js';
 import { mineWords } from './utils/miner.js';
+import { canAddNotesForExpressions } from './utils/ankiClient.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -131,6 +132,29 @@ async function start() {
             res.end(JSON.stringify(result));
           } catch (err) {
             console.error('mine-words error:', err);
+            res.writeHead(500);
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+          }
+        });
+        return;
+      }
+
+      if (pathname === '/anki/can-add' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk.toString(); });
+        req.on('end', async () => {
+          try {
+            const { expressions, deckName } = JSON.parse(body);
+            if (!Array.isArray(expressions) || expressions.length === 0) {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: 'expressions array required' }));
+              return;
+            }
+            const result = await canAddNotesForExpressions(expressions, deckName || '自動');
+            res.writeHead(200);
+            res.end(JSON.stringify(result));
+          } catch (err) {
+            console.error('anki/can-add error:', err);
             res.writeHead(500);
             res.end(JSON.stringify({ error: 'Internal server error' }));
           }

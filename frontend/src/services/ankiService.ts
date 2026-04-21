@@ -1,4 +1,4 @@
-import { useProxy } from '../hooks/useProxy';
+import { useProxy, useMiddlewareProxy } from '../hooks/useProxy';
 
 export interface DictionaryFrequency {
   sourceName: string
@@ -71,8 +71,16 @@ export async function checkConnection(): Promise<boolean> {
 
 export async function isNoteInAnki(expression: string): Promise<boolean> {
   try {
-    const result = await invoke('findNotes', { query: `Expression:"${expression}"` })
-    return Array.isArray(result) && result.length > 0
+    const middlewareUrl = useMiddlewareProxy('/anki/can-add')
+    const res = await fetch(middlewareUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expressions: [expression] }),
+    })
+    if (!res.ok) return false
+    const result: Record<string, boolean> = await res.json()
+    // canAddNotes returns true = CAN add (not in Anki yet), false = already exists
+    return result[expression] === false
   } catch {
     return false
   }
