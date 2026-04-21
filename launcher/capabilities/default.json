@@ -1,0 +1,20 @@
+{
+    "identifier": "default",
+    "description": "Default capabilities for Yomitori desktop",
+    "windows": ["main"],
+    "permissions": [
+        "core:default",
+        "core:window:allow-close",
+        "core:window:allow-hide",
+        "core:window:allow-show",
+        "core:window:allow-set-focus",
+        "shell:allow-execute",
+        "shell:allow-kill",
+        "shell:allow-open",
+        "dialog:allow-open",
+        "store:allow-get",
+        "store:allow-set",
+        "store:allow-save",
+        "store:allow-load"
+    ]
+}
