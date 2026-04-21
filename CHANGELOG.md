@@ -2,6 +2,32 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.3.3] - 2026-04-22
+
+### Added
+
+- **HTML definitions with furigana** — Dictionary parser now emits HTML instead of stripping tags. Ruby/rt, bold, structured content fully preserved. All definition surfaces (DefinitionPopup, DictionaryView, WordMinerPanel) render with DOMPurify sanitization.
+- **DictionaryView word popup** — Click any word row to open a full-screen popup showing all definitions grouped by dictionary, frequencies, and SRS review status.
+- **Romaji input in quiz** — Quiz answer field now accepts romaji via wanakana. `konnrinn` = `こんりん`, `dume` = `づめ`. Both sides normalized before comparison.
+- **Mining completion notification** — Toast at bottom of reader on mining done (word count) or failure. Auto-dismisses after 4 seconds.
+- **Quiz session loop mode** — Session size can exceed word count; deck loops to fill. Warning shown in config next to session size input when size > available words.
+- **Word count in quiz stats grid** — "words" stat added between known and streak showing total personal dictionary size.
+- **Anki duplicate pre-filter via `canAddNotes`** — Middleware checks all expressions against Anki before batching. No more batch failures from duplicates.
+- **Batched Anki duplicate check in DefinitionPopup** — All entries + alternates checked in one `/anki/can-add` call instead of N sequential requests.
+- **`POST /anki/can-add` middleware endpoint** — Centralizes Anki duplicate checking; frontend `isNoteInAnki` now routes through middleware.
+
+### Fixed
+
+- **Pagination losing search criteria** — Next/prev page now preserves title/genre/author/type filters from last search.
+- **Quiz session size not respected** — New cards were added on top of due cards, inflating session beyond requested size. New cards now counted within the limit.
+- **Quiz session underfill when due cards scarce** — Remaining capacity after due cards now backfilled with new cards up to session size.
+- **Phase 2 items marked complete** — E2E mining validation, timeout/cancel handling, word miner jump-to-occurrence all confirmed done.
+
+### Changed
+
+- **Frequency dictionaries** — `/api/dictionary/reimport` now reloads all freq dicts too. Three previously unloaded freq dicts (BCCWJ, Monodicts 206k, jiten_freq_global) will import on next reimport.
+- **Anki queue dedup** — `addNotesToAnki` pre-filters via `canAddNotes` before `addNotes`; eliminates the entire class of duplicate-caused batch explosions.
+
 ## [0.3.2] - 2026-04-21
 
 ### Added

@@ -14,7 +14,7 @@
 - [x] Retroactive author extraction admin endpoint
 - [x] Bulk book search by ID list
 
-## Phase 2 — Reader + Word Mining ✅ (Mostly Complete)
+## Phase 2 — Reader + Word Mining ✅ (Complete)
 
 - [x] EPUB reader (vertical + horizontal orientation)
 - [x] Swipe / scroll navigation
@@ -29,11 +29,11 @@
 - [x] Settings modal (CSS + frequency combined)
 - [x] Mining indicator inline with progress
 - [x] Mobile responsive reader UI
-- [ ] Proper E2E validation with real 500+ word book
-- [ ] Handle mining timeout / progress cancel
-- [ ] Word miner panel: click word → jump to occurrence in book
+- [x] Proper E2E validation with real 500+ word book
+- [x] Handle mining timeout / progress cancel
+- [x] Word miner panel: click word → jump to occurrence in book
 
-## Phase 3 — Polish + Annotations (In Progress)
+## Phase 3 — Polish + Annotations (In Progress / v0.3.3)
 
 - [x] In-reader word lookup (select text → deinflect → definition popup)
 - [x] Kanji drill-down per word (click kanji in popup → inline lookup)
@@ -47,6 +47,14 @@
 - [x] Session history (collapsible, mode-tagged)
 - [x] Inline annotation persistence per book (IDB, injected at exact word position, writing-mode aware)
 - [x] Inline annotation editing + dismiss (click to edit, hover to dismiss)
+- [x] HTML definitions with furigana (DOMPurify-sanitized, all surfaces)
+- [x] DictionaryView full definition popup (grouped by dict, HTML rendered)
+- [x] Romaji input in quiz (wanakana normalization)
+- [x] Quiz session size respected + loop mode with warning
+- [x] Word count in quiz stats grid
+- [x] Anki duplicate pre-filter via canAddNotes (batch + DefinitionPopup)
+- [x] Mining completion notification
+- [x] Pagination preserves search criteria
 - [ ] Inline annotation manager UI (list, search, export per book)
 - [ ] Sentence-level context capture for Anki cards
 - [ ] Export annotations to Markdown
@@ -54,6 +62,14 @@
 - [ ] Reading stats dashboard (chars read, books finished, mining rate)
 - [ ] JLPT level estimation from mined words (optional tag)
 - [ ] Per-book vocabulary review mode
+
+## Phase 5 — Tauri Desktop App (Next)
+
+- [ ] Wrap frontend in Tauri shell (native window, no browser needed)
+- [ ] Native file picker for book collection path
+- [ ] System tray integration
+- [ ] Auto-launch backend + middleware on app start
+- [ ] Bundled distribution (single install, no Docker required)
 
 ## Phase 4 — Collaboration / Future
 
