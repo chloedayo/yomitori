@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  clearScreen: false,
+  envPrefix: ['VITE_', 'TAURI_'],
   build: {
     rollupOptions: {
       input: {
@@ -18,12 +20,21 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-      }
+      },
+      '/deinflect': { target: 'http://localhost:3000', changeOrigin: true },
+      '/extract-baseForms': { target: 'http://localhost:3000', changeOrigin: true },
+      '/mine-words': { target: 'http://localhost:3000', changeOrigin: true },
+      '/anki': { target: 'http://localhost:3000', changeOrigin: true },
     },
     hmr: process.env.DOCKER_ENV ? {
       host: process.env.LAN_IP || 'localhost',
       port: 5173,
       protocol: 'ws',
     } : undefined,
-  }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: [],
+  },
 })
