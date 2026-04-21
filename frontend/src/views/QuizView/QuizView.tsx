@@ -388,6 +388,10 @@ export function QuizView() {
                 <span className="quiz-stat__value">{stats.knownCount}</span>
                 <span className="quiz-stat__label">known</span>
               </div>
+              <div className="quiz-stat">
+                <span className="quiz-stat__value">{wordCount}</span>
+                <span className="quiz-stat__label">words</span>
+              </div>
               <div className="quiz-stat quiz-stat--streak">
                 <span className="quiz-stat__value">{stats.dailyStreak}</span>
                 <span className="quiz-stat__label">streak</span>
