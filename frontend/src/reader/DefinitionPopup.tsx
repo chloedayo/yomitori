@@ -1,9 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
+import DOMPurify from 'dompurify'
 import { SelectionEntry, SelectionRect } from './useSelectionDefinition'
 import { addNote, getDeckNames, checkConnection, isNoteInAnki } from '../services/ankiService'
 import { upsertWord, getWord } from '../services/dictionaryStore'
 import { lookupWord, DictionaryEntry } from '../api/dictionaryClient'
 import './DefinitionPopup.css'
+
+function DefinitionHtml({ html }: { html: string }) {
+  return <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />
+}
 
 interface DefinitionPopupProps {
   entries: SelectionEntry[]
@@ -349,7 +354,7 @@ export function DefinitionPopup({ entries, rect, rawText, isVertical, bookId, on
                     {entry.definitionEntries?.length > 1 && (
                       <span className="definition-popup__dict-label">{de.dictionaryName}</span>
                     )}
-                    {de.definition}
+                    <DefinitionHtml html={de.definition} />
                   </li>
                 ))}
               </ol>
@@ -406,7 +411,7 @@ export function DefinitionPopup({ entries, rect, rawText, isVertical, bookId, on
                                   {alt.definitionEntries?.length > 1 && (
                                     <span className="definition-popup__dict-label">{de.dictionaryName}</span>
                                   )}
-                                  {de.definition}
+                                  <DefinitionHtml html={de.definition} />
                                 </li>
                               ))}
                             </ol>
@@ -428,7 +433,7 @@ export function DefinitionPopup({ entries, rect, rawText, isVertical, bookId, on
                     ) : r.entry ? (
                       <span className="definition-popup__kanji-result-body">
                         {r.entry.reading && <span className="definition-popup__kanji-result-reading">【{r.entry.reading}】</span>}
-                        {r.entry.definitions[0]}
+                        <DefinitionHtml html={r.entry.definitions[0]} />
                       </span>
                     ) : (
                       <span className="definition-popup__kanji-result-body definition-popup__kanji-result-body--none">no entry</span>

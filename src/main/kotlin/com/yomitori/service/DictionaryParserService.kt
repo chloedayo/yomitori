@@ -168,45 +168,52 @@ class DictionaryParserService(
 
     private fun extractStructuredContent(content: Any?): String? {
         val sb = StringBuilder()
-        extractTextFromContent(content, sb)
+        buildHtmlFromContent(content, sb)
         return sb.toString().trim().takeIf { it.isNotEmpty() }
     }
 
-    private fun extractTextFromContent(content: Any?, sb: StringBuilder) {
+    private fun escapeHtml(text: String): String = text
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+
+    private fun buildHtmlFromContent(content: Any?, sb: StringBuilder) {
         when (content) {
-            is String -> sb.append(content)
+            is String -> sb.append(escapeHtml(content))
             is Map<*, *> -> {
                 val tag = content["tag"] as? String
                 val inner = content["content"]
-                when {
-                    tag == "img" -> (content["title"] as? String)?.let { sb.append(it) }
-                    tag == "rt" -> { /* skip furigana readings */ }
-                    tag == "br" -> sb.append(" ")
-                    tag == "li" && inner != null -> {
-                        val before = sb.length
-                        extractTextFromContent(inner, sb)
-                        if (sb.length > before) {
-                            if (sb.last() == ' ') sb.deleteCharAt(sb.length - 1)
-                            sb.append("; ")
+                when (tag) {
+                    null -> content.values.forEach { buildHtmlFromContent(it, sb) }
+                    "img" -> (content["title"] as? String)?.let { sb.append(escapeHtml(it)) }
+                    in VOID_TAGS -> sb.append("<$tag>")
+                    else -> {
+                        sb.append("<$tag")
+                        (content["lang"] as? String)?.let { sb.append(" lang=\"${escapeHtml(it)}\"") }
+                        (content["class"] as? String)?.let { sb.append(" class=\"${escapeHtml(it)}\"") }
+                        (content["href"] as? String)?.let { sb.append(" href=\"${escapeHtml(it)}\"") }
+                        (content["style"] as? Map<*, *>)?.let { styleMap ->
+                            val css = styleMap.entries
+                                .filter { (k, v) -> k is String && v is String }
+                                .joinToString(";") { (k, v) ->
+                                    val prop = (k as String).replace(Regex("([A-Z])")) { "-${it.value.lowercase()}" }
+                                    "$prop:${v as String}"
+                                }
+                            if (css.isNotEmpty()) sb.append(" style=\"${escapeHtml(css)}\"")
                         }
+                        sb.append(">")
+                        if (inner != null) buildHtmlFromContent(inner, sb)
+                        sb.append("</$tag>")
                     }
-                    tag in BLOCK_TAGS && inner != null -> {
-                        if (sb.isNotEmpty() && sb.last() != ' ') sb.append(' ')
-                        val before = sb.length
-                        extractTextFromContent(inner, sb)
-                        if (sb.length > before && sb.last() != ' ') sb.append(' ')
-                    }
-                    inner != null -> extractTextFromContent(inner, sb)
-                    tag != null -> { /* empty element, skip */ }
-                    else -> content.values.forEach { extractTextFromContent(it, sb) }
                 }
             }
-            is List<*> -> content.forEach { extractTextFromContent(it, sb) }
+            is List<*> -> content.forEach { buildHtmlFromContent(it, sb) }
         }
     }
 
     companion object {
-        private val BLOCK_TAGS = setOf("div", "p", "tr", "td", "th", "ul", "ol", "table")
+        private val VOID_TAGS = setOf("br", "hr", "img")
     }
 
     fun loadFrequencyDictionaries() {
