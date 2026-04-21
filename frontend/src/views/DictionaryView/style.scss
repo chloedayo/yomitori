@@ -276,3 +276,128 @@
   margin-right: 5px;
   vertical-align: middle;
 }
+
+.dict-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+}
+
+.dict-popup {
+  background: $bg-dark;
+  border: 1px solid $border-primary;
+  border-radius: $border-radius-md;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dict-popup__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: $spacing-lg;
+  border-bottom: 1px solid $border-primary;
+  gap: $spacing-md;
+  flex-shrink: 0;
+}
+
+.dict-popup__title {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.dict-popup__surface {
+  font-size: 24px;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.dict-popup__reading {
+  font-size: $font-size-base;
+  color: $text-secondary;
+}
+
+.dict-popup__baseform {
+  font-size: $font-size-sm;
+  color: #606060;
+}
+
+.dict-popup__close {
+  background: transparent;
+  border: none;
+  color: $text-secondary;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 2px 6px;
+
+  &:hover { color: $text-primary; }
+}
+
+.dict-popup__body {
+  overflow-y: auto;
+  padding: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.dict-popup__section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.dict-popup__dict-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5a9fd4;
+}
+
+.dict-popup__defs {
+  padding-left: $spacing-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  line-height: 1.6;
+
+  ruby { color: $text-primary; }
+  rt { font-size: 0.65em; color: $text-secondary; }
+  li + li { margin-top: 4px; }
+}
+
+.dict-popup__freqs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.dict-popup__freq-badge {
+  font-size: 11px;
+  color: #606060;
+  background: $bg-light-dark;
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.dict-popup__review {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}

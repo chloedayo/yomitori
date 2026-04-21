@@ -74,6 +74,72 @@ function matchesFrequency(
   return true
 }
 
+function DictWordPopup({ word, review, onClose }: { word: DictionaryWord; review?: WordReview; onClose: () => void }) {
+  const grouped = word.definitionEntries.reduce<Record<string, string[]>>((acc, de) => {
+    ;(acc[de.dictionaryName] ??= []).push(de.definition)
+    return acc
+  }, {})
+  const hasGrouped = Object.keys(grouped).length > 0
+
+  return (
+    <div className="dict-popup-overlay" onClick={onClose}>
+      <div className="dict-popup" onClick={e => e.stopPropagation()}>
+        <div className="dict-popup__header">
+          <div className="dict-popup__title">
+            <span className="dict-popup__surface">{word.surface}</span>
+            {word.reading && word.reading !== word.surface && (
+              <span className="dict-popup__reading">【{word.reading}】</span>
+            )}
+            {word.baseForm !== word.surface && (
+              <span className="dict-popup__baseform">({word.baseForm})</span>
+            )}
+          </div>
+          <button className="dict-popup__close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="dict-popup__body">
+          {hasGrouped ? (
+            Object.entries(grouped).map(([dictName, defs]) => (
+              <div key={dictName} className="dict-popup__section">
+                <div className="dict-popup__dict-name">{dictName}</div>
+                <ol className="dict-popup__defs">
+                  {defs.map((def, i) => (
+                    <li key={i} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(def) }} />
+                  ))}
+                </ol>
+              </div>
+            ))
+          ) : (
+            <ol className="dict-popup__defs">
+              {word.definitions.map((def, i) => (
+                <li key={i} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(def) }} />
+              ))}
+            </ol>
+          )}
+
+          {word.frequencies.length > 0 && (
+            <div className="dict-popup__freqs">
+              {word.frequencies.map(f => (
+                <span key={f.sourceName} className="dict-popup__freq-badge">
+                  {f.sourceName}: #{f.frequency}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {review && (
+            <div className="dict-popup__review">
+              <span className="dict-review-status" style={{ background: STATUS_COLOR[review.status] }}>{review.status}</span>
+              {review.streak > 0 && <span className="dict-review-streak">🔥 {review.streak}</span>}
+              {review.interval > 0 && <span className="dict-review-interval">∿ {review.interval}d</span>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function DictionaryView() {
   const [words, setWords] = useState<DictionaryWord[]>([])
   const [query, setQuery] = useState('')
@@ -89,6 +155,7 @@ export function DictionaryView() {
   const [freqMax, setFreqMax] = useState<number | null>(null)
   const [reviewMap, setReviewMap] = useState<Map<string, WordReview>>(new Map())
   const [statusFilter, setStatusFilter] = useState<WordReview['status'] | null>(null)
+  const [selectedWord, setSelectedWord] = useState<DictionaryWord | null>(null)
 
   useEffect(() => {
     const url = useProxy('/api/dictionary/frequency-sources')
@@ -264,7 +331,7 @@ export function DictionaryView() {
         )}
 
         {words.map((word) => (
-          <div key={word.baseForm} className="dict-word-row">
+          <div key={word.baseForm} className="dict-word-row" onClick={() => setSelectedWord(word)} style={{ cursor: 'pointer' }}>
             <div className="dict-word-main">
               <span className="dict-surface">{word.surface}</span>
               {word.reading && word.reading !== word.surface && (
@@ -291,6 +358,14 @@ export function DictionaryView() {
           </div>
         ))}
       </div>
+
+      {selectedWord && (
+        <DictWordPopup
+          word={selectedWord}
+          review={reviewMap.get(selectedWord.baseForm)}
+          onClose={() => setSelectedWord(null)}
+        />
+      )}
     </div>
   )
 }
