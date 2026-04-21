@@ -18,6 +18,8 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: gradle
+          
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Run tests
         run: ./gradlew test --no-daemon -Dorg.gradle.jvmargs="-Xmx768m -XX:+UseSerialGC"
@@ -36,7 +38,7 @@ jobs:
 
       - name: Install deps
         working-directory: frontend
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Type check
         working-directory: frontend
