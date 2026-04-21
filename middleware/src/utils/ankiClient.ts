@@ -53,17 +53,24 @@ export async function addNotesToAnki(
       console.warn(`[ankiClient] model 'Lapis' not found — available: ${models.join(', ')}`)
       return { added: 0, skipped: 0, error: `model 'Lapis' not found` }
     }
-    const fields = await invoke('modelFieldNames', { modelName: 'Lapis' }) as string[]
-    console.log(`[ankiClient] Lapis fields: ${fields.join(', ')}`)
 
-    const results = await invoke('addNotes', { notes: ankiNotes }) as (number | null)[]
+    const canAdd = await invoke('canAddNotes', { notes: ankiNotes }) as boolean[]
+    const filtered = ankiNotes.filter((_, i) => canAdd[i])
+    const preSkipped = ankiNotes.length - filtered.length
+
+    if (preSkipped > 0) {
+      console.log(`[ankiClient] canAddNotes: skipping ${preSkipped} already-in-Anki notes`)
+    }
+
+    if (filtered.length === 0) {
+      return { added: 0, skipped: preSkipped, error: null }
+    }
+
+    const results = await invoke('addNotes', { notes: filtered }) as (number | null)[]
     const added = results.filter(r => r !== null).length
-    return { added, skipped: results.length - added, error: null }
+    return { added, skipped: preSkipped + (results.length - added), error: null }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
-    if (msg.includes('cannot create note because it is a duplicate')) {
-      return { added: 0, skipped: notes.length, error: null }
-    }
     return { added: 0, skipped: 0, error: msg }
   }
 }
