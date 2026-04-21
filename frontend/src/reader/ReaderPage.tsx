@@ -38,6 +38,7 @@ function dictWordToMined(w: DictionaryWord, bookId: string): MinedWord {
 export function ReaderPage() {
   const [file, setFile] = useState<Blob | null>(null)
   const [loading, setLoading] = useState(true)
+  const [miningNotification, setMiningNotification] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [currentCharPos, setCurrentCharPos] = useState(0)
   const [totalChars, setTotalChars] = useState(0)
@@ -305,8 +306,14 @@ export function ReaderPage() {
     try {
       const words = await mineWords()
       setMinedWords(words)
+      if (words.length > 0) {
+        setMiningNotification(`Mining done — ${words.length} words found`)
+        setTimeout(() => setMiningNotification(null), 4000)
+      }
     } catch (err) {
       console.error('Mining failed:', err)
+      setMiningNotification('Mining failed')
+      setTimeout(() => setMiningNotification(null), 4000)
     } finally {
       setIsMining(false)
       setCurrentMiningWord(null)
@@ -389,6 +396,9 @@ export function ReaderPage() {
             </div>
           </div>
         </div>
+      )}
+      {miningNotification && (
+        <div className="mining-notification">{miningNotification}</div>
       )}
       <div className="reader-container">
         <div className="reader-main">
