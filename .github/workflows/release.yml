@@ -82,6 +82,13 @@ jobs:
           npm ci
           npm run build
 
+      - name: Stage frontend dist into launcher resources
+        shell: bash
+        run: |
+          mkdir -p launcher/resources
+          rm -rf launcher/resources/dist
+          cp -r frontend/dist launcher/resources/dist
+
       # ── Backend JAR ────────────────────────────────────────────────────────
       - name: Build backend JAR
         run: ./gradlew bootJar -x test --build-cache --no-daemon
