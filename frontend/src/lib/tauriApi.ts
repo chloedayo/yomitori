@@ -4,18 +4,18 @@ export function isTauri(): boolean {
 
 export async function getBooksPath(): Promise<string | null> {
     if (!isTauri()) return null;
-    const { invoke } = await import('@tauri-apps/api/core');
+    const { invoke } = await import(/* @vite-ignore */ '@tauri-apps/api/core');
     return invoke<string | null>('get_books_path');
 }
 
 export async function openFolderDialog(): Promise<string | null> {
     if (!isTauri()) return null;
-    const { invoke } = await import('@tauri-apps/api/core');
+    const { invoke } = await import(/* @vite-ignore */ '@tauri-apps/api/core');
     return invoke<string | null>('open_file_dialog');
 }
 
 export async function startSidecars(booksPath: string): Promise<void> {
     if (!isTauri()) return;
-    const { invoke } = await import('@tauri-apps/api/core');
+    const { invoke } = await import(/* @vite-ignore */ '@tauri-apps/api/core');
     return invoke('start_sidecars', { booksPath });
 }
