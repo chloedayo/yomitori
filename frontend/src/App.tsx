@@ -7,6 +7,7 @@ import { DictionaryView } from './views/DictionaryView/DictionaryView';
 import { QuizView } from './views/QuizView/QuizView';
 import { StatsView } from './views/StatsView/StatsView';
 import { bookClient } from './api/bookClient';
+import { isTauri } from './lib/tauriApi';
 import { SearchParams, SearchResponse } from './types/book';
 import { APP_TITLE, APP_SUBTITLE, FOOTER_TEXT, ERROR_MESSAGES, NAV_LABELS, NAV_TITLES, DEFAULT_PAGE_SIZE } from './constants';
 import HomeIcon from '@mui/icons-material/Home';
@@ -181,6 +182,15 @@ function App() {
       </header>
 
       <main className="app-main">
+        {!isTauri() && searchResults && searchResults.totalElements === 0 && !isLoading && !error && (
+          <div className="app-browser-notice" role="note">
+            No books indexed yet. If this is a fresh install, open
+            Yomitori from your desktop to pick a books folder. If
+            you&apos;ve already set one up, indexing may still be
+            running — refresh in a moment.
+          </div>
+        )}
+
         {activePage === 'titles' && <TitlesView />}
 
         {activePage === 'authors' && <AuthorsView />}

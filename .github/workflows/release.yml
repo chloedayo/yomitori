@@ -74,10 +74,11 @@ jobs:
             librsvg2-dev patchelf
 
       # ── Frontend ───────────────────────────────────────────────────────────
+      # Removed VITE_MIDDLEWARE_URL / VITE_BACKEND_URL env in middleware-pivot:
+      # frontend is now always same-origin (middleware serves the bundle), so
+      # no build-time URL injection is needed.
       - name: Build frontend
         working-directory: frontend
-        env:
-          VITE_MIDDLEWARE_URL: http://localhost:3000
         run: |
           npm ci
           npm run build

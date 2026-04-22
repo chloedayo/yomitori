@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Book } from '../../types/book';
 import { useLibrary } from '../../hooks/useLibrary';
-import { useProxy } from '../../hooks/useProxy';
+import { resolvePath } from '../../lib/resolvePath';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -116,7 +116,7 @@ export function BookListRow({ book, onRead }: BookListRowProps) {
           >
             <div className="cover-format-badge">{book.fileFormat.toUpperCase()}</div>
             <img
-              src={useProxy(`/api/books/cover-file/${book.id}`)}
+              src={resolvePath(`/api/books/cover-file/${book.id}`)}
               alt={book.title}
               className="cover-image"
               onError={(e) => {

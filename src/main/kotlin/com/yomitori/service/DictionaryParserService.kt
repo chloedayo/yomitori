@@ -11,6 +11,7 @@ import com.yomitori.repository.DictionaryImportRepository
 import com.yomitori.repository.FrequencySourceRepository
 import com.yomitori.repository.WordFrequencyRepository
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.File
@@ -28,7 +29,9 @@ class DictionaryParserService(
     private val entryRepository: DictionaryEntryRepository,
     private val frequencySourceRepository: FrequencySourceRepository,
     private val wordFrequencyRepository: WordFrequencyRepository,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    @Value("\${yomitori.dictionaries.path:/app/data/dictionaries}")
+    private val dictionariesPath: String
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -217,7 +220,7 @@ class DictionaryParserService(
     }
 
     fun loadFrequencyDictionaries() {
-        val frequencyDir = File("/app/data/dictionaries/frequency")
+        val frequencyDir = File(dictionariesPath, "frequency")
 
         if (!frequencyDir.exists()) {
             logger.debug("Frequency dictionary folder not found at {}", frequencyDir.absolutePath)

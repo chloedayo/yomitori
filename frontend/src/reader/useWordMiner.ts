@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react'
 import { MinedWord } from '../services/ankiService'
 import { upsertWord } from '../services/dictionaryStore'
-import { useMiddlewareProxy } from '../hooks/useProxy'
+import { resolveMiddlewarePath } from '../lib/resolvePath'
 
 export interface UsWordMinerProps {
   contentRef: React.RefObject<HTMLDivElement>
@@ -56,7 +56,7 @@ export function useWordMiner({
       console.log(`[miner] sending ${text.length} chars (${(new Blob([text]).size / 1024).toFixed(1)} KB) to middleware`)
       onMiningWord?.('Mining…')
 
-      const url = useMiddlewareProxy('/mine-words')
+      const url = resolveMiddlewarePath('/mine-words')
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

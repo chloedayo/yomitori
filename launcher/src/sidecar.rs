@@ -17,13 +17,16 @@ impl SidecarState {
 }
 
 pub fn spawn_backend(app: &AppHandle, books_path: &str, data_dir: &str) -> Result<CommandChild, String> {
+    let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
+
     let sidecar = app
         .shell()
         .sidecar("yomitori-backend")
         .map_err(|e| e.to_string())?
         .env("BOOKS_PATH", books_path)
         .env("DATA_DIR", data_dir)
-        .env("CORS_ORIGINS", "tauri://localhost,http://tauri.localhost,http://localhost:5173");
+        .env("RESOURCE_DIR", resource_dir.to_string_lossy().to_string())
+        .env("SERVER_ADDRESS", "127.0.0.1");
 
     let (_, child) = sidecar.spawn().map_err(|e| e.to_string())?;
     Ok(child)
@@ -43,7 +46,7 @@ pub fn spawn_middleware(app: &AppHandle) -> Result<CommandChild, String> {
         .env("YOMITORI_STATIC_DIR", static_dir.to_string_lossy().to_string())
         .env("DEINFLECT_RULES_PATH", deinflect_rules.to_string_lossy().to_string())
         .env("KUROMOJI_DIC_PATH", kuromoji_dic.to_string_lossy().to_string())
-        .env("BACKEND_URL", "http://localhost:8080");
+        .env("BACKEND_URL", "http://127.0.0.1:8080");
 
     let (_, child) = sidecar.spawn().map_err(|e| e.to_string())?;
     Ok(child)

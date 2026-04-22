@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { batchLookup, DictionaryEntry } from '../api/dictionaryClient'
-import { useMiddlewareProxy } from '../hooks/useProxy'
+import { resolveMiddlewarePath } from '../lib/resolvePath'
 
 export interface SelectionEntry {
   surface: string
@@ -38,7 +38,7 @@ export function useSelectionDefinition(
   const checkMiddleware = useCallback(async () => {
     if (middlewareAvailable.current !== null) return middlewareAvailable.current
     try {
-      const url = useMiddlewareProxy('/health')
+      const url = resolveMiddlewarePath('/health')
       const res = await fetch(url, { signal: AbortSignal.timeout(1000) })
       middlewareAvailable.current = res.ok
     } catch {
@@ -53,7 +53,7 @@ export function useSelectionDefinition(
       return [{ startPos: 0, surface: text, baseForm: text, reason: 'plain' }]
     }
     try {
-      const url = useMiddlewareProxy('/deinflect')
+      const url = resolveMiddlewarePath('/deinflect')
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

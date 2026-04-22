@@ -28,12 +28,13 @@ export async function startSidecars(booksPath: string): Promise<void> {
     return tauriInvoke('start_sidecars', { booksPath });
 }
 
-export async function getAppUrl(): Promise<string> {
-    if (!isTauri()) return 'http://localhost:3000';
-    return tauriInvoke<string>('get_app_url');
+export async function getDataDir(): Promise<string | null> {
+    if (!isTauri()) return null;
+    const { appDataDir } = await import('@tauri-apps/api/path');
+    return appDataDir();
 }
 
-export async function openInBrowserAndHide(): Promise<void> {
+export async function openPath(path: string): Promise<void> {
     if (!isTauri()) return;
-    return tauriInvoke('open_in_browser_and_hide');
+    return tauriInvoke('open_path', { path });
 }

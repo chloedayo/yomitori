@@ -11,7 +11,7 @@ import {
   QuizSession,
 } from '../../services/reviewStore'
 import { getAllWords, getWord, DictionaryWord } from '../../services/dictionaryStore'
-import { useProxy } from '../../hooks/useProxy'
+import { resolvePath } from '../../lib/resolvePath'
 import { pushReviews } from '../../services/syncService'
 import QuizIcon from '@mui/icons-material/Quiz'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -115,7 +115,7 @@ export function QuizView() {
   useEffect(() => {
     getReviewStats().then(setStats).catch(() => {})
     getAllWords().then(w => setWordCount(w.length)).catch(() => {})
-    const url = useProxy('/api/dictionary/frequency-sources')
+    const url = resolvePath('/api/dictionary/frequency-sources')
     fetch(url).then(r => r.ok ? r.json() : []).then(setFreqSources).catch(() => {})
   }, [])
 

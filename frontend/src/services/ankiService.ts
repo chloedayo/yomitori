@@ -1,4 +1,4 @@
-import { useProxy, useMiddlewareProxy } from '../hooks/useProxy';
+import { resolvePath, resolveMiddlewarePath } from '../lib/resolvePath';
 
 export interface DictionaryFrequency {
   sourceName: string
@@ -18,7 +18,7 @@ export interface MinedWord {
   minedAt: number
 }
 
-const ANKI_PROXY_URL = useProxy('/api/proxy/anki')
+const ANKI_PROXY_URL = resolvePath('/api/proxy/anki')
 
 interface AnkiRequest {
   action: string
@@ -76,7 +76,7 @@ export async function isNoteInAnki(expression: string): Promise<boolean> {
 
 export async function canAddBatch(expressions: string[]): Promise<Record<string, boolean>> {
   try {
-    const middlewareUrl = useMiddlewareProxy('/anki/can-add')
+    const middlewareUrl = resolveMiddlewarePath('/anki/can-add')
     const res = await fetch(middlewareUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

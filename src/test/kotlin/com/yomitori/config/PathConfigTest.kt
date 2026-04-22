@@ -33,10 +33,10 @@ class PathConfigTest {
     }
 
     @Test
-    fun `CORS origins are configurable via env var`() {
+    fun `server address is configurable via env var`() {
         assertTrue(
-            props.contains("\${CORS_ORIGINS:"),
-            "CORS origins must be configurable via env var"
+            props.contains("\${SERVER_ADDRESS:"),
+            "server address must be configurable via env var (desktop binds loopback)"
         )
     }
 }

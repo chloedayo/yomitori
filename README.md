@@ -23,13 +23,31 @@ Download the installer for your platform from [Releases](https://github.com/chlo
 
 ## Getting started
 
-1. **Launch yomitori** — a small setup window appears
-2. **Pick your books folder** — the root directory of your collection
-3. Click **Start** — yomitori starts its services in the background
-4. **Open in browser** — click the button or visit `http://localhost:3000`
+1. **Launch yomitori** — a small native splash window appears
+2. **Pick your books folder** — the root directory of your collection (first run only)
+3. The splash reports progress while services start in the background
+4. **Open Yomitori** — click the button on the ready pane; your default browser opens the app at `http://localhost:3000`
 5. **Wait for indexing** — first crawl takes a few minutes depending on collection size; covers and metadata are extracted automatically
 
-The app keeps running in your **system tray** after you close the browser. Click the tray icon → **Open Yomitori** to reopen. To change your books folder, click the tray icon → **Settings**.
+The Tauri window is only a launcher/splash. The actual app runs in your browser tab — use it like any other web app (bookmark it, open multiple tabs, use DevTools). The launcher keeps running in your **system tray**. Click the tray icon → **Show** to bring the splash back; **Quit** kills the services and exits.
+
+## How it works
+
+Yomitori ships as a native launcher that supervises two local services:
+
+- **Middleware** on `127.0.0.1:3000` — serves the React SPA and proxies `/api/*` to the backend. This is what your browser tab connects to.
+- **Backend** on `127.0.0.1:8080` — Spring Boot + SQLite. Internal only; the browser never hits it directly.
+
+Both bind to loopback. Nothing is reachable from your LAN in desktop mode. No CORS — same-origin by design.
+
+## Ports
+
+| Port | Service | Purpose |
+|------|---------|---------|
+| 3000 | Middleware (loopback) | Serves SPA, proxies `/api`, hosts `/tokenize` + `/deinflect` + mining |
+| 8080 | Backend (loopback) | Spring REST + SQLite; internal only |
+
+For server/self-host (Docker) usage see the [Docker section](#alternative-docker--server-mode) below.
 
 ---
 
@@ -97,10 +115,15 @@ Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yo
 3. Dictionaries import on startup; new files dropped while running auto-import — no restart needed
 
 **Setup (desktop app):**
-Place dictionaries in the `dictionaries/` folder inside your books directory, or use the admin endpoint to reimport:
-```
-POST http://localhost:8080/api/dictionary/reimport
-```
+Drop dictionary zips into your dictionary folder — click **Open dictionary folder** on the ready screen to open it directly, or find it here:
+
+| Platform | Path |
+|----------|------|
+| Linux | `~/.local/share/com.yomitori.app/dictionaries/` |
+| Windows | `%APPDATA%\com.yomitori.app\dictionaries\` |
+| macOS | `~/Library/Application Support/com.yomitori.app/dictionaries/` |
+
+Dictionaries import on startup; files dropped while running auto-import with no restart needed.
 
 ---
 
@@ -119,13 +142,13 @@ Works with the [Lapis](https://github.com/donkuri/Lapis) card template.
 ## Troubleshooting
 
 **Books not appearing after setup?**
-Crawl runs automatically on start. For large collections (40k+ files) wait 5-10 minutes. Trigger manually via tray → Settings or:
+Crawl runs automatically on start. For large collections (40k+ files) wait 5-10 minutes. Trigger manually in the browser UI, or hit the backend via the middleware proxy:
 ```
-POST http://localhost:8080/api/books/crawler/run
+POST http://localhost:3000/api/books/crawler/run
 ```
 
 **App shows "Startup failed"?**
-Click **Change books folder** in the setup window and re-select your folder. Make sure the drive is mounted before launching.
+Click **Change books folder** in the splash window and re-select your folder. Make sure the drive is mounted before launching.
 
 **502 errors in the browser?**
 The backend (Spring Boot) takes ~8 seconds to start. Wait a moment and refresh.

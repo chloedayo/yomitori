@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Yomitori</title>
+    <link rel="stylesheet" href="loading.css" />
+  </head>
+  <body>
+    <main class="splash" id="splash">
+      <div class="logo">Yomitori</div>
+
+      <section class="panel panel-loading" id="panel-loading">
+        <div class="spinner" aria-hidden="true"></div>
+        <div class="status" id="status">Starting services...</div>
+        <ol class="stages">
+          <li id="stage-backend" class="stage">Backend</li>
+          <li id="stage-middleware" class="stage">Middleware</li>
+          <li id="stage-health" class="stage">Health check</li>
+        </ol>
+      </section>
+
+      <section class="panel panel-wizard hidden" id="panel-wizard">
+        <p class="msg">Pick the folder that contains your books to get started.</p>
+        <div class="row">
+          <input class="path-field" id="wizard-path" type="text" readonly placeholder="No folder selected" />
+          <button class="btn" id="btn-pick">Choose...</button>
+        </div>
+        <div class="wizard-error" id="wizard-error"></div>
+        <div class="actions">
+          <button class="btn primary" id="btn-continue" disabled>Continue</button>
+          <button class="btn" id="btn-wizard-quit">Quit</button>
+        </div>
+      </section>
+
+      <section class="panel panel-ready hidden" id="panel-ready">
+        <div class="ready-title">Yomitori is running</div>
+        <p class="msg">Open the reader in your browser:</p>
+        <code class="url" id="ready-url">http://localhost:3000</code>
+        <div class="actions">
+          <button class="btn primary" id="btn-open">Open Yomitori</button>
+          <button class="btn" id="btn-change-folder">Change books folder</button>
+          <button class="btn" id="btn-open-dict">Open dictionary folder</button>
+          <button class="btn" id="btn-ready-quit">Quit</button>
+        </div>
+      </section>
+
+      <section class="panel panel-error hidden" id="panel-error">
+        <div class="error-title">Couldn't start services</div>
+        <div class="error-msg" id="error-msg">Timed out waiting for Yomitori to start.</div>
+        <div class="actions">
+          <button class="btn primary" id="btn-retry">Retry</button>
+          <button class="btn" id="btn-logs">Show logs</button>
+          <button class="btn" id="btn-quit">Quit</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="loading.js"></script>
+  </body>
+</html>

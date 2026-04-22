@@ -72,7 +72,7 @@
 - [x] Auto-launch backend + middleware on app start (sidecar lifecycle)
 - [x] Bundled distribution (jlink JRE + bun-compiled middleware + JAR + deinflect-rules.json — zero user deps)
 - [x] `deinflect-rules.json` bundled as Tauri resource (bun compile breaks `import.meta.url`)
-- [x] ReadyScreen view (sidecars starting → browser launch → window hides)
+- [x] Splash ready pane (sidecars starting → browser launch → window hides) — static HTML in `launcher/splash/` driven by `splash://progress|ready|error` events; replaced the earlier ReadyScreen React view in v1.0
 - [x] GitHub Actions CI (backend/launcher-check with `resources/dist` placeholder)
 - [x] GitHub Actions Release (Linux `.deb`+`.rpm`, Windows `.exe`, macOS `.dmg`; AppImage skipped — FUSE required)
 - [x] `workflow_dispatch` on release.yml for tag-free manual releases

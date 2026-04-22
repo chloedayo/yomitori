@@ -1,7 +1,7 @@
 import { Book, SearchParams, SearchResponse, TagUpdateRequest, StatsResponse, AuthorsResponse } from '../types/book';
-import { useProxy } from '../hooks/useProxy';
+import { resolvePath } from '../lib/resolvePath';
 
-const API_BASE = useProxy('/api/books');
+const API_BASE = resolvePath('/api/books');
 
 export const bookClient = {
   async search(params: SearchParams): Promise<SearchResponse> {
@@ -68,14 +68,14 @@ export const bookClient = {
     queryParams.append('page', String(page));
     queryParams.append('pageSize', String(pageSize));
 
-    const url = useProxy(`/api/authors?${queryParams}`);
+    const url = resolvePath(`/api/authors?${queryParams}`);
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch authors: ${response.statusText}`);
     return response.json();
   },
 
   async getAuthorWithBooks(authorId: string): Promise<{ id: string; name: string; createdAt: string; books: Book[] }> {
-    const url = useProxy(`/api/authors/${authorId}`);
+    const url = resolvePath(`/api/authors/${authorId}`);
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch author: ${response.statusText}`);
     return response.json();

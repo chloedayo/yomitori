@@ -2,42 +2,48 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import { SetupWizard } from './views/SetupWizard/SetupWizard.tsx'
-import { ReadyScreen } from './views/ReadyScreen/ReadyScreen.tsx'
 import { isTauri, getBooksPath } from './lib/tauriApi.ts'
 import { requestPersistentStorage } from './services/syncService'
 
 requestPersistentStorage()
 
-type View = 'loading' | 'wizard' | 'ready' | 'web-app'
+type View = 'checking' | 'wizard' | 'app' | 'error'
 
 function Root() {
-    const [view, setView] = useState<View>(isTauri() ? 'loading' : 'web-app')
+    // Browser tab: skip IPC check entirely, go straight to app.
+    // Tauri window: check booksPath via IPC to decide wizard vs app.
+    const [view, setView] = useState<View>(isTauri() ? 'checking' : 'app')
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         if (!isTauri()) return
         getBooksPath()
-            .then(path => setView(path ? 'ready' : 'wizard'))
-            .catch(() => setView('ready'))
+            .then(path => setView(path ? 'app' : 'wizard'))
+            .catch(err => {
+                console.error('[main] getBooksPath failed', err)
+                setError(`Launcher IPC unavailable: ${err}`)
+                setView('error')
+            })
     }, [])
 
-    if (view === 'loading') {
+    if (view === 'checking') {
+        // Brief IPC check — native launcher splash still covers the window
+        // at this point, so rendering nothing avoids a visible flash.
+        return null
+    }
+
+    if (view === 'error') {
         return (
-            <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                height: '100vh', background: '#0d0d0d', color: '#888',
-                fontFamily: 'sans-serif'
-            }}>
-                Loading...
+            <div role="alert" style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+                <h2>Launcher IPC unavailable</h2>
+                <p>Please restart Yomitori.</p>
+                {error && <pre style={{ whiteSpace: 'pre-wrap' }}>{error}</pre>}
             </div>
         )
     }
 
     if (view === 'wizard') {
-        return <SetupWizard onComplete={() => setView('ready')} />
-    }
-
-    if (view === 'ready') {
-        return <ReadyScreen onChangeFolder={() => setView('wizard')} />
+        return <SetupWizard onComplete={() => setView('app')} />
     }
 
     return <App />

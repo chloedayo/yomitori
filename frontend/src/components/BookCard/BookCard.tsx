@@ -1,7 +1,7 @@
 import { Book } from '../../types/book';
 import { CardMenu } from '../CardMenu/CardMenu';
 import { useLibrary } from '../../hooks/useLibrary';
-import { useProxy } from '../../hooks/useProxy';
+import { resolvePath } from '../../lib/resolvePath';
 import { BOOK_CARD_LABELS } from './constants';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -43,7 +43,7 @@ export function BookCard({ book, onFavoritesChange }: BookCardProps) {
       {book.coverPath && (
         <div className="book-cover">
           <img
-            src={useProxy(`/api/books/cover-file/${book.id}`)}
+            src={resolvePath(`/api/books/cover-file/${book.id}`)}
             alt={book.title}
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="400"%3E%3Crect fill="%23eee" width="300" height="400"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="14"%3ENo Cover%3C/text%3E%3C/svg%3E';

@@ -2,6 +2,38 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [1.0.0] - 2026-04-23
+
+### Changed
+- Pivoted to splash-only launcher design. Tauri window shows native setup/ready UI only; full app runs in browser at http://localhost:3000. The `ReadyScreen` React view is deleted — ready pane is now static HTML driven by `splash://progress|ready|error` events.
+- Explored and reverted the middleware-pivot / remote-IPC design (`remote.json` capability, `remote.urls`). Same-origin + loopback gives the guarantees remote IPC was meant to preserve, at a fraction of the attack surface. Historical specs archived at `docs/ARCHITECTURE-middleware-pivot-historical.md`, `docs/tech-spec-middleware-pivot.md`, `docs/requirements-middleware-pivot.md`.
+- Backend CORS removed (same-origin via middleware proxy). Backend now binds 127.0.0.1 only (`SERVER_ADDRESS` env).
+- Middleware proxies `/api/*` to backend, serves SPA `dist/`, and hosts `/tokenize` `/deinflect` `/extract-baseForms` `/mine-words` `/anki/can-add` `/health`. Binds 127.0.0.1 by default (`HOST` env override for Docker).
+- Frontend `useProxy` renamed to `resolvePath` (plain helpers, not React hooks — avoids `react-hooks/rules-of-hooks`).
+- Frontend uses relative paths everywhere; `VITE_BACKEND_URL` / `VITE_MIDDLEWARE_URL` deleted.
+- README rewritten desktop-first — splash + browser-tab flow, loopback ports section, Docker demoted to "alternative".
+- Splash ready pane gains **Change books folder** and **Open dictionary folder** buttons with path guidance.
+
+### Added
+- Splash static HTML shell (`launcher/splash/`): wizard, progress, ready, error panes driven by Tauri events.
+- Rust IPC commands: `open_in_browser_and_hide`, `get_data_dir`, `open_logs_dir`, `open_path` (allowlisted), `splash_ready`, `quit_app`.
+- 30-second health poll on `http://localhost:3000/health` with per-stage progress events.
+- Kuromoji dictionary bundled as Tauri resource + path env var — `bun --compile` breaks `__dirname` / `import.meta.url` resolution.
+
+### Fixed
+- 403 Invalid CORS Request on batch-lookup from reader UI (CORS deleted).
+- "Could not connect to localhost: Connection refused" on native Tauri window (splash renamed `loading.html` → `index.html`).
+- Backend `RESOURCE_DIR` propagation — bash wrapper now finds bundled JRE + JAR in `.deb` install.
+- LLVM SIGSEGV on release build (transient; relaxed profile on retry).
+- Spring spawn race between launcher auto-spawn and splash-initiated `start_sidecars` — `start_sidecars` is now idempotent (matching `booksPath` + both sidecars alive → no-op).
+- JRE jlink missing `java.rmi` module — Quartz scheduler requires `java.rmi.Remote` at runtime.
+
+### Security
+- `open_path` Rust-side allowlist (canonicalized path must live under `app_data_dir`, persisted `booksPath`, or `resource_dir`; unit tests lock down the predicate).
+- `shell:allow-open` scoped to `http://localhost:3000/**` — cannot open arbitrary URLs.
+- Only `capabilities/local.json` shipped — no `remote.json`, no remote IPC, browser tab has zero IPC surface.
+- CSP on splash: `default-src 'none'` + explicit per-directive allow list.
+
 ## [0.9.0] - 2026-04-22
 
 ### Changed (Breaking)

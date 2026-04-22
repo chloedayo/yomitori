@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import DOMPurify from 'dompurify'
 import { getAllWords, searchWords, getWordCount, clearDictionary, DictionaryWord } from '../../services/dictionaryStore'
 import { getAllReviews, WordReview } from '../../services/reviewStore'
-import { useProxy } from '../../hooks/useProxy'
+import { resolvePath } from '../../lib/resolvePath'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -158,7 +158,7 @@ export function DictionaryView() {
   const [selectedWord, setSelectedWord] = useState<DictionaryWord | null>(null)
 
   useEffect(() => {
-    const url = useProxy('/api/dictionary/frequency-sources')
+    const url = resolvePath('/api/dictionary/frequency-sources')
     fetch(url)
       .then(r => r.ok ? r.json() : [])
       .then(setFrequencySources)

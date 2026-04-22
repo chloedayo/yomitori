@@ -1,6 +1,6 @@
 import { exportReviewData, importReviewData } from './reviewStore'
 import { exportDictionaryData, importDictionaryData } from './dictionaryStore'
-import { useProxy } from '../hooks/useProxy'
+import { resolvePath } from '../lib/resolvePath'
 
 const CLIENT_ID_KEY = 'yomitori-client-id'
 const LAST_SYNC_KEY = 'yomitori-last-sync'
@@ -26,7 +26,7 @@ function setLastSyncTime(t: string) {
 export async function pushReviews(): Promise<void> {
   const clientId = getClientId()
   const reviewData = await exportReviewData()
-  const url = useProxy('/api/sync/save')
+  const url = resolvePath('/api/sync/save')
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -42,7 +42,7 @@ export async function pushReviews(): Promise<void> {
 export async function pushFull(): Promise<void> {
   const clientId = getClientId()
   const [reviewData, dictData] = await Promise.all([exportReviewData(), exportDictionaryData()])
-  const url = useProxy('/api/sync/save')
+  const url = resolvePath('/api/sync/save')
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -63,7 +63,7 @@ export async function pushFull(): Promise<void> {
 // Restore from backend
 export async function pullState(): Promise<void> {
   const clientId = getClientId()
-  const url = useProxy(`/api/sync/load/${clientId}`)
+  const url = resolvePath(`/api/sync/load/${clientId}`)
   const res = await fetch(url)
   if (res.status === 404) throw new Error('No backup found for this device')
   if (!res.ok) throw new Error(`Restore failed: ${res.status}`)

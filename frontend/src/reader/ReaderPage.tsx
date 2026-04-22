@@ -7,7 +7,7 @@ import { DefinitionPopup } from './DefinitionPopup'
 import { useCustomCSS } from './useCustomCSS'
 import { useWordMiner } from './useWordMiner'
 import { useLibrary } from '../hooks/useLibrary'
-import { useProxy } from '../hooks/useProxy'
+import { resolvePath } from '../lib/resolvePath'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { MinedWord } from '../services/ankiService'
 import { ankiQueue } from '../services/ankiQueueService'
@@ -142,7 +142,7 @@ export function ReaderPage() {
   useEffect(() => {
     const fetchFrequencySources = async () => {
       try {
-        const url = useProxy('/api/dictionary/frequency-sources')
+        const url = resolvePath('/api/dictionary/frequency-sources')
         const response = await fetch(url)
         if (response.ok) setFrequencySources(await response.json())
       } catch (err) {
@@ -151,7 +151,7 @@ export function ReaderPage() {
     }
     const fetchDefinitionDicts = async () => {
       try {
-        const url = useProxy('/api/dictionary/imports')
+        const url = resolvePath('/api/dictionary/imports')
         const response = await fetch(url)
         if (response.ok) setDefinitionDicts(await response.json())
       } catch (err) {
@@ -206,7 +206,7 @@ export function ReaderPage() {
         }
 
         // Fetch book metadata for title
-        const metaUrl = useProxy(`/api/books/${id}`)
+        const metaUrl = resolvePath(`/api/books/${id}`)
         const metaResponse = await fetch(metaUrl)
         if (metaResponse.ok) {
           const book = await metaResponse.json()
@@ -214,7 +214,7 @@ export function ReaderPage() {
         }
 
         // Fetch file from API endpoint (CORS-safe via proxy)
-        const url = useProxy(`/api/books/${id}/file`)
+        const url = resolvePath(`/api/books/${id}/file`)
         const response = await fetch(url)
         if (!response.ok) {
           throw new Error(`Failed to fetch book: ${response.status}`)
