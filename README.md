@@ -4,12 +4,6 @@
 
 You've got thousands of ebooks scattered across your drive. Books with anime on the cover. Books you meant to read. Books you forgot you had. Yomitori brings them home — covers, metadata, authors, reading progress — and turns them into a Japanese reading workflow that actually works.
 
-<center>
-   <img width="1528" height="969" alt="image" src="https://github.com/user-attachments/assets/94598955-eeaa-41dd-ab46-b18c676876f7" />
-   <img width="1528" height="598" alt="image" src="https://github.com/user-attachments/assets/a8e4dc0a-8d74-4683-a41d-aa97646897c1" />
-   <img width="1528" height="620" alt="image" src="https://github.com/user-attachments/assets/041e9663-d643-4e03-a241-23d2a3d62247" />
-</center>
-
 ---
 
 ## Install
@@ -42,7 +36,7 @@ The app keeps running in your **system tray** after you close the browser. Click
 ## Features
 
 ### Library
-- Covers extracted from every EPUB, PDF, CBR, and CBZ
+- Covers extracted from every EPUB
 - Smart indexing: title, type, author relationships extracted from metadata and filenames
 - Search by title, author, genre, or type
 - Tabs: All Books, In Progress, Favorites, Hidden
