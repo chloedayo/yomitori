@@ -30,12 +30,8 @@ Download the installer for your platform from [Releases](https://github.com/chlo
 
 Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yomitan.
 
-**Setup (Docker/server mode):**
-1. Drop **definition dictionary** zips into `./dictionaries/`
-2. Drop **frequency dictionary** zips into `./dictionaries/frequency/`
-3. Dictionaries import on startup; new files dropped while running auto-import — no restart needed
-
 **Setup (desktop app):**
+
 Drop dictionary zips into your dictionary folder — click **Open dictionary folder** on the ready screen to open it directly, or find it here:
 
 | Platform | Path |
@@ -43,6 +39,12 @@ Drop dictionary zips into your dictionary folder — click **Open dictionary fol
 | Linux | `~/.local/share/com.yomitori.app/dictionaries/` |
 | Windows | `%APPDATA%\com.yomitori.app\dictionaries\` |
 | macOS | `~/Library/Application Support/com.yomitori.app/dictionaries/` |
+
+**Setup (Docker/server mode):**
+
+1. Drop **definition dictionary** zips into `./dictionaries/`
+2. Drop **frequency dictionary** zips into `./dictionaries/frequency/`
+3. Dictionaries import on startup; new files dropped while running auto-import — no restart needed
 
 Dictionaries import on startup; files dropped while running auto-import with no restart needed.
 
