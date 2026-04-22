@@ -40,6 +40,18 @@
         }
     }
 
+    button.secondary {
+        background: transparent;
+        color: #666;
+        font-size: 0.85rem;
+        padding: 0.4rem 1rem;
+
+        &:hover {
+            background: #1a1a1a;
+            color: #aaa;
+        }
+    }
+
     .hint {
         color: #888;
         font-size: 0.9rem;

@@ -106,9 +106,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p launcher/resources
-          MODULES=$(jdeps --multi-release 21 --ignore-missing-deps \
-              --print-module-deps "${{ steps.jar.outputs.path }}" 2>/dev/null \
-              || echo "java.base,java.sql,java.net.http,java.naming")
+          MODULES="java.base,java.sql,java.naming,java.xml,java.logging,java.management,java.instrument,java.net.http,java.security.jgss,java.security.sasl,java.desktop,java.rmi,java.management.rmi,jdk.naming.rmi,jdk.unsupported,jdk.crypto.ec"
           jlink --no-header-files --no-man-pages --compress=2 --strip-debug \
               --add-modules "$MODULES" \
               --output launcher/resources/jre
@@ -118,10 +116,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force launcher\resources | Out-Null
-          $jar = "${{ steps.jar.outputs.path }}"
-          $modules = (jdeps --multi-release 21 --ignore-missing-deps `
-              --print-module-deps $jar 2>$null) -join ","
-          if (-not $modules) { $modules = "java.base,java.sql,java.net.http,java.naming" }
+          $modules = "java.base,java.sql,java.naming,java.xml,java.logging,java.management,java.instrument,java.net.http,java.security.jgss,java.security.sasl,java.desktop,java.rmi,java.management.rmi,jdk.naming.rmi,jdk.unsupported,jdk.crypto.ec"
           jlink --no-header-files --no-man-pages --compress=2 --strip-debug `
               --add-modules $modules `
               --output launcher\resources\jre

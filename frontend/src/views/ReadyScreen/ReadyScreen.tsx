@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { getAppUrl, openInBrowserAndHide, startSidecars, getBooksPath } from '../../lib/tauriApi'
+import { getAppUrl, openInBrowserAndHide, startSidecars, getBooksPath, saveBooksPath } from '../../lib/tauriApi'
 import './ReadyScreen.scss'
 
-export function ReadyScreen() {
+export function ReadyScreen({ onChangeFolder }: { onChangeFolder?: () => void }) {
     const [url, setUrl] = useState<string>('')
     const [starting, setStarting] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -40,6 +40,10 @@ export function ReadyScreen() {
                     <code className="url">{url}</code>
                     <button onClick={() => openInBrowserAndHide()}>Open Yomitori</button>
                     <p className="hint">The app will keep running in the system tray. Click the tray icon anytime to reopen.</p>
+                    <button className="secondary" onClick={async () => {
+                        await saveBooksPath('')
+                        onChangeFolder?.()
+                    }}>Change books folder</button>
                 </>
             )}
         </div>

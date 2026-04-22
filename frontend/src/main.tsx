@@ -37,7 +37,7 @@ function Root() {
     }
 
     if (view === 'ready') {
-        return <ReadyScreen />
+        return <ReadyScreen onChangeFolder={() => setView('wizard')} />
     }
 
     return <App />
