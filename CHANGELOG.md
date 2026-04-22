@@ -2,6 +2,26 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [1.0.0] - 2026-04-23
+
+### Changed
+- Pivoted to splash-only launcher design. Tauri window shows native setup/ready UI only; full app runs in browser at http://localhost:3000.
+- Backend CORS removed (same-origin via middleware proxy). Backend now binds 127.0.0.1 only (SERVER_ADDRESS env).
+- Middleware proxies /api/* to backend + serves SPA dist + tokenize/deinflect/extract-baseForms.
+- Frontend `useProxy` renamed to `resolvePath` (correct naming — not a React hook).
+
+### Fixed
+- 403 Invalid CORS Request on batch-lookup from reader UI.
+- "Could not connect to localhost: Connection refused" on native Tauri window (splash renamed loading.html → index.html).
+- Backend RESOURCE_DIR propagation — bash wrapper now finds JRE + JAR in deb install.
+- LLVM SIGSEGV on release build (transient; relaxed profile on retry).
+- Spring spawn race between setup() auto-spawn and ReadyScreen.startSidecars (start_sidecars now idempotent).
+
+### Security
+- open_path Rust allowlist (app_data_dir, books_path, resource_dir).
+- shell:allow-open scoped to http://localhost:3000/**.
+- CSP tightened: default-src 'none', explicit per-directive.
+
 ## [0.9.0] - 2026-04-22
 
 ### Changed (Breaking)
