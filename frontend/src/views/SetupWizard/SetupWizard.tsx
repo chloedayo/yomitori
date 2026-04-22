@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button, CircularProgress, Typography } from '@mui/material'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import { openFolderDialog, startSidecars } from '../../lib/tauriApi'
+import { openFolderDialog, saveBooksPath } from '../../lib/tauriApi'
 import './SetupWizard.scss'
 
 interface Props {
@@ -38,10 +38,10 @@ export function SetupWizard({ onComplete }: Props) {
         setLoading(true)
         setError(null)
         try {
-            await startSidecars(selectedPath)
+            await saveBooksPath(selectedPath)
             onComplete()
         } catch (err) {
-            setError(`Failed to start: ${err}`)
+            setError(`Failed to save: ${err}`)
             setLoading(false)
         }
     }

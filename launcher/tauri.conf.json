@@ -24,7 +24,9 @@
         ],
         "resources": {
             "resources/jre": "jre",
-            "resources/yomitori.jar": "yomitori.jar"
+            "resources/yomitori.jar": "yomitori.jar",
+            "resources/dist": "dist",
+            "resources/deinflect-rules.json": "deinflect-rules.json"
         },
         "linux": {
             "deb": { "depends": [] },
@@ -54,7 +56,7 @@
             "iconAsTemplate": true
         },
         "security": {
-            "csp": "default-src 'self'; connect-src 'self' http://localhost:8080 http://localhost:3000 ipc: http://ipc.localhost; img-src 'self' data: http://localhost:8080 asset: https://asset.localhost; script-src 'self'; style-src 'self' 'unsafe-inline'"
+            "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: asset: https://asset.localhost; script-src 'self'; style-src 'self' 'unsafe-inline'"
         }
     }
 }

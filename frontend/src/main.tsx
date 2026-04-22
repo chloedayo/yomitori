@@ -1,28 +1,26 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import { SetupWizard } from './views/SetupWizard/SetupWizard.tsx'
+import { ReadyScreen } from './views/ReadyScreen/ReadyScreen.tsx'
 import { isTauri, getBooksPath } from './lib/tauriApi.ts'
 import { requestPersistentStorage } from './services/syncService'
 
 requestPersistentStorage()
 
+type View = 'loading' | 'wizard' | 'ready' | 'web-app'
+
 function Root() {
-    // null = checking, true = show wizard, false = show app
-    const [showWizard, setShowWizard] = useState<boolean | null>(
-        isTauri() ? null : false
-    )
+    const [view, setView] = useState<View>(isTauri() ? 'loading' : 'web-app')
 
     useEffect(() => {
         if (!isTauri()) return
-        getBooksPath().then(path => {
-            setShowWizard(path === null)
-        }).catch(() => {
-            setShowWizard(false)
-        })
+        getBooksPath()
+            .then(path => setView(path ? 'ready' : 'wizard'))
+            .catch(() => setView('ready'))
     }, [])
 
-    if (showWizard === null) {
+    if (view === 'loading') {
         return (
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -34,8 +32,12 @@ function Root() {
         )
     }
 
-    if (showWizard) {
-        return <SetupWizard onComplete={() => setShowWizard(false)} />
+    if (view === 'wizard') {
+        return <SetupWizard onComplete={() => setView('ready')} />
+    }
+
+    if (view === 'ready') {
+        return <ReadyScreen />
     }
 
     return <App />

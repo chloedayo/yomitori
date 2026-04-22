@@ -1,0 +1,52 @@
+.ready-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: #0d0d0d;
+    color: #eee;
+    font-family: sans-serif;
+    gap: 1.25rem;
+    padding: 2rem;
+    text-align: center;
+
+    h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        letter-spacing: 0.05em;
+    }
+
+    .url {
+        font-family: 'Fira Code', monospace;
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+        background: #1a1a1a;
+        border-radius: 6px;
+        user-select: all;
+    }
+
+    button {
+        padding: 0.7rem 1.8rem;
+        font-size: 1rem;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+
+        &:hover {
+            background: #2563eb;
+        }
+    }
+
+    .hint {
+        color: #888;
+        font-size: 0.9rem;
+        max-width: 32rem;
+    }
+
+    .error {
+        color: #ef4444;
+    }
+}

@@ -5,7 +5,7 @@ export function isTauri(): boolean {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (window as any).__TAURI__.core.invoke(cmd, args);
+    return (window as any).__TAURI_INTERNALS__.invoke(cmd, args);
 }
 
 export async function getBooksPath(): Promise<string | null> {
@@ -18,7 +18,22 @@ export async function openFolderDialog(): Promise<string | null> {
     return tauriInvoke<string | null>('open_file_dialog');
 }
 
+export async function saveBooksPath(booksPath: string): Promise<void> {
+    if (!isTauri()) return;
+    return tauriInvoke('save_books_path', { booksPath });
+}
+
 export async function startSidecars(booksPath: string): Promise<void> {
     if (!isTauri()) return;
     return tauriInvoke('start_sidecars', { booksPath });
+}
+
+export async function getAppUrl(): Promise<string> {
+    if (!isTauri()) return 'http://localhost:3000';
+    return tauriInvoke<string>('get_app_url');
+}
+
+export async function openInBrowserAndHide(): Promise<void> {
+    if (!isTauri()) return;
+    return tauriInvoke('open_in_browser_and_hide');
 }

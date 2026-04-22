@@ -18,8 +18,14 @@ echo "==> Building Yomitori desktop for $TARGET_TRIPLE"
 echo ""
 echo "[1/5] Building frontend..."
 cd "$REPO_ROOT/frontend"
-VITE_MIDDLEWARE_URL=http://localhost:3000 npm run build
+# In desktop mode everything is same-origin (middleware serves static + proxies /api),
+# so no VITE_*_URL overrides — all fetches stay relative.
+npm run build
 echo "    frontend/dist ready"
+
+# Stage frontend/dist into launcher resources so the middleware sidecar can serve it.
+rm -rf "$RESOURCES/dist"
+cp -r "$REPO_ROOT/frontend/dist" "$RESOURCES/dist"
 
 # ---------------------------------------------------------------------------
 # 2. Backend JAR
@@ -72,6 +78,9 @@ echo "[4/5] Preparing sidecars..."
 
 # Copy JAR to resources
 cp "$JAR" "$RESOURCES/yomitori.jar"
+
+# Copy deinflect rules (middleware bun binary can't read its own bundled files via import.meta.url)
+cp "$REPO_ROOT/middleware/deinflect-rules.json" "$RESOURCES/deinflect-rules.json"
 
 # Compile middleware to self-contained binary with bun
 cd "$REPO_ROOT/middleware"

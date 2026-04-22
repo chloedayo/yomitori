@@ -5,8 +5,8 @@ build/
 *.iws
 *.ipr
 .DS_Store
-yomitori.db
-yomitori.db-journal
+*.db
+*.db-journal
 covers/
 .env
 .env.local
