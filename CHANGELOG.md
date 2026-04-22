@@ -2,6 +2,31 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.9.0] - 2026-04-22
+
+### Changed (Breaking)
+
+- **Browser pivot** — Tauri window is now a setup shell + service manager, not the app itself. After setup, users open Yomitori in their browser at `http://localhost:3000`. Middleware serves the React SPA (static files + SPA fallback) and reverse-proxies `/api/*` to the Spring backend. Same-origin — no CORS headers needed. Tray left-click / "Open Yomitori" opens the browser URL. "Settings" brings back the Tauri window for reconfiguring.
+
+### Added
+
+- **ReadyScreen** (`frontend/src/views/ReadyScreen/`) — state shown after wizard completes; starts sidecars, opens browser, hides Tauri window.
+- **App state machine** in `main.tsx` — four states: `loading` → `wizard` → `ready` → `web-app` (web-app state shown when running outside Tauri).
+- **Tauri IPC commands**: `save_books_path`, `get_app_url`, `open_in_browser_and_hide`, `get_sidecar_state` (alongside existing commands).
+- **Sidecar env vars** — launcher passes `YOMITORI_STATIC_DIR`, `DEINFLECT_RULES_PATH`, `BACKEND_URL` to middleware sidecar at spawn time.
+- **`deinflect-rules.json` as Tauri resource** (`launcher/resources/deinflect-rules.json`) — bun `--compile` breaks `import.meta.url`-based resolution; bundling as resource lets sidecar find it via `DEINFLECT_RULES_PATH`.
+- **Middleware static server** — serves `frontend/dist/` with MIME map, SPA fallback (`/index.html`), and path guard (blocked paths: `/api` must go through proxy).
+- **`workflow_dispatch`** on `release.yml` — manual release trigger without a tag push.
+
+### Fixed
+
+- **rustc SIGSEGV on CachyOS** — `aho-corasick` AVX2 IPSCCP ICE with fat LTO; fixed by switching `Cargo.toml` `[profile.release] lto` to `"thin"`.
+- **ld segfault** during linking — switched Tauri build to use `lld` linker.
+- **CI `cargo check` failure** — `tauri-build` validates resource paths at compile time; CI placeholder step now creates `launcher/resources/dist/`.
+- **AppImage build failure** — `linuxdeploy` requires FUSE (not available on GitHub-hosted runners); Linux release now produces `.deb` + `.rpm` only.
+- **Frontend dist not staged** in release workflow — added explicit copy step before Tauri build.
+- **`window.__TAURI__` path** — corrected invoke path to `__TAURI_INTERNALS__` after Tauri 2 API reshuffle.
+
 ## [0.4.0] - 2026-04-22
 
 ### Added
