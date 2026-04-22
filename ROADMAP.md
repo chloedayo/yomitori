@@ -63,16 +63,19 @@
 - [ ] JLPT level estimation from mined words (optional tag)
 - [ ] Per-book vocabulary review mode
 
-## Phase 5 — Tauri Desktop App ✅ (Complete)
+## Phase 5 — Tauri Desktop App ✅ (Complete, v0.9.0)
 
-- [x] Wrap frontend in Tauri shell (native window, no browser needed)
+- [x] Tauri shell as service manager + setup wizard (not the app window itself)
+- [x] **Browser-mode pivot** — middleware serves React SPA at `:3000`; users read in their own browser (same-origin, no CORS)
 - [x] Native file picker for book collection path (tauri-plugin-dialog)
-- [x] System tray integration (hide-to-tray, show/quit menu)
+- [x] System tray: left-click → opens browser; "Settings" → Tauri window; "Quit" kills sidecars
 - [x] Auto-launch backend + middleware on app start (sidecar lifecycle)
-- [x] Bundled distribution (jlink JRE + bun-compiled middleware + JAR — zero user deps)
-- [x] Setup wizard for first-run books folder selection
-- [x] GitHub Actions CI (backend/frontend/launcher-check)
-- [x] GitHub Actions Release (Linux .deb/.AppImage, Windows .exe, macOS .dmg)
+- [x] Bundled distribution (jlink JRE + bun-compiled middleware + JAR + deinflect-rules.json — zero user deps)
+- [x] `deinflect-rules.json` bundled as Tauri resource (bun compile breaks `import.meta.url`)
+- [x] ReadyScreen view (sidecars starting → browser launch → window hides)
+- [x] GitHub Actions CI (backend/launcher-check with `resources/dist` placeholder)
+- [x] GitHub Actions Release (Linux `.deb`+`.rpm`, Windows `.exe`, macOS `.dmg`; AppImage skipped — FUSE required)
+- [x] `workflow_dispatch` on release.yml for tag-free manual releases
 
 ## Phase 4 — Collaboration / Future
 
@@ -94,7 +97,7 @@
 - Frontend: split `HomePage` into smaller views
 - Deprecate jishoClient.ts (replaced by dictionaryClient)
 - Frontend: consolidate `reader.tsx` entry vs `ReaderPage.tsx`
-- Tauri: test actual sidecar launch end-to-end (binaries are placeholder until first real desktop build)
+- Tauri: test full E2E — sidecar launch → middleware static serve → browser open → reader functional (v0.9.0 build succeeded but E2E not verified post-resource-bundle fix)
 - CI: fix `npm run test` step — currently skipped in `ci.yml` (vitest not yet wired)
 
 ---

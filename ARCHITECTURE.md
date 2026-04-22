@@ -13,7 +13,7 @@ Deep technical reference for yomitori — book library + Japanese reader + word 
 | Frontend | React 18 + TypeScript + Vite | SPA reader + library UI |
 | Middleware | Node.js + Kuromoji | Japanese tokenization service |
 | Containerization | Docker Compose | Orchestration (server/dev mode) |
-| Distribution | Tauri installers via GitHub Actions | `.deb` / `.AppImage` / `.exe` (NSIS) / `.dmg` |
+| Distribution | Tauri installers via GitHub Actions | `.deb` / `.rpm` / `.exe` (NSIS) / `.dmg` |
 | Integration | AnkiConnect (external) | Flashcard export |
 
 ---
@@ -22,24 +22,34 @@ Deep technical reference for yomitori — book library + Japanese reader + word 
 
 ### Desktop mode (Tauri)
 
+Tauri window is a **service manager + setup shell**, not the app itself. After first-run wizard, app lives in browser at `http://localhost:3000`. Middleware serves the React SPA and proxies `/api/*` to backend (same-origin — no CORS).
+
 ```
-┌─────────────────────────────────────────────────────┐
-│  Tauri Shell (Rust)                                 │
-│  ┌─────────────┐   WebView   ┌────────────────────┐ │
-│  │  System     │             │  Frontend (React)  │ │
-│  │  Tray       │             │  :5173 / bundled   │ │
-│  └─────────────┘             └────────┬───────────┘ │
-│                                       │ HTTP        │
-│  ┌──────────────┐  sidecar  ┌────────▼───────────┐  │
-│  │  Backend     │◄──────────│  Tauri IPC         │  │
-│  │  (Spring)    │           │  start_sidecars    │  │
-│  └──────┬───────┘           └────────────────────┘  │
-│         │ JPA                                        │
-│  ┌──────▼───────┐  sidecar  ┌────────────────────┐  │
-│  │  SQLite      │           │  Middleware         │  │
-│  │  (DATA_DIR)  │           │  (Kuromoji bun)    │  │
-│  └──────────────┘           └────────────────────┘  │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  Tauri Shell (Rust)                                      │
+│  ┌─────────────┐    IPC     ┌──────────────────────────┐ │
+│  │  System     │◄──────────│  WebView (setup/ready)   │ │
+│  │  Tray       │            │  SetupWizard / ReadyScreen│ │
+│  └──────┬──────┘            └──────────────────────────┘ │
+│         │ open browser                                    │
+│         ▼                                                 │
+│  http://localhost:3000  ◄──── user's browser             │
+│         │                                                 │
+│  sidecar ▼                                               │
+│  ┌───────────────────────────────────────────────────┐   │
+│  │  Middleware (bun binary, :3000)                   │   │
+│  │  • static serve frontend/dist/ + SPA fallback     │   │
+│  │  • /api/* → reverse-proxy → Backend :8080         │   │
+│  │  • /tokenize /deinflect /mine-words (Kuromoji)    │   │
+│  └───────────────────────┬───────────────────────────┘   │
+│                           │ HTTP                          │
+│  sidecar ▼                ▼                               │
+│  ┌──────────────┐   ┌─────────────┐   ┌───────────────┐  │
+│  │  Backend     │   │  SQLite     │   │  deinflect-   │  │
+│  │  (Spring)    ├──►│  (DATA_DIR) │   │  rules.json   │  │
+│  └──────────────┘   └─────────────┘   │  (resource)   │  │
+│                                       └───────────────┘  │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ### Server / Docker mode
@@ -579,17 +589,18 @@ cd launcher && ~/.local/bin/tauri dev   # Opens native window pointing at Vite :
 ```
 
 ### Release (CI)
-Push a `v*` tag → `release.yml` builds all three platforms and creates a GitHub Release draft.
+Push a `v*` tag **or** trigger `workflow_dispatch` → `release.yml` builds all three platforms and creates a GitHub Release draft. Linux produces `.deb` + `.rpm` (AppImage skipped — linuxdeploy requires FUSE, unavailable on GH runners).
 
 ### Artifacts
 | Artifact | Path | Used by |
 |----------|------|---------|
-| SPA bundle | `frontend/dist/` | Docker + Tauri production |
+| SPA bundle | `frontend/dist/` | Docker + Tauri (middleware static-serves it) |
 | Compiled middleware | `middleware/dist/` | Docker; `bun --compile` → binary for Tauri |
 | Spring Boot JAR | `build/libs/yomitori-*.jar` | Docker + Tauri (via bundled JRE) |
 | Minimal JRE | `launcher/resources/jre/` | Tauri bundle (jlink from JAR deps) |
 | Backend sidecar | `launcher/binaries/yomitori-backend-*` | Tauri (shell script wrapping JRE + JAR) |
-| Middleware binary | `launcher/binaries/yomitori-middleware-*` | Tauri (bun self-contained binary) |
+| Middleware binary | `launcher/binaries/yomitori-middleware-*` | Tauri (bun self-contained binary, also serves SPA) |
+| deinflect-rules.json | `launcher/resources/deinflect-rules.json` | Tauri resource; path passed via `DEINFLECT_RULES_PATH` env |
 
 ### Hot Reload
 - **Docker**: Frontend via Vite HMR bind mount; backend: rebuild JAR + restart container
