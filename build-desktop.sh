@@ -49,7 +49,7 @@ rm -rf "$RESOURCES/jre"
 # Spring Boot fat JARs can't be analyzed by jdeps (nested class loader).
 # This module set covers: Spring Boot 3.x, Hibernate/JPA, SQLite, PDFBox,
 # Quartz, Kotlin stdlib, and common AOP/reflection/logging needs.
-MODULES="java.base,java.sql,java.naming,java.xml,java.logging,java.management,java.instrument,java.net.http,java.security.jgss,java.security.sasl,java.desktop,jdk.unsupported,jdk.crypto.ec"
+MODULES="java.base,java.sql,java.naming,java.xml,java.logging,java.management,java.instrument,java.net.http,java.security.jgss,java.security.sasl,java.desktop,java.rmi,java.management.rmi,jdk.naming.rmi,jdk.unsupported,jdk.crypto.ec"
 
 jlink \
     --no-header-files \
