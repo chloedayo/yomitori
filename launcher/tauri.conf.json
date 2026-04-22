@@ -28,7 +28,7 @@
         },
         "linux": {
             "deb": { "depends": [] },
-            "appimage": { "bundleMediaFramework": true }
+            "appimage": { "bundleMediaFramework": false }
         },
         "windows": {
             "nsis": {}
