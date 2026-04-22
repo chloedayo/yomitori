@@ -5,6 +5,9 @@ export default defineConfig({
   plugins: [react()],
   clearScreen: false,
   envPrefix: ['VITE_', 'TAURI_'],
+  optimizeDeps: {
+    exclude: ['@tauri-apps/api'],
+  },
   build: {
     rollupOptions: {
       input: {
