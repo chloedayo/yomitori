@@ -34,6 +34,7 @@ pub fn spawn_middleware(app: &AppHandle) -> Result<CommandChild, String> {
     let resource_dir = app.path().resource_dir().map_err(|e| e.to_string())?;
     let static_dir = resource_dir.join("dist");
     let deinflect_rules = resource_dir.join("deinflect-rules.json");
+    let kuromoji_dic = resource_dir.join("kuromoji-dict");
 
     let sidecar = app
         .shell()
@@ -41,6 +42,7 @@ pub fn spawn_middleware(app: &AppHandle) -> Result<CommandChild, String> {
         .map_err(|e| e.to_string())?
         .env("YOMITORI_STATIC_DIR", static_dir.to_string_lossy().to_string())
         .env("DEINFLECT_RULES_PATH", deinflect_rules.to_string_lossy().to_string())
+        .env("KUROMOJI_DIC_PATH", kuromoji_dic.to_string_lossy().to_string())
         .env("BACKEND_URL", "http://localhost:8080");
 
     let (_, child) = sidecar.spawn().map_err(|e| e.to_string())?;

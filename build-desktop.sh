@@ -82,6 +82,10 @@ cp "$JAR" "$RESOURCES/yomitori.jar"
 # Copy deinflect rules (middleware bun binary can't read its own bundled files via import.meta.url)
 cp "$REPO_ROOT/middleware/deinflect-rules.json" "$RESOURCES/deinflect-rules.json"
 
+# Copy kuromoji dict files (__dirname breaks in bun --compile, dict path must be external)
+mkdir -p "$RESOURCES/kuromoji-dict"
+cp "$REPO_ROOT/middleware/node_modules/@patdx/kuromoji/dict/"* "$RESOURCES/kuromoji-dict/"
+
 # Compile middleware to self-contained binary with bun
 cd "$REPO_ROOT/middleware"
 npm install --legacy-peer-deps

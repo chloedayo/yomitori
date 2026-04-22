@@ -26,7 +26,8 @@
             "resources/jre": "jre",
             "resources/yomitori.jar": "yomitori.jar",
             "resources/dist": "dist",
-            "resources/deinflect-rules.json": "deinflect-rules.json"
+            "resources/deinflect-rules.json": "deinflect-rules.json",
+            "resources/kuromoji-dict": "kuromoji-dict"
         },
         "linux": {
             "deb": { "depends": [] },

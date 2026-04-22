@@ -12,7 +12,7 @@ export async function initializeTokenizer() {
   if (tokenizer) return;
 
   try {
-    const dicPath = join(__dirname, '../../node_modules/@patdx/kuromoji/dict');
+    const dicPath = process.env.KUROMOJI_DIC_PATH ?? join(__dirname, '../../node_modules/@patdx/kuromoji/dict');
 
     if (!TokenizerBuilder || !NodeDictionaryLoader) {
       // @ts-ignore

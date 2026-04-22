@@ -135,10 +135,11 @@ jobs:
       - name: Build middleware binary
         shell: bash
         run: |
-          mkdir -p launcher/binaries
+          mkdir -p launcher/binaries launcher/resources/kuromoji-dict
           cd middleware
           npm ci --legacy-peer-deps
           npm run build
+          cp node_modules/@patdx/kuromoji/dict/* ../launcher/resources/kuromoji-dict/
           BIN="yomitori-middleware-${{ matrix.target }}"
           if [[ "${{ matrix.platform }}" == "windows-latest" ]]; then BIN="${BIN}.exe"; fi
           bun build --compile --target=bun --outfile "../launcher/binaries/$BIN" dist/server.js
