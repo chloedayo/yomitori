@@ -1,6 +1,6 @@
-# yomitori ♡
+# yomitori ♡ v1.0.0
 
-## read books with anime on the cover  
+## yes we are working out in the library
 
 <center>
   <img width="1493" height="212" alt="image" src="https://github.com/user-attachments/assets/b396f068-248d-4a45-aa6c-ca8073c4c3e6" />
@@ -50,17 +50,18 @@ Dictionaries import on startup; files dropped while running auto-import with no 
 
 ### Now, time to get started:
 
-1. **Launch yomitori** — a small native splash window appears
-2. **Pick your books folder** — the root directory of your collection (first run only)
+- **Launch yomitori** — a small native splash window appears
+- **Pick your books folder** — the root directory of your collection (first run only)
 <center>
   <img width="703" height="336" alt="image" src="https://github.com/user-attachments/assets/6aff3c37-b2ad-44cb-91cf-acc565173616" />
 </center>
-4. The splash reports progress while services start in the background
-5. **Open Yomitori** — click the button on the ready pane; your default browser opens the app at `http://localhost:3000`
+The splash reports progress while services start in the background. 
+Click the **Open Yomitori** on the ready pane; your default browser opens the app at `http://localhost:3000`
 <center>
   <img width="703" height="336" alt="image" src="https://github.com/user-attachments/assets/33d13d3a-aa3c-4523-8923-59af5ba343c6" />
 </center>
-6. **Wait for indexing** — first crawl takes a few minutes depending on collection size; covers and metadata are extracted automatically
+
+### Wait for indexing — first crawl takes a few minutes depending on collection size; covers and metadata are extracted automatically.
 
 ---
 
@@ -102,14 +103,15 @@ Select any text while reading → an instant popup appears with:
 Uses your local Yomichan dictionaries — no internet required.
 
 ### Word mining
-1. Open a book in the reader
-2. (Optional) Settings → Mining Filter → pick frequency source + rank range
+- Open a book in the reader
+- (Optional) Settings → Mining Filter → pick frequency source + rank range
 <center>
   <img width="787" height="547" alt="image" src="https://github.com/user-attachments/assets/5d088806-c457-4083-a3a8-f7deb67fd9fc" />
 </center>
-4. Hit the **Mine** button — Kuromoji tokenizes the entire book
-5. Matched words auto-export to Anki in the background
-6. Every word also lands in your **Personal Dictionary**
+
+- Hit the **Mine** button!
+- Matched words auto-export to Anki in the background
+- Every word also lands in your **Personal Dictionary**
 
 Mining runs in the middleware process and survives page reloads. Hit Mine again to stop and clear the queue.
 
