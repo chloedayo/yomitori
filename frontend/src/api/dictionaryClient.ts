@@ -1,4 +1,4 @@
-import { useProxy } from '../hooks/useProxy'
+import { resolvePath } from '../lib/resolvePath'
 
 export interface DefinitionEntry {
   dictionaryName: string
@@ -27,7 +27,7 @@ export interface DictionaryEntry {
 }
 
 async function dictionaryLookup(word: string): Promise<DictionaryEntry | null> {
-  const url = useProxy(`/api/dictionary/lookup?word=${encodeURIComponent(word)}`)
+  const url = resolvePath(`/api/dictionary/lookup?word=${encodeURIComponent(word)}`)
   const response = await fetch(url)
   if (!response.ok) throw new Error(`Dictionary lookup failed: ${response.statusText}`)
   const results: DictionaryEntry[] = await response.json()
@@ -50,7 +50,7 @@ export interface DictionaryImport {
 
 export async function fetchDictionaryImports(): Promise<DictionaryImport[]> {
   try {
-    const url = useProxy('/api/dictionary/imports')
+    const url = resolvePath('/api/dictionary/imports')
     const response = await fetch(url)
     if (!response.ok) return []
     return await response.json()
@@ -61,7 +61,7 @@ export async function fetchDictionaryImports(): Promise<DictionaryImport[]> {
 
 export async function batchLookup(words: string[], primaryDictName?: string | null): Promise<Map<string, DictionaryEntry[]>> {
   try {
-    const url = useProxy('/api/dictionary/batch-lookup')
+    const url = resolvePath('/api/dictionary/batch-lookup')
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

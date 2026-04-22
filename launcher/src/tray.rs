@@ -37,7 +37,9 @@ pub fn setup_tray(app: &AppHandle) -> tauri::Result<()> {
                 ..
             } = event
             {
-                let _ = tray.app_handle().shell().open(APP_URL, None);
+                // Splash is the only UI window. Left-click → show it again
+                // (ready pane has the "Open Yomitori" button to launch browser).
+                show_window(tray.app_handle());
             }
         })
         .build(app)?;

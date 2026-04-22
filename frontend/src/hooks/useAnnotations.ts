@@ -8,7 +8,7 @@ import {
   markSynced,
   mergeFromBackend,
 } from '../services/annotationStore'
-import { useProxy } from './useProxy'
+import { resolvePath } from '../lib/resolvePath'
 
 export function useAnnotations(bookId: string | null) {
   const [annotations, setAnnotations] = useState<Annotation[]>([])
@@ -32,7 +32,7 @@ export function useAnnotations(bookId: string | null) {
       if (!cancelled) setAnnotations(local)
 
       try {
-        const url = useProxy(`/api/annotations?bookId=${encodeURIComponent(bookId)}`)
+        const url = resolvePath(`/api/annotations?bookId=${encodeURIComponent(bookId)}`)
         const res = await fetch(url)
         if (res.ok && !cancelled) {
           const remote = await res.json()
@@ -108,11 +108,11 @@ export function useAnnotations(bookId: string | null) {
       for (const annotation of dirty) {
         if (annotation.deleted) {
           if (!annotation.neverSynced) {
-            const url = useProxy(`/api/annotations/${annotation.id}`)
+            const url = resolvePath(`/api/annotations/${annotation.id}`)
             await fetch(url, { method: 'DELETE' })
           }
         } else if (annotation.neverSynced) {
-          const url = useProxy('/api/annotations')
+          const url = resolvePath('/api/annotations')
           await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -127,7 +127,7 @@ export function useAnnotations(bookId: string | null) {
             }),
           })
         } else {
-          const url = useProxy(`/api/annotations/${annotation.id}`)
+          const url = resolvePath(`/api/annotations/${annotation.id}`)
           await fetch(url, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },

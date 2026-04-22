@@ -47,3 +47,6 @@ dictionaries/*.zip
 
 # Session memory
 .remember/
+
+# Bundled kuromoji dict (binary, downloaded at build time)
+launcher/resources/kuromoji-dict/

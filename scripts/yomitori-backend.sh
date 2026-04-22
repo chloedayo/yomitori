@@ -23,6 +23,6 @@ fi
 
 exec "$JRE/bin/java" \
     -XX:+UseSerialGC \
-    -Xmx512m \
+    -Xmx1g \
     -jar "$JAR" \
     "$@"

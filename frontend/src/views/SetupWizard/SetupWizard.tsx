@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Button, CircularProgress, Typography } from '@mui/material'
 import FolderOpenIcon from '@mui/icons-material/FolderOpen'
-import { openFolderDialog, saveBooksPath } from '../../lib/tauriApi'
+import { openFolderDialog, saveBooksPath, startSidecars } from '../../lib/tauriApi'
+import { APP_TITLE } from '../../constants'
 import './SetupWizard.scss'
 
 interface Props {
@@ -37,20 +38,32 @@ export function SetupWizard({ onComplete }: Props) {
         if (!selectedPath) return
         setLoading(true)
         setError(null)
+        // Start sidecars FIRST — only persist booksPath after they are
+        // confirmed healthy. Otherwise a failed startSidecars leaves the
+        // store with a path, next launch skips the wizard, and the user
+        // is stuck with dead middleware and no folder-picker UI.
+        try {
+            await startSidecars(selectedPath)
+        } catch (err) {
+            setError(`Failed to start backend: ${err}. You can retry or pick a different folder.`)
+            setLoading(false)
+            return
+        }
         try {
             await saveBooksPath(selectedPath)
-            onComplete()
         } catch (err) {
-            setError(`Failed to save: ${err}`)
+            setError(`Failed to save books path: ${err}`)
             setLoading(false)
+            return
         }
+        onComplete()
     }
 
     return (
         <div className="setup-wizard">
             <div className="setup-wizard__card">
                 <Typography variant="h4" className="setup-wizard__title">
-                    yomitori ♡
+                    {APP_TITLE}
                 </Typography>
 
                 {screen === 'welcome' && (

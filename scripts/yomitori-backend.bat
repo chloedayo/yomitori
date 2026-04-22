@@ -19,4 +19,4 @@ if not exist "%JAR%" (
     exit /b 1
 )
 
-"%JRE%\bin\java.exe" -XX:+UseSerialGC -Xmx512m -jar "%JAR%" %*
+"%JRE%\bin\java.exe" -XX:+UseSerialGC -Xmx1g -jar "%JAR%" %*
