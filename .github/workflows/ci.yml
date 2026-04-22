@@ -40,15 +40,11 @@ jobs:
 
       - name: Type check
         working-directory: frontend
-        run: npx tsc --noEmit --skipLibCheck
-
-      - name: Unit tests
-        working-directory: frontend
-        run: npx vitest run
+        run: npx run type-check
         
       - name: Unit tests
         working-directory: frontend
-        run: npm test
+        run: npm run test
 
   launcher-check:
     name: Tauri type check
