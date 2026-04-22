@@ -1,6 +1,6 @@
 {
     "productName": "yomitori",
-    "version": "0.9.3",
+    "version": "1.0.0",
     "identifier": "com.yomitori.app",
     "build": {
         "frontendDist": "./splash",
