@@ -68,6 +68,11 @@ pub fn get_app_url() -> &'static str {
 }
 
 #[tauri::command]
+pub fn open_path(app: AppHandle, path: String) -> Result<(), String> {
+    app.shell().open(&path, None).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub fn open_in_browser_and_hide(app: AppHandle) -> Result<(), String> {
     app.shell()
         .open(APP_URL, None)

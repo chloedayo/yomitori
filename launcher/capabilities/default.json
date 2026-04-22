@@ -12,8 +12,9 @@
         "shell:allow-kill",
         {
             "identifier": "shell:allow-open",
-            "allow": [{ "url": "http://localhost:*" }, { "url": "https://**" }]
+            "allow": [{ "url": "http://localhost:*" }, { "url": "https://**" }, { "url": "**" }]
         },
+        "core:path:default",
         "dialog:allow-open",
         "store:allow-get",
         "store:allow-set",

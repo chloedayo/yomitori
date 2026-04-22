@@ -37,3 +37,14 @@ export async function openInBrowserAndHide(): Promise<void> {
     if (!isTauri()) return;
     return tauriInvoke('open_in_browser_and_hide');
 }
+
+export async function getDataDir(): Promise<string | null> {
+    if (!isTauri()) return null;
+    const { appDataDir } = await import('@tauri-apps/api/path');
+    return appDataDir();
+}
+
+export async function openPath(path: string): Promise<void> {
+    if (!isTauri()) return;
+    return tauriInvoke('open_path', { path });
+}

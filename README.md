@@ -103,10 +103,15 @@ Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yo
 3. Dictionaries import on startup; new files dropped while running auto-import — no restart needed
 
 **Setup (desktop app):**
-Place dictionaries in the `dictionaries/` folder inside your books directory, or use the admin endpoint to reimport:
-```
-POST http://localhost:8080/api/dictionary/reimport
-```
+Drop dictionary zips into your dictionary folder — click **Open dictionary folder** on the ready screen to open it directly, or find it here:
+
+| Platform | Path |
+|----------|------|
+| Linux | `~/.local/share/com.yomitori.app/dictionaries/` |
+| Windows | `%APPDATA%\com.yomitori.app\dictionaries\` |
+| macOS | `~/Library/Application Support/com.yomitori.app/dictionaries/` |
+
+Dictionaries import on startup; files dropped while running auto-import with no restart needed.
 
 ---
 

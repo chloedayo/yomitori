@@ -2,7 +2,7 @@ mod commands;
 mod sidecar;
 mod tray;
 
-use commands::{get_app_url, get_books_path, open_file_dialog, open_in_browser_and_hide, save_books_path, start_sidecars};
+use commands::{get_app_url, get_books_path, open_file_dialog, open_in_browser_and_hide, open_path, save_books_path, start_sidecars};
 use sidecar::{kill_all, SidecarState};
 #[allow(unused_imports)]
 use tauri::Manager;
@@ -19,6 +19,7 @@ pub fn run() {
             save_books_path,
             start_sidecars,
             get_app_url,
+            open_path,
             open_in_browser_and_hide,
         ])
         .setup(|app| {
