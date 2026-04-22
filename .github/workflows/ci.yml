@@ -59,7 +59,7 @@ jobs:
 
       - name: Create placeholder artifacts
         run: |
-          mkdir -p launcher/binaries launcher/resources/jre
+          mkdir -p launcher/binaries launcher/resources/jre launcher/resources/dist
           touch launcher/binaries/yomitori-backend-x86_64-unknown-linux-gnu
           touch launcher/binaries/yomitori-middleware-x86_64-unknown-linux-gnu
           touch launcher/resources/yomitori.jar
