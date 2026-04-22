@@ -6,17 +6,43 @@ Deep technical reference for yomitori — book library + Japanese reader + word 
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
+| Desktop shell | Tauri 2 (Rust) | Native window, sidecar lifecycle, system tray, IPC |
 | Backend | Kotlin / Spring Boot 3.x | REST API, crawler, dictionary service |
 | Database | SQLite (file-based) | Books, authors, dictionary entries, frequencies |
 | ORM | Hibernate / JPA | Entity persistence |
 | Frontend | React 18 + TypeScript + Vite | SPA reader + library UI |
 | Middleware | Node.js + Kuromoji | Japanese tokenization service |
-| Containerization | Docker Compose | Orchestration |
+| Containerization | Docker Compose | Orchestration (server/dev mode) |
+| Distribution | Tauri installers via GitHub Actions | `.deb` / `.AppImage` / `.exe` (NSIS) / `.dmg` |
 | Integration | AnkiConnect (external) | Flashcard export |
 
 ---
 
 ## System Architecture
+
+### Desktop mode (Tauri)
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Tauri Shell (Rust)                                 │
+│  ┌─────────────┐   WebView   ┌────────────────────┐ │
+│  │  System     │             │  Frontend (React)  │ │
+│  │  Tray       │             │  :5173 / bundled   │ │
+│  └─────────────┘             └────────┬───────────┘ │
+│                                       │ HTTP        │
+│  ┌──────────────┐  sidecar  ┌────────▼───────────┐  │
+│  │  Backend     │◄──────────│  Tauri IPC         │  │
+│  │  (Spring)    │           │  start_sidecars    │  │
+│  └──────┬───────┘           └────────────────────┘  │
+│         │ JPA                                        │
+│  ┌──────▼───────┐  sidecar  ┌────────────────────┐  │
+│  │  SQLite      │           │  Middleware         │  │
+│  │  (DATA_DIR)  │           │  (Kuromoji bun)    │  │
+│  └──────────────┘           └────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Server / Docker mode
 
 ```
 ┌─────────────┐   HTTP    ┌──────────────┐   JPA    ┌──────────┐
@@ -30,21 +56,41 @@ Deep technical reference for yomitori — book library + Japanese reader + word 
 │ Middleware  │           │  Filesystem  │
 │ (Kuromoji)  │           │  books/dicts │
 └─────────────┘           └──────────────┘
-      ▲                          
-      │                          
-┌─────┴───────┐                  
+      ▲
+      │
+┌─────┴───────┐
 │  Anki (LAN) │  ← POST via backend /api/proxy/anki
-└─────────────┘                  
+└─────────────┘
 ```
 
 ---
+
+## Launcher Module Layout (`launcher/`)
+
+```
+launcher/
+├── src/
+│   ├── main.rs          Entry point — calls lib::run()
+│   ├── lib.rs           Tauri builder: plugins, commands, tray, exit handler
+│   ├── commands.rs      IPC handlers: get_books_path, open_file_dialog, start_sidecars
+│   ├── sidecar.rs       SidecarState (Mutex<Option<CommandChild>>), spawn_backend/middleware, kill_all
+│   └── tray.rs          System tray: Show/Quit menu, left-click to show, kill on quit
+├── capabilities/
+│   └── default.json     ACL: shell:allow-execute/kill, dialog:allow-open, store:allow-*
+├── icons/               All platform icon sizes (generated from app-icon.png)
+├── binaries/            Sidecar binaries (gitignored — built by build-desktop.sh)
+├── resources/           jre/ + yomitori.jar (gitignored — built by build-desktop.sh)
+├── Cargo.toml           tauri, tauri-plugin-shell/dialog/store, serde
+├── build.rs             tauri_build::build()
+└── tauri.conf.json      Window config, tray icon, externalBin, resources, CSP
+```
 
 ## Backend Module Layout
 
 ```
 src/main/kotlin/com/yomitori/
 ├── api/               REST controllers (Spring MVC)
-├── config/            Startup runners, schema migration, web config
+├── config/            Startup runners, schema migration, web config, RestTemplate
 ├── dto/               Data transfer objects
 ├── model/             JPA entities
 ├── repository/        Spring Data JPA repositories
@@ -489,19 +535,18 @@ Click label → onEdit callback → InlineAnnotationInput with initialText → e
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `YOMITORI_CRAWLER_BOOKS_PATH` | `/app/data/books` | Books to index |
-| `YOMITORI_CRAWLER_COVERS_PATH` | `/app/data/covers` | Cover output dir |
-| `YOMITORI_DICTIONARIES_PATH` | `/app/data/dictionaries` | Yomichan zips + `frequency/` subdir |
+| `DATA_DIR` | `/app/data` | Base dir for DB + covers (Tauri sets to app data dir) |
+| `BOOKS_PATH` | `${DATA_DIR}/books` | Books to index (Tauri sets from wizard selection) |
+| `CORS_ORIGINS` | `http://localhost:5173,...` | CSV; includes `tauri://localhost` in desktop mode |
 | `YOMITORI_CRAWLER_ENABLED` | `true` | |
 | `YOMITORI_CRAWLER_SCHEDULE` | `0 */1 * * * ?` | Cron format |
-| `SPRING_DATASOURCE_URL` | `jdbc:sqlite:/app/data/yomitori.db` | |
+| `SPRING_DATASOURCE_URL` | `jdbc:sqlite:${DATA_DIR}/yomitori.db` | |
 | `ANKI_CONNECT_URL` | `http://localhost:8765` | LAN/localhost |
-| `YOMITORI_CORS_ALLOWED_ORIGINS` | | CSV of origins |
-| `BOOKS_MOUNT` | `./.books` | Host path |
-| `DICTIONARIES_MOUNT` | `./dictionaries` | Host path |
+| `BOOKS_MOUNT` | `./.books` | Docker: host path |
+| `DICTIONARIES_MOUNT` | `./dictionaries` | Docker: host path |
 | `VITE_BACKEND_URL` | `http://localhost:8080` | Frontend → backend |
 | `VITE_MIDDLEWARE_URL` | `http://localhost:3000` | Frontend → middleware |
-| `LAN_IP` | `localhost` | Phone access |
+| `LAN_IP` | `localhost` | Phone access (Docker mode) |
 
 ### Docker Volumes
 
@@ -515,20 +560,40 @@ Click label → onEdit callback → InlineAnnotationInput with initialText → e
 
 ## Build + Deploy
 
-### Local dev
+### Desktop (Tauri)
+```bash
+./build-desktop.sh      # Full pipeline: frontend → JAR → jlink JRE → bun binary → tauri build
+```
+Artifacts in `launcher/target/release/bundle/` — one installer per platform.
+
+### Docker / server
 ```bash
 ./build.sh              # Build all artifacts (frontend, middleware, backend JAR)
 docker-compose up       # Run stack
 ```
 
+### Desktop dev
+```bash
+cd launcher && ~/.local/bin/tauri dev   # Opens native window pointing at Vite :5173
+# (beforeDevCommand auto-starts: npm run dev in frontend/)
+```
+
+### Release (CI)
+Push a `v*` tag → `release.yml` builds all three platforms and creates a GitHub Release draft.
+
 ### Artifacts
-- `frontend/dist/` — SPA bundle
-- `middleware/dist/` — compiled TS
-- `build/libs/yomitori-0.1.0.jar` — Spring Boot fat JAR
+| Artifact | Path | Used by |
+|----------|------|---------|
+| SPA bundle | `frontend/dist/` | Docker + Tauri production |
+| Compiled middleware | `middleware/dist/` | Docker; `bun --compile` → binary for Tauri |
+| Spring Boot JAR | `build/libs/yomitori-*.jar` | Docker + Tauri (via bundled JRE) |
+| Minimal JRE | `launcher/resources/jre/` | Tauri bundle (jlink from JAR deps) |
+| Backend sidecar | `launcher/binaries/yomitori-backend-*` | Tauri (shell script wrapping JRE + JAR) |
+| Middleware binary | `launcher/binaries/yomitori-middleware-*` | Tauri (bun self-contained binary) |
 
 ### Hot Reload
-- Frontend: Vite HMR via bind mount (`./frontend/src:/app/src`)
-- Backend: rebuild JAR + restart container
+- **Docker**: Frontend via Vite HMR bind mount; backend: rebuild JAR + restart container
+- **Tauri dev**: Vite HMR auto-proxied through WebView; Rust changes require `tauri dev` restart
 
 ---
 

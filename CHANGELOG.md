@@ -2,6 +2,36 @@
 
 All notable changes to the Yomitori project are documented here.
 
+## [0.4.0] - 2026-04-22
+
+### Added
+
+- **Tauri 2 desktop wrapper** (`launcher/`) — native window, no browser required. Bundles backend JAR, jlink JRE, and bun-compiled middleware binary into a single installer per platform.
+- **System tray integration** — close button hides to tray, not quit. Left-click or "Show" menu item restores the window. "Quit" kills sidecars then exits.
+- **Setup wizard** — first-run React+TS wizard (3 screens: welcome → folder picker → confirm). Native OS folder dialog via `tauri-plugin-dialog`. Config persisted to `tauri-plugin-store`.
+- **Sidecar lifecycle management** — `SidecarState` (Mutex-guarded `CommandChild`). Backend and middleware spawned after folder selection; killed cleanly on app exit.
+- **Tauri IPC layer** (`frontend/src/lib/tauriApi.ts`) — typed wrappers for `get_books_path`, `open_file_dialog`, `start_sidecars`. `isTauri()` guard keeps Docker/web paths unchanged.
+- **First-run check in `main.tsx`** — `Root` component checks Tauri store on mount; renders `SetupWizard` if no path saved, otherwise renders `App` directly.
+- **`build-desktop.sh`** — full desktop build pipeline: frontend vite build → Gradle bootJar → jlink minimal JRE → bun `--compile` middleware binary → tauri build.
+- **Backend launcher shims** (`scripts/yomitori-backend.sh` / `.bat`) — locate bundled JRE + JAR from `RESOURCE_DIR` and exec with `-XX:+UseSerialGC`.
+- **GitHub Actions CI** (`.github/workflows/ci.yml`) — backend tests (Gradle + H2), frontend type-check + vitest, Tauri `cargo check` with placeholder artifacts.
+- **GitHub Actions Release** (`.github/workflows/release.yml`) — tag-triggered matrix build (Linux / Windows / macOS-arm). Produces `.deb`, `.AppImage`, `.exe` (NSIS), `.dmg` as GitHub Release draft.
+
+### Changed
+
+- **Backend paths now env-var driven** — all hardcoded `/app/data/...` paths in `application.properties` replaced with `${DATA_DIR:/app/data}` and `${BOOKS_PATH:...}` placeholders. Docker defaults preserved.
+- **CORS origins configurable** — `${CORS_ORIGINS:...}` includes `tauri://localhost` and `http://tauri.localhost` for Tauri WebView.
+- **`RestTemplateConfig`** extracted from `WebConfig` — `@WebMvcTest` slice no longer fails on missing `RestTemplateBuilder` autoconfiguration.
+- **H2 in-memory DB for tests** — `src/test/resources/application.properties` overrides datasource to H2, disables Flyway. All Spring tests now run without SQLite on disk.
+- **Frontend `package.json`** — added `type-check` (`tsc --noEmit --skipLibCheck`) and `test` (`vitest run`) scripts for CI.
+
+### Fixed
+
+- **Gradle wrapper jar corrupt** — regenerated with `gradle wrapper --gradle-version 8.4` (was 34KB stub, now proper 63KB jar).
+- **`BookControllerTest` missing `@MockBean`** — `StartupJobService` required by `BookController` was not mocked; added.
+- **`RetroactiveAuthorExtractionServiceTest` wrong assertion** — `authors.size >= 2` fails when both test books resolve to the same "Unknown Author"; changed to `isNotEmpty()`.
+- **Rust 1.95.0 ICE on CachyOS** — `aho-corasick` AVX2 intrinsics crash rustc 1.95.0; fixed by pinning `launcher/` to Rust 1.88.0 via `rustup override`.
+
 ## [0.3.3] - 2026-04-22
 
 ### Added

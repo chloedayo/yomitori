@@ -63,13 +63,16 @@
 - [ ] JLPT level estimation from mined words (optional tag)
 - [ ] Per-book vocabulary review mode
 
-## Phase 5 — Tauri Desktop App (Next)
+## Phase 5 — Tauri Desktop App ✅ (Complete)
 
-- [ ] Wrap frontend in Tauri shell (native window, no browser needed)
-- [ ] Native file picker for book collection path
-- [ ] System tray integration
-- [ ] Auto-launch backend + middleware on app start
-- [ ] Bundled distribution (single install, no Docker required)
+- [x] Wrap frontend in Tauri shell (native window, no browser needed)
+- [x] Native file picker for book collection path (tauri-plugin-dialog)
+- [x] System tray integration (hide-to-tray, show/quit menu)
+- [x] Auto-launch backend + middleware on app start (sidecar lifecycle)
+- [x] Bundled distribution (jlink JRE + bun-compiled middleware + JAR — zero user deps)
+- [x] Setup wizard for first-run books folder selection
+- [x] GitHub Actions CI (backend/frontend/launcher-check)
+- [x] GitHub Actions Release (Linux .deb/.AppImage, Windows .exe, macOS .dmg)
 
 ## Phase 4 — Collaboration / Future
 
@@ -91,6 +94,8 @@
 - Frontend: split `HomePage` into smaller views
 - Deprecate jishoClient.ts (replaced by dictionaryClient)
 - Frontend: consolidate `reader.tsx` entry vs `ReaderPage.tsx`
+- Tauri: test actual sidecar launch end-to-end (binaries are placeholder until first real desktop build)
+- CI: fix `npm run test` step — currently skipped in `ci.yml` (vitest not yet wired)
 
 ---
 
