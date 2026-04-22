@@ -1,631 +1,472 @@
-# Yomitori Architecture
+# Yomitori Architecture (v1.0)
 
 Deep technical reference for yomitori — book library + Japanese reader + word mining pipeline.
 
-## Stack Overview
+**Shipping model (v1.0):** Tauri launcher shows a native splash that manages sidecars (backend + middleware). The full React SPA runs in the user's default browser at `http://localhost:3000`. Same-origin — no CORS anywhere in desktop mode.
+
+---
+
+## 1. High-Level Shape
+
+```
+┌─ Tauri launcher (Rust, launcher/) ──────────────────────────────┐
+│                                                                 │
+│  Splash window (splash/index.html, splash/loading.js)           │
+│    • first-run wizard (folder picker via IPC)                   │
+│    • progress UI driven by `splash://progress` events           │
+│    • "Open Yomitori" button → open system browser + hide window │
+│                                                                 │
+│  Sidecar supervisor:                                            │
+│    spawn_backend      →  Spring Boot, 127.0.0.1:8080            │
+│    spawn_middleware   →  bun binary,  127.0.0.1:3000            │
+│    health poll (30s)  →  GET http://localhost:3000/health       │
+│    splash://ready | splash://error on terminal state            │
+│                                                                 │
+│  Tray: Show, Quit (kills sidecars then exits)                   │
+└───────────┬──────────────────────────────┬──────────────────────┘
+            │ sidecar                      │ sidecar
+            ▼                              ▼
+┌─ Middleware (bun, 127.0.0.1:3000) ─────┐   ┌─ Backend (Spring, 127.0.0.1:8080) ─┐
+│  • Static: serves frontend/dist + SPA  │   │  REST /api/books /api/authors      │
+│    fallback                            │◄──│       /api/dictionary /api/proxy   │
+│  • Proxy: /api/* → backend             │   │  SQLite + JPA (single-writer)      │
+│  • Japanese: /tokenize /deinflect      │   │  Crawler, dict import, author svc  │
+│              /extract-baseForms        │   │  Streams /books/** (file:)         │
+│  • Mining:   /mine-words               │   │  No CORS. No bind outside loopback │
+│  • Anki:     /anki/can-add             │   └───────────────┬────────────────────┘
+│  • Health:   /health                   │                   │
+└───────────────┬────────────────────────┘                   ▼
+                │                                   ┌─────────────────┐
+                ▼ (same-origin to browser)          │  SQLite + FS    │
+        http://localhost:3000 ◄── user's browser    │  books / dicts  │
+                                                    └─────────────────┘
+```
+
+The browser tab is the app. The Tauri window exists only as a native launcher / splash / error surface.
+
+---
+
+## 2. Stack Overview
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| Desktop shell | Tauri 2 (Rust) | Native window, sidecar lifecycle, system tray, IPC |
+| Launcher shell | Tauri 2 (Rust) | Native window, sidecar lifecycle, system tray, IPC |
+| Splash UI | Static HTML/CSS/JS (`launcher/splash/`) | Setup wizard, progress, ready pane |
 | Backend | Kotlin / Spring Boot 3.x | REST API, crawler, dictionary service |
 | Database | SQLite (file-based) | Books, authors, dictionary entries, frequencies |
 | ORM | Hibernate / JPA | Entity persistence |
-| Frontend | React 18 + TypeScript + Vite | SPA reader + library UI |
-| Middleware | Node.js + Kuromoji | Japanese tokenization service |
-| Containerization | Docker Compose | Orchestration (server/dev mode) |
+| Frontend | React 18 + TypeScript + Vite | SPA reader + library UI (runs in browser tab) |
+| Middleware | bun + restify + Kuromoji | Serves SPA, proxies API, tokenization, mining |
+| Containerization | Docker Compose | Server/self-host mode (orthogonal to desktop) |
 | Distribution | Tauri installers via GitHub Actions | `.deb` / `.rpm` / `.exe` (NSIS) / `.dmg` |
 | Integration | AnkiConnect (external) | Flashcard export |
 
 ---
 
-## System Architecture
+## 3. Ports, Hosts, Origins
 
-### Desktop mode (Tauri)
+| Component | Bind | Port | Origin |
+|-----------|------|------|--------|
+| Middleware (desktop) | 127.0.0.1 | 3000 | `http://localhost:3000` (SPA + API proxy) |
+| Middleware (Docker) | 0.0.0.0 | 3000 | `http://<host>:3000` (`HOST=0.0.0.0` env) |
+| Backend (desktop) | 127.0.0.1 | 8080 | internal-only; never hit directly by browser |
+| Backend (Docker) | 0.0.0.0 | 8080 | `http://<host>:8080` |
+| Tauri splash | n/a | n/a | `tauri://localhost` (splash/index.html) |
 
-Tauri window is a **service manager + setup shell**, not the app itself. After first-run wizard, app lives in browser at `http://localhost:3000`. Middleware serves the React SPA and proxies `/api/*` to backend (same-origin — no CORS).
-
-```
-┌──────────────────────────────────────────────────────────┐
-│  Tauri Shell (Rust)                                      │
-│  ┌─────────────┐    IPC     ┌──────────────────────────┐ │
-│  │  System     │◄──────────│  WebView (setup/ready)   │ │
-│  │  Tray       │            │  SetupWizard / ReadyScreen│ │
-│  └──────┬──────┘            └──────────────────────────┘ │
-│         │ open browser                                    │
-│         ▼                                                 │
-│  http://localhost:3000  ◄──── user's browser             │
-│         │                                                 │
-│  sidecar ▼                                               │
-│  ┌───────────────────────────────────────────────────┐   │
-│  │  Middleware (bun binary, :3000)                   │   │
-│  │  • static serve frontend/dist/ + SPA fallback     │   │
-│  │  • /api/* → reverse-proxy → Backend :8080         │   │
-│  │  • /tokenize /deinflect /mine-words (Kuromoji)    │   │
-│  └───────────────────────┬───────────────────────────┘   │
-│                           │ HTTP                          │
-│  sidecar ▼                ▼                               │
-│  ┌──────────────┐   ┌─────────────┐   ┌───────────────┐  │
-│  │  Backend     │   │  SQLite     │   │  deinflect-   │  │
-│  │  (Spring)    ├──►│  (DATA_DIR) │   │  rules.json   │  │
-│  └──────────────┘   └─────────────┘   │  (resource)   │  │
-│                                       └───────────────┘  │
-└──────────────────────────────────────────────────────────┘
-```
-
-### Server / Docker mode
-
-```
-┌─────────────┐   HTTP    ┌──────────────┐   JPA    ┌──────────┐
-│  Frontend   ├──────────►│   Backend    ├─────────►│  SQLite  │
-│  (React)    │           │  (Spring)    │          │          │
-└─────────────┘           └──────┬───────┘          └──────────┘
-      │                          │
-      │ HTTP (tokenize)          │ Reads
-      ▼                          ▼
-┌─────────────┐           ┌──────────────┐
-│ Middleware  │           │  Filesystem  │
-│ (Kuromoji)  │           │  books/dicts │
-└─────────────┘           └──────────────┘
-      ▲
-      │
-┌─────┴───────┐
-│  Anki (LAN) │  ← POST via backend /api/proxy/anki
-└─────────────┘
-```
+**Same-origin by design.** The SPA always fetches from its own origin (relative paths); middleware proxies `/api/*` to the backend over loopback. No `Access-Control-*` headers anywhere. No CORS config in Spring.
 
 ---
 
-## Launcher Module Layout (`launcher/`)
+## 4. Launcher (`launcher/`)
 
 ```
 launcher/
 ├── src/
-│   ├── main.rs          Entry point — calls lib::run()
-│   ├── lib.rs           Tauri builder: plugins, commands, tray, exit handler
-│   ├── commands.rs      IPC handlers: get_books_path, open_file_dialog, start_sidecars
+│   ├── main.rs          Entry — calls lib::run()
+│   ├── lib.rs           Tauri builder: plugins, commands, tray, exit handler, health poll
+│   ├── commands.rs      IPC: get_books_path, open_file_dialog, save_books_path,
+│   │                         start_sidecars, open_path (allowlisted), open_logs_dir,
+│   │                         open_in_browser_and_hide, get_data_dir, splash_ready, quit_app
 │   ├── sidecar.rs       SidecarState (Mutex<Option<CommandChild>>), spawn_backend/middleware, kill_all
-│   └── tray.rs          System tray: Show/Quit menu, left-click to show, kill on quit
+│   └── tray.rs          Show / Quit menu, left-click to show, kill on quit
+├── splash/              Static splash (frontendDist). index.html + loading.css + loading.js
 ├── capabilities/
-│   └── default.json     ACL: shell:allow-execute/kill, dialog:allow-open, store:allow-*
-├── icons/               All platform icon sizes (generated from app-icon.png)
-├── binaries/            Sidecar binaries (gitignored — built by build-desktop.sh)
-├── resources/           jre/ + yomitori.jar (gitignored — built by build-desktop.sh)
+│   └── local.json       ACL for the splash window — local.json only (no remote.json)
+├── icons/               Platform icon set
+├── binaries/            yomitori-backend-*, yomitori-middleware-* (built by build-desktop.sh)
+├── resources/           jre/, yomitori.jar, dist/ (SPA), deinflect-rules.json, kuromoji-dict/
 ├── Cargo.toml           tauri, tauri-plugin-shell/dialog/store, serde
-├── build.rs             tauri_build::build()
-└── tauri.conf.json      Window config, tray icon, externalBin, resources, CSP
+└── tauri.conf.json      window, tray, externalBin, resources, CSP (default-src 'none')
 ```
 
-## Backend Module Layout
+### Health poll
 
-```
-src/main/kotlin/com/yomitori/
-├── api/               REST controllers (Spring MVC)
-├── config/            Startup runners, schema migration, web config, RestTemplate
-├── dto/               Data transfer objects
-├── model/             JPA entities
-├── repository/        Spring Data JPA repositories
-├── service/           Business logic
-│   └── strategy/      Cover extraction strategies (pluggable)
-└── YomitoriApplication.kt
-```
+On startup, if `booksPath` is already saved, Rust auto-spawns both sidecars and kicks off a 30-second poll of `http://localhost:3000/health`. Each progress step emits a `splash://progress` event to the splash UI; success emits `splash://ready`; failure or timeout emits `splash://error`. A `splash://trigger-poll` listener lets the splash re-arm the poll after user-driven setup (wizard → `start_sidecars` → trigger-poll).
+
+### `start_sidecars` idempotency
+
+`start_sidecars` is safe to call repeatedly: if both sidecars are already running and the persisted `booksPath` matches the argument, it no-ops. This eliminates the Spring spawn race between launcher auto-spawn and splash-initiated spawn.
+
+### Capabilities
+
+Only `local.json` is shipped — no `remote.json`. The splash page lives at `tauri://localhost`; it is the only origin with IPC access. The main browser tab is pure SPA + HTTP and has no IPC surface.
+
+Key entries in `local.json`:
+- `shell:allow-execute` / `shell:allow-kill` — sidecar lifecycle
+- `shell:allow-open` scoped to `http://localhost:3000/**` — only app URL can be opened
+- `dialog:allow-open` — native folder picker
+- `store:allow-*` — persist `booksPath`
+- `core:window:allow-hide/show/close/set-focus`
+
+### `open_path` Rust allowlist
+
+`commands.rs::open_path` canonicalizes the requested path and rejects anything that does not live under one of:
+- `app_data_dir` (logs, store, kuromoji cache, dictionaries subfolder)
+- the persisted `booksPath`
+- `resource_dir` (bundled assets)
+
+URLs, sibling dirs, `/etc/passwd`, etc. all fail the `starts_with` predicate. Unit tests in `commands.rs` lock the predicate down.
+
+### CSP
+
+`default-src 'none'; connect-src 'self' ipc: http://ipc.localhost; img-src 'self' data: asset: https://asset.localhost; script-src 'self'; style-src 'self'; font-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'`
+
+CSP applies to the splash window only. The browser tab is served by the middleware under its own response headers.
 
 ---
 
-## Database Schema
+## 5. Middleware (`middleware/`)
 
-### `books`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | TEXT PK | UUID |
-| filepath | TEXT NOT NULL | Absolute path |
-| filename | TEXT NOT NULL | Derived from path |
-| title | TEXT NOT NULL | Extracted from metadata |
-| genre | TEXT | Optional |
-| type | TEXT NOT NULL | manga / novel / light-novel / textbook / other |
-| cover_path | TEXT | Filename in covers dir |
-| file_format | TEXT NOT NULL | pdf / epub / cbr / cbz |
-| last_indexed | TIMESTAMP | Crawler run timestamp |
-| is_deleted | BOOLEAN | Soft-delete flag |
-| manual_override | BOOLEAN | Blocks auto-updates to tags |
-| created_at | TIMESTAMP | |
-| updated_at | TIMESTAMP | |
+bun + restify. Entry: `middleware/src/server.ts`.
 
-### `authors`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | TEXT PK | UUID |
-| name | TEXT NOT NULL UNIQUE | Indexed |
-| created_at | TIMESTAMP | |
-
-### `book_authors` (join)
-| Column | Type | Notes |
-|--------|------|-------|
-| book_id | TEXT FK | → books.id |
-| author_id | TEXT FK | → authors.id |
-
-### `dictionary_imports`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | TEXT PK | UUID |
-| name | TEXT NOT NULL | Display name |
-| path | TEXT NOT NULL UNIQUE | Source zip path |
-| imported_at | TIMESTAMP | |
-
-### `dictionary_entries`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | BIGINT PK AUTO | |
-| dict_id | TEXT NOT NULL | → dictionary_imports.id |
-| expression | TEXT NOT NULL | Indexed |
-| reading | TEXT NOT NULL | Indexed |
-| definition | TEXT NOT NULL | HTML/structured content |
-
-### `frequency_sources`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | BIGINT PK AUTO | |
-| name | TEXT NOT NULL UNIQUE | Display name |
-| path | TEXT NOT NULL | Source zip path |
-| is_numeric | INTEGER NOT NULL DEFAULT 1 | 1 = numeric ranks, 0 = string labels |
-| loaded_at | TIMESTAMP | |
-
-### `word_frequency`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | BIGINT PK AUTO | |
-| word | TEXT NOT NULL | Indexed |
-| reading | TEXT NOT NULL | |
-| frequency | BIGINT NOT NULL | Numeric rank; 0 for string-label dicts |
-| frequency_tag | TEXT | String label (e.g. "A1", "idol") — null for numeric dicts |
-| source_id | BIGINT NOT NULL | → frequency_sources.id, indexed |
-
----
-
-## REST API Reference
-
-### Books API (`/api/books`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/search` | Paginated book search with filters |
-| POST | `/search/bulk` | Search by list of book IDs |
-| GET | `/{id}` | Get single book by ID |
-| GET | `/{id}/cover` | Get cover image (JPEG) |
-| GET | `/{id}/file` | Stream EPUB/PDF file |
-| POST | `/{id}/tag` | Update book genre/type |
-| GET | `/genres` | All unique genres |
-| GET | `/types` | All unique types |
-| GET | `/stats` | Library statistics |
-| POST | `/crawler/run` | Trigger manual crawl |
-| POST | `/admin/extract-authors` | Retroactive author extraction |
-| GET | `/cover-file/{bookId}` | Alternate cover route |
-
-**GET /search query params:**
-| Param | Type | Default |
-|-------|------|---------|
-| title | string | "" |
-| genre | string | null |
-| type | string | null |
-| author | string | null |
-| page | int | 0 |
-| pageSize | int | 20 |
-
-**POST /search/bulk body:**
-```json
-{ "bookIds": ["uuid1", "uuid2"], "page": 0, "pageSize": 20 }
-```
-
-### Authors API (`/api/authors`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/autocomplete?query=` | Top 10 matches |
-| GET | `/{id}` | Author + all their books |
-| GET | `/?query=&page=&pageSize=` | Paginated author list |
-
-### Dictionary API (`/api/dictionary`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/imports` | List all imported definition dictionaries |
-| GET | `/frequency-sources` | List available frequency dictionaries |
-| GET | `/lookup?word=` | Single word lookup |
-| POST | `/batch-lookup` | Bulk word lookup; optional `primaryDictName` sorts that dict first |
-| POST | `/reimport` | Wipe all dictionary data and re-import from disk |
-
-**GET /lookup response:**
-```json
-[
-  {
-    "expression": "食べる",
-    "reading": "たべる",
-    "definitions": ["to eat (HTML content)"],
-    "dictionaryName": "大辞林",
-    "frequencies": [
-      { "sourceName": "JPDB", "frequency": 142 },
-      { "sourceName": "BCCWJ", "frequency": 98 }
-    ]
-  }
-]
-```
-
-**POST /batch-lookup request/response:**
-```json
-// Request
-{ "words": ["食べる", "飲む", "走る"] }
-
-// Response
-{
-  "食べる": [ /* DictionaryEntryDto[] */ ],
-  "飲む": [ /* DictionaryEntryDto[] */ ],
-  "走る": []
-}
-```
-
-### Crawler API (`/api/crawler`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/trigger` | Manual crawler trigger |
-
-### Proxy API (`/api/proxy`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/jisho?word=` | Proxy to jisho.org (CORS bypass) |
-| POST | `/anki` | Forward to AnkiConnect (LAN) |
-
----
-
-## Middleware API (Node / Port 3000)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Liveness check |
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | `/health` | Liveness (also gates the launcher's readiness poll) |
 | POST | `/tokenize` | Kuromoji tokenization |
 | POST | `/deinflect` | Rule-based deinflection (selection popup) |
 | POST | `/extract-baseForms` | Bulk base form extraction |
 | POST | `/mine-words` | Full mining pipeline (tokenize → lookup → filter → Anki queue) |
-| POST | `/anki/can-add` | Batch duplicate check via AnkiConnect `canAddNotes`; returns `{ [expression]: boolean }` |
+| POST | `/anki/can-add` | Batch `canAddNotes` via AnkiConnect; `{ [expression]: boolean }` |
+| ALL | `/api/*` | Reverse-proxy to backend (`BACKEND_URL`) |
+| GET | everything else | Static serve `YOMITORI_STATIC_DIR` (frontend/dist) + SPA fallback |
 
-**POST /deinflect:**
-```json
-// Request
-{ "text": "食べている" }
+Bind: `HOST` env defaults to `127.0.0.1`. Docker mode sets `HOST=0.0.0.0`.
 
-// Response
-{ "candidates": [
-  { "startPos": 0, "surface": "食べている", "baseForm": "食べる", "reason": "te-iru" },
-  ...
-]}
-```
-
-**POST /mine-words:**
-```json
-// Request
-{ "text": "...", "frequencySource": "JPDB", "minFrequencyRank": 1, "maxFrequencyRank": 5000, "bookTitle": "本のタイトル" }
-
-// Response
-{ "words": [ { "expression": "...", "reading": "...", "definitions": [...], "frequencies": [...] } ], "anki": { "added": 0, "skipped": 0, "error": null } }
-```
-
-**POST /tokenize:**
-```json
-// Request
-{ "text": "私は日本語を勉強します" }
-
-// Response
-{ "tokens": [
-  { "surface": "私", "baseForm": "私", "partOfSpeech": "noun", "reading": "わたし" },
-  ...
-]}
-```
+Env passed by the launcher at spawn time:
+- `YOMITORI_STATIC_DIR` → resolved to `resource_dir/dist`
+- `DEINFLECT_RULES_PATH` → resolved to `resource_dir/deinflect-rules.json`
+- `BACKEND_URL` → `http://127.0.0.1:8080`
+- kuromoji dictionary path → `resource_dir/kuromoji-dict` (bundled; `bun --compile` breaks `__dirname`)
 
 ---
 
-## Key Services
+## 6. Backend (`src/main/kotlin/com/yomitori/`)
 
-### CrawlerService
-- Scheduled job (cron: `YOMITORI_CRAWLER_SCHEDULE`)
-- Walks `YOMITORI_CRAWLER_BOOKS_PATH`
-- New files: extract metadata (filename patterns), extract cover (strategy pattern per format), insert book
-- Missing files: mark `is_deleted = true`
-- Batch processing via `batchSize` config
+```
+api/               REST controllers (Spring MVC)
+config/            Startup runners, schema migration, web config, RestTemplate
+dto/               Data transfer objects
+model/             JPA entities
+repository/        Spring Data JPA repositories
+service/           Business logic
+  └── strategy/    Cover extraction strategies (pluggable per format)
+YomitoriApplication.kt
+```
 
-### CoverExtractor (strategy pattern)
-| Format | Strategy |
-|--------|----------|
-| EPUB | Parse OPF manifest, find cover property |
-| PDF | Render first page via PDFBox |
-| CBR/CBZ | Extract first image from archive |
+Bind: `SERVER_ADDRESS=127.0.0.1` in desktop mode (set by launcher). `0.0.0.0` in Docker mode.
 
-### DictionaryParserService
-- Unzips Yomichan-format dictionary zips
-- Parses `term_bank_*.json` (entries) and `term_meta_bank_*.json` (frequency)
-- Converts Yomichan structured content to HTML (`buildHtmlFromContent`) — preserves `<ruby>`, `<rt>`, `<span>`, `<br>`, `<li>` etc.
-- Frontend renders definitions via `dangerouslySetInnerHTML` + DOMPurify sanitization
-- Batch inserts (1000 per transaction)
+**No CORS configuration.** `WebConfig` registers no CORS mappings; no controller-level `@CrossOrigin`. Browser traffic arrives same-origin via the middleware proxy.
 
-### StartupJobService
-- Single-threaded executor (`Executors.newSingleThreadExecutor`) — all DB-writing jobs serialized
-- `submitAll()` — called on startup; queues dict import → crawler → author extraction in order
-- `submitCrawler()`, `submitAuthorExtraction()`, `submitDictionaryImport()` — manual triggers from controllers go through the same queue
-- `submitJob(name, block)` — generic slot for watcher-triggered imports
-- Eliminates `SQLITE_BUSY` caused by concurrent writes on startup
+### Key services
 
-### AppStartupListener
-- `@EventListener(ApplicationReadyEvent)` → calls `startupJobService.submitAll()`
-- Thin — no logic of its own
-
-### DictionaryWatcherService
-- `java.nio.file.WatchService` on `YOMITORI_DICTIONARIES_PATH` and `.../frequency/`
-- `ENTRY_CREATE` events on `.zip` files → submits import to `StartupJobService` queue
-- Daemon thread, no restart needed to pick up new dictionaries
-
-### DictionaryService
-- `lookup(word)`: joins `dictionary_entries` + `word_frequency` + `frequency_sources`
-- `batchLookup(words)`: map each word → list of results (N+1 acceptable on SQLite with indexes)
+| Service | Role |
+|---------|------|
+| `CrawlerService` | Scheduled walker; extracts metadata + covers |
+| `CoverExtractor` | Strategy per format (EPUB / PDF / CBR / CBZ) |
+| `DictionaryParserService` | Unzips Yomichan dicts; emits HTML (`<ruby>` preserved) |
+| `StartupJobService` | Single-threaded executor serializing all DB-writing jobs — avoids `SQLITE_BUSY` |
+| `AppStartupListener` | `@EventListener(ApplicationReadyEvent)` → `startupJobService.submitAll()` |
+| `DictionaryWatcherService` | `WatchService` on dictionaries dir — drop `.zip` → auto-import through queue |
+| `DictionaryService` | `lookup` / `batchLookup` joining entries + frequencies |
 
 ---
 
-## Frontend Architecture
+## 7. Database Schema
 
-### Structure
+### `books`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | TEXT PK | UUID (app-generated — SQLite JDBC has no `getGeneratedKeys`) |
+| filepath | TEXT NOT NULL | Absolute path |
+| filename | TEXT NOT NULL | |
+| title | TEXT NOT NULL | Extracted from metadata |
+| genre | TEXT | |
+| type | TEXT NOT NULL | manga / novel / light-novel / textbook / other |
+| cover_path | TEXT | Filename in covers dir |
+| file_format | TEXT NOT NULL | pdf / epub / cbr / cbz |
+| last_indexed | TIMESTAMP | |
+| is_deleted | BOOLEAN | Soft-delete |
+| manual_override | BOOLEAN | Blocks auto-tag updates |
+| created_at / updated_at | TIMESTAMP | |
+
+### `authors`, `book_authors`
+Standard name-unique + join table.
+
+### `dictionary_imports`, `dictionary_entries`
+UUID-keyed imports. Entries keyed by auto BIGINT; `expression` + `reading` indexed; `definition` is HTML.
+
+### `frequency_sources`, `word_frequency`
+Per-source ranks. `is_numeric` bit; string labels land in `frequency_tag`. `source_id` indexed.
+
+### Schema migrations
+
+Custom runner — not Flyway. `SchemaMigration.kt` listens for `ApplicationReadyEvent`, executes `db/migration/V*__*.sql` in order, tracks applied versions.
+
+Current migrations:
+- V001 — initial books + authors
+- V002 — cover extraction status + retroactive author extraction
+- V003 — dictionary tables
+- V004 — frequency source + word frequency
+- V005 — `frequency_tag`, `is_numeric`
+
+---
+
+## 8. Backend REST API
+
+### Books (`/api/books`)
+
+| Method | Endpoint | |
+|--------|----------|-|
+| GET | `/search` | Paginated search with filters |
+| POST | `/search/bulk` | Search by list of book IDs |
+| GET | `/{id}` | Single book |
+| GET | `/{id}/cover` | Cover JPEG |
+| GET | `/{id}/file` | Stream EPUB/PDF |
+| POST | `/{id}/tag` | Update genre/type |
+| GET | `/genres` / `/types` / `/stats` | Enumerations + library stats |
+| POST | `/crawler/run` | Manual crawl |
+| POST | `/admin/extract-authors` | Retroactive author pass |
+| GET | `/cover-file/{bookId}` | Alternate cover route |
+
+### Authors (`/api/authors`)
+`/autocomplete?query=`, `/{id}`, `/?query=&page=&pageSize=`.
+
+### Dictionary (`/api/dictionary`)
+`/imports`, `/frequency-sources`, `/lookup?word=`, `/batch-lookup`, `/reimport`.
+
+### Crawler / Proxy (`/api/crawler`, `/api/proxy`)
+`/trigger`; `/jisho?word=`, `/anki` (forwards to AnkiConnect LAN).
+
+See the previous section's component list for service boundaries.
+
+---
+
+## 9. Frontend (`frontend/`)
+
+React 18 + Vite. **All network calls use relative paths** via `lib/resolvePath.ts`:
+
+```ts
+export function resolvePath(path: string): string { return path; }
+export function resolveMiddlewarePath(path: string): string { return path; }
+```
+
+Pass-through helpers (not React hooks — the earlier `useProxy` name tripped `react-hooks/rules-of-hooks`; renamed in v1.0).
 
 ```
 frontend/src/
 ├── api/              REST clients (bookClient, dictionaryClient, jishoClient)
 ├── components/       Reusable UI (BookCard, BookGrid, SearchForm, CardMenu, TabsMenu)
-├── hooks/            useLibrary, useProxy, useLocalStorage, useAuthorAutocomplete
-├── reader/           EPUB reader subsystem
-│   ├── EpubReader.tsx            Renders parsed EPUB chapters; wires useSelectionDefinition; fires onContentLoaded
-│   ├── EpubParser.ts             Parses EPUB zip → HTML chapters
-│   ├── ReaderPage.tsx            Top-level reader page + state; mounts DefinitionPopup + InlineAnnotationInput
-│   ├── ReaderUI.tsx              Bottom control bar (two-row: title + labeled controls, separator before mining)
-│   ├── SettingsModal.tsx         CSS editor + mining filter + annotation color settings
-│   ├── DefinitionPopup.tsx       In-reader dictionary popup; "✏ Inline" button triggers inline annotation
-│   ├── DefinitionPopup.css       Popup styles
-│   ├── InlineAnnotationInput.tsx Floating input panel for creating/editing inline annotations
-│   ├── InlineAnnotationInput.css Styles for floating input panel
-│   ├── useSelectionDefinition.ts mouseup → /deinflect → batchLookup → greedy match; exposes rawText
-│   ├── WordMinerPanel/           Results panel for bulk-mined words
-│   ├── useCustomCSS.ts           CSS persistence + scoping
-│   ├── useSwipeGesture.ts        Touch navigation
-│   └── useWordMiner.ts           POST /mine-words to middleware (full pipeline)
-├── hooks/            useInlineAnnotations (IDB CRUD + DOM inject/remove/edit for inline annotations)
-├── services/         ankiService, ankiQueueService, dictionaryStore, reviewStore, inlineAnnotationStore (IndexedDB)
+├── hooks/            useLibrary, useLocalStorage, useAuthorAutocomplete, useInlineAnnotations
+├── lib/              resolvePath, tauriApi (isTauri guard for SetupWizard only)
+├── reader/           EpubReader, ReaderPage, ReaderUI, DefinitionPopup, InlineAnnotationInput,
+│                     SettingsModal, useSelectionDefinition, useWordMiner, useCustomCSS, WordMinerPanel
+├── services/         ankiService, ankiQueueService, dictionaryStore, reviewStore, inlineAnnotationStore (IDB)
 ├── views/
-│   ├── QuizView/     SRS quiz UI — config, quiz card, results, session bar
-│   ├── StatsView/    Review stats dashboard + session history
-│   ├── AuthorsView, DictionaryView, HomePage, TitlesView
+│   ├── QuizView, StatsView, AuthorsView, DictionaryView, HomePage, TitlesView
+│   └── SetupWizard   Shown by main.tsx inside Tauri splash (IPC-driven); non-Tauri jumps straight to App
 └── styles/           SCSS variables, mixins, global
 ```
 
+`main.tsx` renders three views: `checking` (brief IPC probe, only inside Tauri), `wizard` (SetupWizard), `app` (full App). Browser tabs skip the IPC probe entirely and mount `App` directly.
+
 ---
 
-## SRS System (Client-Side)
+## 10. SRS System (Client-Side)
 
-All review state lives in **IndexedDB** (`yomitori-reviews`) — no backend involvement.
+All review state in **IndexedDB** — no backend involvement.
 
 ### ARIA Algorithm (`reviewStore.ts`)
-Adaptive Response Interval Algorithm — extends SM2 with three layers:
+
+Adaptive Response Interval Algorithm — SM2 + three layers:
 
 | Layer | What it does |
-|-------|-------------|
-| Speed weighting | Response time < 30% of limit → ease bonus; > 70% → ease penalty |
+|-------|--------------|
+| Speed weighting | Response time < 30% of limit → ease bonus; > 70% → penalty |
 | Consistency factor | Rolling 5-answer window: ≥80% correct → 10% interval bonus |
 | Difficulty penalty | Lifetime wrong ratio shrinks future intervals (max 30% reduction) |
 
-**Status transitions:**
-- `new` → `learning` (first answer)
-- `learning` → `reviewing` (interval ≥ 7 days)
-- `reviewing` → `known` (interval ≥ 21 days AND streak ≥ 5)
-- Any wrong → back to interval = 1 day
+**Status transitions:** `new` → `learning` (first answer) → `reviewing` (interval ≥ 7d) → `known` (interval ≥ 21d AND streak ≥ 5). Wrong → interval = 1 day.
 
-### Quiz Modes
+### Quiz modes
+Scheduled (ARIA-selected, ~15% new cards), Custom (filter-driven, optional size cap), Endless (no limit), Hardcore (session ends on first wrong).
 
-| Mode | Description |
-|------|-------------|
-| Scheduled | ARIA-selected due cards; new words injected at ~15% of session size |
-| Custom | Filter by frequency source, rank range, or status; optional session size cap |
-| Endless | No card limit; runs until manually exited |
-| Hardcore | Any of the above + one wrong answer ends the session immediately |
+### IndexedDB schema
 
-### IndexedDB Schema
+- `reviews` (key `baseForm`): `{ baseForm, interval, easeFactor, dueDate, streak, correctCount, incorrectCount, recentResults, status, lastReviewed }`
+- `inline-annotations` (DB `yomitori-inline-annotations`, key `id`): `{ id, bookId, selectedText, noteText, charPos, createdAt }`; indexed on `bookId`
+- `meta`: `streak`, `activity` (date→count), `sessions` (last 100)
 
-**`reviews` store** (key: `baseForm`):
-```ts
-{ baseForm, interval, easeFactor, dueDate, streak, correctCount, incorrectCount, recentResults, status, lastReviewed }
-```
-
-**`inline-annotations` store** (DB: `yomitori-inline-annotations`, key: `id`):
-```ts
-{ id: string, bookId: string, selectedText: string, noteText: string, charPos: number, createdAt: number }
-```
-Index: `bookId` — all annotations for a book loaded on epub open.
-
-**`meta` store** (key: string):
-| Key | Value |
-|-----|-------|
-| `streak` | `{ streak: number, lastDate: string }` |
-| `activity` | `{ dates: Record<string, number> }` (reviews per day) |
-| `sessions` | `{ sessions: QuizSession[] }` (last 100) |
-
-### Session Save Race Fix
-`saveSession()` returns a `Promise<void>` tracked in module-level `_pendingSave`. StatsView calls `awaitPendingSave()` before loading — ensures the last session is persisted before stats render.
-
-### Key Flows
-
-**Book Library Flow:**
-```
-HomePage
-  → bookClient.searchBooks()
-  → /api/books/search
-  → SQLite query (paginated)
-  → BookGrid renders cards
-  → Click → /reader?id={bookId}
-```
-
-**Word Mining Flow (Bulk):**
-```
-User clicks Mine button
-  ↓
-extractText() from rendered EPUB DOM
-  ↓
-POST /mine-words → middleware
-  ↓
-  tokenizeText() via Kuromoji (internal)
-  ↓
-  batchLookupBackend() → POST /api/dictionary/batch-lookup (8 parallel batches)
-  ↓
-  Filter by frequencySource + min/max rank
-  ↓
-  enqueue() → ankiQueue (middleware-internal, setInterval worker)
-    → POST /api/proxy/anki → AnkiConnect → Lapis card
-  ↓
-Return word list to frontend
-  ↓
-Frontend upserts each word into IndexedDB (dictionaryStore)
-```
-
-**In-Reader Definition Popup Flow:**
-```
-User selects text in EpubReader
-  ↓
-useSelectionDefinition: mouseup handler
-  ↓
-POST /deinflect → middleware → candidates[]
-  ↓
-batchLookup(uniqueBaseForms) → POST /api/dictionary/batch-lookup
-  ↓
-smartMatch(): greedy longest-match segmentation → SelectionEntry[]
-  ↓
-DefinitionPopup renders: expression, reading, definitions, alternates (see also)
-  ↓
-User clicks +Anki → addNote() via /api/proxy/anki
-User clicks +Dict → upsertWord() into IndexedDB
-User clicks kanji → lookupWord() → inline kanji result
-```
-
-**Inline Annotation Flow:**
-```
-User selects text → DefinitionPopup → clicks "✏ Inline"
-  ↓
-ReaderPage sets pendingInlineAnnotation { rawText, rect }
-  ↓
-InlineAnnotationInput renders (floating, near selection rect)
-  ↓
-User types note → Enter / "Add"
-  ↓
-useInlineAnnotations.createInlineAnnotation()
-  → saveInlineAnnotation() → IndexedDB (yomitori-inline-annotations)
-  → injectInlineAnnotation(epubContentRef, ann, onDismiss, onEdit)
-    collectTextNodes(root) — concatenates non-rt/rp text, skips existing annotation spans
-    find charPos match → targetNode.splitText(localOffset) → afterNode
-    findInlineRoot(afterNode, root) — highest inline ancestor of block parent
-    build <span.epub-inline-annotation>: dismiss button + annotation label
-    insertBefore(marker, insertBefore)
-  ↓
-On epub load: injectAllInlineAnnotations() re-injects all stored annotations (sorted by charPos)
-Click dismiss → marker.remove() + deleteInlineAnnotation(id)
-Click label → onEdit callback → InlineAnnotationInput with initialText → editInlineAnnotation() + DOM patch
-```
-
-**Anki Queue (middleware):**
-- Retry queue lives in `ankiQueue.ts` (middleware process)
-- 50 notes per batch → `addNotes` AnkiConnect action
-- Max 10 attempts per batch, 2.5s retry interval
-- Persists across frontend page reloads
+`saveSession()` returns a tracked promise; StatsView calls `awaitPendingSave()` to avoid save/load races.
 
 ---
 
-## Configuration
+## 11. Key Flows
 
-### Environment Variables
+**Library:**
+```
+HomePage → bookClient.searchBooks() → /api/books/search
+  → middleware proxy → backend → SQLite → BookGrid
+```
+
+**In-reader dictionary popup:**
+```
+mouseup in EpubReader
+  → POST /deinflect (middleware, Kuromoji + rules)
+  → POST /api/dictionary/batch-lookup (middleware proxy → backend)
+  → smartMatch (greedy longest-match segmentation)
+  → DefinitionPopup
+```
+
+**Word mining (bulk):**
+```
+Mine button → extractText() from rendered EPUB
+  → POST /mine-words (middleware)
+      ├ tokenize (Kuromoji)
+      ├ batch-lookup (proxied)
+      ├ filter by frequency source + rank window
+      └ enqueue → ankiQueue → POST /api/proxy/anki (proxied) → AnkiConnect
+  → IDB upsert in frontend (dictionaryStore)
+```
+
+**Inline annotations:**
+```
+Popup "✏ Inline" → InlineAnnotationInput → save to IDB
+  → injectInlineAnnotation (splitText + marker span, inherits writing-mode)
+  → onContentLoaded: re-inject all, sorted by charPos
+```
+
+**Anki queue (middleware):** 50-note batches, 10 retries, 2.5s interval; survives frontend reloads because the worker lives in the middleware process.
+
+---
+
+## 12. Configuration
+
+### Environment variables (desktop launcher sets these)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `DATA_DIR` | `/app/data` | Base dir for DB + covers (Tauri sets to app data dir) |
-| `BOOKS_PATH` | `${DATA_DIR}/books` | Books to index (Tauri sets from wizard selection) |
-| `CORS_ORIGINS` | `http://localhost:5173,...` | CSV; includes `tauri://localhost` in desktop mode |
-| `YOMITORI_CRAWLER_ENABLED` | `true` | |
-| `YOMITORI_CRAWLER_SCHEDULE` | `0 */1 * * * ?` | Cron format |
+| `DATA_DIR` | `${app_data_dir}` | DB + covers base |
+| `BOOKS_PATH` | wizard selection | Crawler root |
+| `SERVER_ADDRESS` | `127.0.0.1` | Spring bind |
 | `SPRING_DATASOURCE_URL` | `jdbc:sqlite:${DATA_DIR}/yomitori.db` | |
-| `ANKI_CONNECT_URL` | `http://localhost:8765` | LAN/localhost |
-| `BOOKS_MOUNT` | `./.books` | Docker: host path |
-| `DICTIONARIES_MOUNT` | `./dictionaries` | Docker: host path |
-| `VITE_BACKEND_URL` | `http://localhost:8080` | Frontend → backend |
-| `VITE_MIDDLEWARE_URL` | `http://localhost:3000` | Frontend → middleware |
-| `LAN_IP` | `localhost` | Phone access (Docker mode) |
+| `YOMITORI_CRAWLER_ENABLED` | `true` | |
+| `YOMITORI_CRAWLER_SCHEDULE` | `0 */1 * * * ?` | Cron |
+| `ANKI_CONNECT_URL` | `http://localhost:8765` | |
+| `HOST` (middleware) | `127.0.0.1` | Bind; Docker overrides to `0.0.0.0` |
+| `YOMITORI_STATIC_DIR` | `${resource_dir}/dist` | SPA assets |
+| `DEINFLECT_RULES_PATH` | `${resource_dir}/deinflect-rules.json` | |
+| `BACKEND_URL` | `http://127.0.0.1:8080` | Middleware → backend |
 
-### Docker Volumes
+No `VITE_BACKEND_URL` / `VITE_MIDDLEWARE_URL` — frontend uses relative paths only.
 
-| Volume | Mount | Mode |
-|--------|-------|------|
-| `${BOOKS_MOUNT}` | `/app/data/books` | ro |
-| `${DICTIONARIES_MOUNT}` | `/app/data/dictionaries` | ro |
-| `yomitori-data` | `/app/data` | rw (DB + covers) |
+### Docker mode (server / self-host)
+
+Orthogonal to desktop packaging. `docker-compose.yml` runs backend + middleware + (optional) file server. `BOOKS_MOUNT` / `DICTIONARIES_MOUNT` bind host paths. Middleware uses `network_mode: host` to reach AnkiConnect on localhost:8765.
 
 ---
 
-## Build + Deploy
+## 13. Build & Distribution
 
 ### Desktop (Tauri)
 ```bash
-./build-desktop.sh      # Full pipeline: frontend → JAR → jlink JRE → bun binary → tauri build
+./build-desktop.sh      # frontend (Vite) → JAR (Gradle) → jlink JRE → bun --compile middleware → tauri build
 ```
 Artifacts in `launcher/target/release/bundle/` — one installer per platform.
 
 ### Docker / server
 ```bash
-./build.sh              # Build all artifacts (frontend, middleware, backend JAR)
-docker-compose up       # Run stack
+./build.sh              # frontend, middleware, backend JAR
+docker-compose up
 ```
 
-### Desktop dev
+### Dev loop
 ```bash
-cd launcher && ~/.local/bin/tauri dev   # Opens native window pointing at Vite :5173
-# (beforeDevCommand auto-starts: npm run dev in frontend/)
+cd launcher && tauri dev   # Vite on :5173; beforeDevCommand auto-starts frontend dev server
 ```
 
 ### Release (CI)
-Push a `v*` tag **or** trigger `workflow_dispatch` → `release.yml` builds all three platforms and creates a GitHub Release draft. Linux produces `.deb` + `.rpm` (AppImage skipped — linuxdeploy requires FUSE, unavailable on GH runners).
+`v*` tag push or `workflow_dispatch` → `release.yml` builds Linux / Windows / macOS-arm. Linux ships `.deb` + `.rpm` (AppImage skipped — `linuxdeploy` needs FUSE which is unavailable on GH runners).
 
-### Artifacts
+### Artifact map
+
 | Artifact | Path | Used by |
 |----------|------|---------|
-| SPA bundle | `frontend/dist/` | Docker + Tauri (middleware static-serves it) |
-| Compiled middleware | `middleware/dist/` | Docker; `bun --compile` → binary for Tauri |
-| Spring Boot JAR | `build/libs/yomitori-*.jar` | Docker + Tauri (via bundled JRE) |
-| Minimal JRE | `launcher/resources/jre/` | Tauri bundle (jlink from JAR deps) |
-| Backend sidecar | `launcher/binaries/yomitori-backend-*` | Tauri (shell script wrapping JRE + JAR) |
-| Middleware binary | `launcher/binaries/yomitori-middleware-*` | Tauri (bun self-contained binary, also serves SPA) |
-| deinflect-rules.json | `launcher/resources/deinflect-rules.json` | Tauri resource; path passed via `DEINFLECT_RULES_PATH` env |
-
-### Hot Reload
-- **Docker**: Frontend via Vite HMR bind mount; backend: rebuild JAR + restart container
-- **Tauri dev**: Vite HMR auto-proxied through WebView; Rust changes require `tauri dev` restart
+| SPA bundle | `frontend/dist/` | Docker; also copied to `launcher/resources/dist` for Tauri |
+| Middleware binary | `launcher/binaries/yomitori-middleware-*` | Tauri sidecar (bun `--compile`) |
+| Backend sidecar | `launcher/binaries/yomitori-backend-*` | Tauri sidecar (shell wrapper → JRE + JAR) |
+| Minimal JRE | `launcher/resources/jre/` | Tauri resource (jlink from JAR deps) |
+| `deinflect-rules.json` | `launcher/resources/deinflect-rules.json` | Tauri resource; path passed via `DEINFLECT_RULES_PATH` |
+| `kuromoji-dict/` | `launcher/resources/kuromoji-dict/` | Tauri resource; bundled because `bun --compile` breaks `__dirname` |
 
 ---
 
-## Schema Migration
+## 14. Security Posture (Desktop)
 
-Custom pattern — NOT Flyway. `SchemaMigration.kt` listens for `ApplicationReadyEvent`, executes `db/migration/V*__*.sql` in order. Tracks applied versions.
-
-Current migrations:
-- V001 — initial books + authors schema
-- V002 — cover extraction status + retroactive author extraction
-- V003 — dictionary tables
-- V004 — frequency source + word frequency tables
-- V005 — frequency_tag on word_frequency, is_numeric on frequency_sources
+- **Network exposure:** loopback only. Nothing bound outside 127.0.0.1.
+- **IPC surface:** splash window only (`local.json`); the browser tab has no IPC at all.
+- **`shell:allow-open`** scoped to `http://localhost:3000/**` — cannot be abused to open arbitrary URLs.
+- **`open_path`** gated by Rust-side path-prefix allowlist (books / app_data / resource).
+- **CSP** on splash: `default-src 'none'` + explicit per-directive allow list.
+- **No auth** on backend — justified by loopback-only bind in desktop mode. Docker mode is the user's responsibility.
 
 ---
 
-## Known Constraints
+## 15. Design Decisions
 
-- **SQLite**: single-writer bottleneck. All writes go through `StartupJobService` single-threaded executor to prevent `SQLITE_BUSY`.
+### Why the browser tab (v1.0 shape)
+
+Earlier desktop releases (v0.3–0.4) rendered the full app inside the Tauri WebView. v0.9.0 pivoted to a browser-tab model: the Tauri window became a setup shell + service manager, middleware started serving the SPA statically, and Spring CORS was deleted in favour of same-origin. The browser is a better host for a long-lived reader — DevTools, tab management, extensions, multi-window all "just work".
+
+### The middleware-pivot detour (explored and reverted pre-v1.0)
+
+During v1.0 planning we investigated shrinking the Tauri window into a feature-rich splash/launcher that used Tauri v2 *remote IPC* (`remote.urls`) so the browser-hosted SPA could still reach native capabilities (folder picker, system tray, `open_path`). Detailed specs live in `docs/requirements-middleware-pivot.md` and `docs/tech-spec-middleware-pivot.md`.
+
+**Reverted before shipping.** Reasons:
+1. Remote IPC injects `__TAURI_INTERNALS__` into whatever origin is listed in `remote.urls`. Anything with a foothold at `http://localhost:3000` inherits the whole IPC surface. Mitigation surface (scoping every command, tightening CSP on middleware responses) grew faster than the feature.
+2. The browser tab did not actually need native capabilities — all native work happens once during setup (folder picker) and lives in the Tauri splash.
+3. Same-origin + loopback-only gives the guarantees remote IPC was meant to preserve, at a fraction of the attack surface.
+
+v1.0 ships **splash-only**: no `remote.json` capability, no remote IPC, browser tab has zero IPC. Native UI lives in the Tauri splash; the browser tab is a plain SPA talking to a same-origin HTTP server.
+
+### Why SQLite + single-writer executor
+
+SQLite is a single-writer store. Concurrent writes during startup (dict import + crawler + author extraction) hit `SQLITE_BUSY`. `StartupJobService` serializes every DB-writing job through one executor, including manual triggers from the API.
+
+### Why kuromoji dict bundled as a resource
+
+`bun --compile` replaces `__dirname` / `import.meta.url` with compile-time values that don't resolve at runtime. The kuromoji dict must be discoverable via an explicit env path (`KUROMOJI_DICT_PATH`), so it ships as a Tauri resource and the launcher passes the path at spawn time.
+
+---
+
+## 16. Known Constraints
+
+- **SQLite**: single-writer bottleneck (mitigated by `StartupJobService`).
 - **Dictionary imports** on first run block the job queue for 30-60s — crawler and author extraction wait their turn.
 - **Kuromoji middleware** has ~100MB memory footprint.
-- **Mining pipeline** depends on EPUB DOM being fully rendered — caller must wait for chapters.
-- **AnkiConnect** requires Anki desktop running on LAN with AnkiConnect add-on.
-- **Middleware uses `network_mode: host`** — required for Anki (localhost:8765) and backend (localhost:8080) reachability; means middleware port is not exposed in docker-compose port mapping.
+- **Mining pipeline** depends on the EPUB DOM being fully rendered — caller must wait for `onContentLoaded`.
+- **AnkiConnect** requires Anki running with the AnkiConnect add-on; middleware retry queue handles transient unavailability.
+- **AppImage** skipped in CI — FUSE unavailable on GitHub-hosted runners.
+
+---
+
+*Co-Authored-By: chloe-chan <noreply@chloe>*
