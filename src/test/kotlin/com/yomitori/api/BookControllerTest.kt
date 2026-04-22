@@ -2,6 +2,7 @@ package com.yomitori.api
 
 import com.yomitori.model.Book
 import com.yomitori.service.BookService
+import com.yomitori.service.StartupJobService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
@@ -22,6 +23,8 @@ class BookControllerTest {
 
     @MockBean
     private lateinit var bookService: BookService
+    @MockBean
+    private lateinit var startupJobService: StartupJobService
 
     private val testBook = Book(
         id = "1",
