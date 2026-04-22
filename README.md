@@ -1,9 +1,12 @@
 # yomitori ♡
+
+<center>
+## read books with anime on the cover  
+</center>
+
 <center>
   <img width="1493" height="212" alt="image" src="https://github.com/user-attachments/assets/b396f068-248d-4a45-aa6c-ca8073c4c3e6" />
 </center>
-
-** read books with anime on the cover **
 
 ---
 
