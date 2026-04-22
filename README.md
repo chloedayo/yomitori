@@ -2,17 +2,7 @@
 
 **yomitori** (読み取り) — a love letter to your books, in code.
 
-You've got 40,000+ ebooks scattered across your hard drive. Books with anime on the cover. Books you meant to read. Books you forgot you had. Books that deserve better than a folder named `_ebooks_final_v2` or `vol-03-[broken-encoding].epub`.
-
-Yomitori brings them home. ♡
-
-**What it does:** Crawls your collection automatically, extracts covers and metadata, learns author relationships, tracks where you left off, lets you favorite and search like you mean it.
-
-**What it feels like:** Searching for 百合 and seeing all your covers at once. Clicking an author and seeing every book they wrote. Resuming exactly where you stopped. Mining vocab from your novels and sending it straight to Anki. Progress bars that actually mean something.
-
-Built with care. Built with Kotlin, React, and the kind of attention to detail that makes your heart smile when you hover over a cover and everything just... works.
-
-✧
+You've got thousands of ebooks scattered across your drive. Books with anime on the cover. Books you meant to read. Books you forgot you had. Yomitori brings them home — covers, metadata, authors, reading progress — and turns them into a Japanese reading workflow that actually works.
 
 <center>
    <img width="1528" height="969" alt="image" src="https://github.com/user-attachments/assets/94598955-eeaa-41dd-ab46-b18c676876f7" />
@@ -22,298 +12,171 @@ Built with care. Built with Kotlin, React, and the kind of attention to detail t
 
 ---
 
-## The Good Stuff ♡
+## Install
 
-- **Books. With anime on the cover.** That's the whole pitch.
-- **In-Reader Dictionary Popup** — Select any text while reading → instant deinflected definition popup. Kanji drill-down, alternate forms, add to Anki or personal dictionary without leaving the page.
-- **Local Yomichan Dictionaries** — Drop zips into `/dictionaries/`. No internet, no Jisho rate limits, no one knowing what words you're looking up at 2am. Add new dicts while running — auto-imported, no restart needed.
-- **Word Mining with Frequency Filtering** — Tokenize your novel with Kuromoji, filter by frequency rank, auto-export to Anki as you read. Entire pipeline runs in middleware — mine 5000-word novels in seconds.
-- **Personal Dictionary** — Every word you look up or mine gets saved locally (IndexedDB). Searchable, sortable, filterable by kana row or frequency. Yours forever.
-- **Anki Integration (AnkiConnect)** — Mining results stream into Anki on your LAN. Works with Lapis template. Retry queue lives in middleware — survives page reloads.
-- **Inline Annotations** — Select any text → "✏ Inline" → type a note. It's injected right at that word in the flow of the text, in the correct writing direction, styled in indigo so you always know what's yours. Hover to dismiss, click to edit. Persists locally per book, survives page reloads.
-- **Vertical + Horizontal Reading** — 縦書き and 横書き, with persistent preference per session.
-- **Custom CSS Editor** — Live validation + preview. Style the reader however you want.
-- **SRS Quiz System (ARIA)** — Spaced repetition for your mined vocabulary. SM2-extended algorithm with speed weighting, consistency bonus, and difficulty penalty. Scheduled, custom, endless, and hardcore (one mistake ends it) modes. Stats dashboard with accuracy rings, interval histograms, activity heatmap, and per-mode session charts.
+Download the installer for your platform from [Releases](https://github.com/chloedayo/yomitori/releases):
 
-## The Rest of the Stuff
+| Platform | File |
+|----------|------|
+| Linux (Debian/Ubuntu) | `yomitori_*_amd64.deb` |
+| Linux (Fedora/RHEL) | `yomitori-*.x86_64.rpm` |
+| Windows | `yomitori_*_x64-setup.exe` |
+| macOS (Apple Silicon) | `yomitori_*_aarch64.dmg` |
 
-- Smart auto-indexing from directory structure (title, type, author extraction)
-- Reading status: In Progress, Favorites, Hidden
-- Bookmark save/restore with jump-to and progress percent display
-- Pie chart progress visualization
-- Author search with autocomplete + author favorites
-- Bulk lazy-loading for favorites/in-progress (server-side, not client-side filtering)
-- Mobile-optimized reader: compact controls, stacked layout, centered progress, swipe navigation
-- Proportional swipe: swipe harder, scroll further
-- REST API for everything (see below)
-- SQLite for local, no-setup persistence
+> **Arch/CachyOS:** Build from source — see [Building locally](#building-locally).
 
 ---
 
-## Documentation
+## Getting started
 
-- [Architecture Deep Dive](ARCHITECTURE.md) — tech reference, DB schema, full API tables
-- [Roadmap](ROADMAP.md) — what's built, what's next
+1. **Launch yomitori** — a small setup window appears
+2. **Pick your books folder** — the root directory of your collection
+3. Click **Start** — yomitori starts its services in the background
+4. **Open in browser** — click the button or visit `http://localhost:3000`
+5. **Wait for indexing** — first crawl takes a few minutes depending on collection size; covers and metadata are extracted automatically
 
----
-
-## Quick Start
-
-### Prerequisites
-
-- Docker & Docker Compose ← the easy path
-- OR: Java 17+, Node 18+, Gradle 8.4+
-
-### Option 1: Docker (Recommended ~)
-
-```bash
-# Copy environment template
-cp .env.example .env
-
-# Point it at your books
-# BOOKS_MOUNT=/path/to/your/books
-
-# For phone/tablet LAN access, set your IP too:
-# LAN_IP=192.168.x.x
-# CORS_ALLOWED_ORIGINS=http://localhost:5173,http://192.168.x.x:5173
-
-docker-compose up --build
-```
-
-- Backend API: `http://localhost:8080`
-- Frontend: `http://localhost:5173` (or `http://YOUR_LAN_IP:5173` on phone)
-- File server (EPUB reader): `http://localhost:8888`
-
-### Option 2: Build & Run Locally
-
-```bash
-# Build both frontend and backend
-./build.sh
-# → frontend/dist/  +  build/libs/yomitori-0.1.0.jar
-
-# Run without Docker
-# Terminal 1:
-./gradlew bootRun
-# Terminal 2:
-cd frontend && npm install && npm run dev
-```
-
-### First Run
-
-1. App starts (backend :8080, frontend :5173)
-2. On startup: dictionary import → crawler → author extraction run automatically in sequence
-3. For 40k+ files, expect 2-5 minutes on first pass
-4. To re-index manually (queues behind any running job):
-   ```bash
-   curl -X POST http://localhost:8080/api/books/crawler/run
-   ```
+The app keeps running in your **system tray** after you close the browser. Click the tray icon → **Open Yomitori** to reopen. To change your books folder, click the tray icon → **Settings**.
 
 ---
 
-## Dictionaries & Word Mining ♡
+## Features
 
-Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yomichan/Yomitan, just served locally from your backend.
+### Library
+- Covers extracted from every EPUB, PDF, CBR, and CBZ
+- Smart indexing: title, type, author relationships extracted from metadata and filenames
+- Search by title, author, genre, or type
+- Tabs: All Books, In Progress, Favorites, Hidden
+- Author view with autocomplete and author favorites
+- Hover preview, pie chart reading progress
 
-**Setup:**
-1. Get a Yomichan dictionary zip (definition dict + frequency dict)
-2. Drop **definition dicts** into `./dictionaries/`
-3. Drop **frequency dicts** into `./dictionaries/frequency/`
-4. Backend imports on startup automatically — no restart needed for new dicts added while running
+### Reader
+- EPUB reader with vertical (縦書き) and horizontal (横書き) modes
+- Swipe navigation — proportional: swipe harder, scroll further
+- Bookmark save and restore with progress tracking
+- Custom CSS editor — live preview, scoped to the reader
+- Mobile-optimized: compact controls, touch navigation, responsive layout
 
-**Mining:**
+### Dictionary popup ♡
+Select any text while reading → an instant popup appears with:
+- Deinflected definitions (conjugation-aware: 食べている → 食べる)
+- All matched forms with kanji drill-down (click any kanji for an inline sub-lookup)
+- Alternate / "see also" forms, each independently expandable
+- **+Anki** — add directly to Anki from the popup
+- **+Dict** — save to your personal dictionary
+- **✏ Inline** — attach a note right at that word in the text
+
+Uses your local Yomichan dictionaries — no internet required.
+
+### Word mining
 1. Open a book in the reader
-2. (Optional) Settings → Frequency Filter → pick source + rank range
-3. Hit the 🎓 mine button — it's a toggle; hit it again to stop + clear queue
-4. Words auto-export to Anki (requires AnkiConnect + Anki running)
-5. Every exported word also lands in your **Personal Dictionary** (accessible from the homepage)
+2. (Optional) Settings → Mining Filter → pick frequency source + rank range
+3. Hit the **Mine** button — Kuromoji tokenizes the entire book
+4. Matched words auto-export to Anki in the background
+5. Every word also lands in your **Personal Dictionary**
+
+Mining runs in the middleware process and survives page reloads. Hit Mine again to stop and clear the queue.
+
+### Personal dictionary
+Every word you mine or look up is saved locally in your browser (IndexedDB). Browse by kana row, filter by frequency source, see SRS status alongside each entry.
+
+### SRS quiz (ARIA algorithm)
+Spaced repetition for your mined vocabulary, fully offline. Modes:
+- **Scheduled** — ARIA-selected due cards, ~15% new words per session
+- **Custom** — filter by frequency source, rank range, or status
+- **Endless** — no session limit, run until you stop
+- **Hardcore** — one wrong answer ends the session (💀)
+
+Stats dashboard: accuracy ring, interval histogram, activity heatmap, session history with per-mode charts.
+
+### Inline annotations
+Select text → **✏ Inline** in the popup → type a note. Injected right at the word in the reading flow, in the correct writing direction. Hover to dismiss, click to edit. Persists per book, survives navigation.
 
 ---
 
-## API Reference
+## Dictionaries
 
-Full schema with request/response tables: [docs/ARCHITECTURE.md](ARCHITECTURE.md)
+Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yomitan.
 
-### Quick Reference
+**Setup (Docker/server mode):**
+1. Drop **definition dictionary** zips into `./dictionaries/`
+2. Drop **frequency dictionary** zips into `./dictionaries/frequency/`
+3. Dictionaries import on startup; new files dropped while running auto-import — no restart needed
 
-**Books:**
+**Setup (desktop app):**
+Place dictionaries in the `dictionaries/` folder inside your books directory, or use the admin endpoint to reimport:
 ```
-GET  /api/books/search?title=&genre=&type=&author=&page=0&pageSize=20
-POST /api/books/search/bulk          { ids: string[] }
-GET  /api/books/{id}
-GET  /api/books/{id}/cover
-GET  /api/books/{id}/file
-POST /api/books/{id}/tag             { genre, type }
-GET  /api/books/genres | /types | /stats
-```
-
-**Authors:**
-```
-GET /api/authors/autocomplete?query=
-GET /api/authors/{id}
-```
-
-**Dictionary:**
-```
-GET  /api/dictionary/lookup?word=
-POST /api/dictionary/batch-lookup    { words: string[] }  → { [word]: entry[] }
-GET  /api/dictionary/frequency-sources
-```
-
-**Admin:**
-```
-POST /api/books/crawler/run
-POST /api/books/admin/extract-authors
-```
-
-**Proxy:**
-```
-POST /api/proxy/anki                 (forwards to AnkiConnect)
-GET  /api/proxy/jisho?word=          (legacy)
+POST http://localhost:8080/api/dictionary/reimport
 ```
 
 ---
 
-## Configuration
+## AnkiConnect setup
 
-### .env (Copy from `.env.example`)
+Mining and popup +Anki require [AnkiConnect](https://ankiweb.net/shared/info/2055492159) installed in Anki.
 
-```bash
-BOOKS_MOUNT=./books          # Path to your book collection
-BOOKS_PATH=/app/data/books   # Internal container path (usually don't change)
-FRONTEND_PORT=5173
-BACKEND_PORT=8080
-```
+1. Install AnkiConnect add-on in Anki (code: `2055492159`)
+2. Keep Anki running while reading
+3. That's it — yomitori finds it at `localhost:8765` automatically
 
-### application.properties (Advanced)
-
-```properties
-# Database
-spring.datasource.url=jdbc:sqlite:/app/data/yomitori.db
-
-# Crawler
-yomitori.crawler.enabled=true
-yomitori.crawler.schedule=0 */1 * * * ?   # every hour
-yomitori.crawler.books-path=/app/data/books
-yomitori.crawler.batch-size=100
-
-# Logging
-logging.level.com.yomitori=DEBUG
-```
-
-**Cron schedule examples:**
-```
-0 0 * * * ?        — midnight daily
-0 */1 * * * ?      — every hour (default)
-0 */15 * * * ?     — every 15 min
-```
-
-### Docker Services
-
-| Service | Base | Port | Notes |
-|---------|------|------|-------|
-| backend | eclipse-temurin:17 | 8080 | Spring Boot + SQLite |
-| frontend | node:20-alpine | 5173 | Vite dev server |
-| file-server | python | 8888 | Serves books for reader |
-
----
-
-## Database
-
-**SQLite** persisted via Docker named volume `yomitori-db:/app`.
-
-**Note on IDs:** SQLite JDBC doesn't support `getGeneratedKeys()`, so all IDs are application-generated UUIDs. Never use `@GeneratedValue` with SQLite — it breaks silently. All entities use `@Id val id: String = UUID.randomUUID().toString()`.
-
-**Access the DB from your IDE:**
-```bash
-docker cp yomitori-backend-1:/app/yomitori.db ./yomitori.db
-# Then connect with driver: SQLite, file: ./yomitori.db, no credentials
-```
-
----
-
-## Project Structure
-
-```
-yomitori/
-├── src/main/kotlin/com/yomitori/
-│   ├── api/               REST endpoints
-│   ├── service/           Business logic
-│   ├── model/             JPA entities
-│   └── repository/        Database access
-├── frontend/src/
-│   ├── components/        Shared React components
-│   ├── views/             Page-level views
-│   ├── reader/            Reader + mining + settings
-│   ├── api/               API + Anki clients
-│   └── services/          IndexedDB, Anki queue
-├── dictionaries/          Drop your Yomichan zips here
-├── docs/                  Architecture + Roadmap
-├── build.sh               Builds frontend + backend
-├── docker-compose.yml
-└── .env.example
-```
-
----
-
-## Tech Stack
-
-| Layer | Tech |
-|-------|------|
-| Backend | Kotlin, Spring Boot 3.2, Spring Data JPA |
-| Database | SQLite, Flyway migrations |
-| NLP | Kuromoji tokenizer |
-| EPWING/Yomichan | Custom parser (zip → SQLite) |
-| Frontend | React 18, TypeScript, Vite |
-| Client Storage | IndexedDB via `idb` |
-| Covers | Apache PDFBox 3.0 |
-| Build | Gradle (backend), Vite (frontend) |
+Works with the [Lapis](https://github.com/donkuri/Lapis) card template.
 
 ---
 
 ## Troubleshooting
 
-**Books not appearing?**
-```bash
-docker-compose logs backend | grep -i crawler
-curl -X POST http://localhost:8080/api/books/crawler/run
+**Books not appearing after setup?**
+Crawl runs automatically on start. For large collections (40k+ files) wait 5-10 minutes. Trigger manually via tray → Settings or:
+```
+POST http://localhost:8080/api/books/crawler/run
 ```
 
-**Backend won't start?**
+**App shows "Startup failed"?**
+Click **Change books folder** in the setup window and re-select your folder. Make sure the drive is mounted before launching.
+
+**502 errors in the browser?**
+The backend (Spring Boot) takes ~8 seconds to start. Wait a moment and refresh.
+
+**Dictionary popup not working?**
+Check that you've imported at least one definition dictionary. Visit `http://localhost:8080/api/dictionary/imports` to see what's loaded.
+
+**Anki cards not exporting?**
+Make sure Anki is open with AnkiConnect installed. The retry queue will flush automatically once Anki is reachable.
+
+---
+
+## Alternative: Docker / server mode
+
+If you prefer to run yomitori on a server or NAS and access it from your phone:
+
 ```bash
-docker-compose down
-docker rmi yomitori-backend yomitori-frontend
+cp .env.example .env
+# Edit BOOKS_MOUNT to point at your collection
+# For phone access, set LAN_IP=192.168.x.x
 docker-compose up --build
 ```
 
-**No space left on device?**
-```bash
-docker system prune -a
-docker volume prune
-```
+Access at `http://localhost:5173` (or `http://YOUR_LAN_IP:5173` on your phone).
 
-**Port conflict?**
-```bash
-lsof -i :8080  # or 5173, 8888
-# or just change ports in .env
-```
+---
 
-**Slow first run?** Normal for 40k+ files. Watch progress:
+## Building locally
+
+Requires: Rust (via rustup), JDK 21+, Node 20+, Bun, and [Tauri CLI](https://tauri.app/start/prerequisites/).
+
 ```bash
-docker-compose logs backend | grep "job-queue\|Crawler done\|Author extraction"
+./build-desktop.sh
+# Binary: launcher/target/release/yomitori
+# Installers: launcher/target/release/bundle/
 ```
 
 ---
 
-## Known Limitations
+## Documentation
 
-- Cover extraction: solid for ePub; PDF/CBR/CBZ is stubbed
-- No book summaries (Phase 2 plan)
-- No user ratings
-- No cross-device sync for inline annotations (IDB-local only)
-- No cross-device sync
-- SQLite JDBC `getGeneratedKeys()` limitation: all IDs are UUIDs, not auto-increment (by design)
+- [Architecture](ARCHITECTURE.md) — full technical reference
+- [Roadmap](ROADMAP.md) — what's built, what's next
 
 ---
 
-*Built with Kotlin, React, and too much love for the books.*  
+*Built with Kotlin, React, and too much love for the books.*
 *Co-Authored-By: chloe-chan <noreply@chloe> ♡*
