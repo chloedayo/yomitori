@@ -1,8 +1,9 @@
 # yomitori ♡
+<center>
+  <img width="1493" height="212" alt="image" src="https://github.com/user-attachments/assets/b396f068-248d-4a45-aa6c-ca8073c4c3e6" />
+</center>
 
-**yomitori** (読み取り) — a love letter to your books, in code.
-
-You've got thousands of ebooks scattered across your drive. Books with anime on the cover. Books you meant to read. Books you forgot you had. Yomitori brings them home — covers, metadata, authors, reading progress — and turns them into a Japanese reading workflow that actually works.
+** read books with anime on the cover **
 
 ---
 
@@ -23,89 +24,8 @@ Download the installer for your platform from [Releases](https://github.com/chlo
 
 ## Getting started
 
-1. **Launch yomitori** — a small native splash window appears
-2. **Pick your books folder** — the root directory of your collection (first run only)
-3. The splash reports progress while services start in the background
-4. **Open Yomitori** — click the button on the ready pane; your default browser opens the app at `http://localhost:3000`
-5. **Wait for indexing** — first crawl takes a few minutes depending on collection size; covers and metadata are extracted automatically
-
-The Tauri window is only a launcher/splash. The actual app runs in your browser tab — use it like any other web app (bookmark it, open multiple tabs, use DevTools). The launcher keeps running in your **system tray**. Click the tray icon → **Show** to bring the splash back; **Quit** kills the services and exits.
-
-## How it works
-
-Yomitori ships as a native launcher that supervises two local services:
-
-- **Middleware** on `127.0.0.1:3000` — serves the React SPA and proxies `/api/*` to the backend. This is what your browser tab connects to.
-- **Backend** on `127.0.0.1:8080` — Spring Boot + SQLite. Internal only; the browser never hits it directly.
-
-Both bind to loopback. Nothing is reachable from your LAN in desktop mode. No CORS — same-origin by design.
-
-## Ports
-
-| Port | Service | Purpose |
-|------|---------|---------|
-| 3000 | Middleware (loopback) | Serves SPA, proxies `/api`, hosts `/tokenize` + `/deinflect` + mining |
-| 8080 | Backend (loopback) | Spring REST + SQLite; internal only |
-
-For server/self-host (Docker) usage see the [Docker section](#alternative-docker--server-mode) below.
-
----
-
-## Features
-
-### Library
-- Covers extracted from every EPUB
-- Smart indexing: title, type, author relationships extracted from metadata and filenames
-- Search by title, author, genre, or type
-- Tabs: All Books, In Progress, Favorites, Hidden
-- Author view with autocomplete and author favorites
-- Hover preview, pie chart reading progress
-
-### Reader
-- EPUB reader with vertical (縦書き) and horizontal (横書き) modes
-- Swipe navigation — proportional: swipe harder, scroll further
-- Bookmark save and restore with progress tracking
-- Custom CSS editor — live preview, scoped to the reader
-- Mobile-optimized: compact controls, touch navigation, responsive layout
-
-### Dictionary popup ♡
-Select any text while reading → an instant popup appears with:
-- Deinflected definitions (conjugation-aware: 食べている → 食べる)
-- All matched forms with kanji drill-down (click any kanji for an inline sub-lookup)
-- Alternate / "see also" forms, each independently expandable
-- **+Anki** — add directly to Anki from the popup
-- **+Dict** — save to your personal dictionary
-- **✏ Inline** — attach a note right at that word in the text
-
-Uses your local Yomichan dictionaries — no internet required.
-
-### Word mining
-1. Open a book in the reader
-2. (Optional) Settings → Mining Filter → pick frequency source + rank range
-3. Hit the **Mine** button — Kuromoji tokenizes the entire book
-4. Matched words auto-export to Anki in the background
-5. Every word also lands in your **Personal Dictionary**
-
-Mining runs in the middleware process and survives page reloads. Hit Mine again to stop and clear the queue.
-
-### Personal dictionary
-Every word you mine or look up is saved locally in your browser (IndexedDB). Browse by kana row, filter by frequency source, see SRS status alongside each entry.
-
-### SRS quiz (ARIA algorithm)
-Spaced repetition for your mined vocabulary, fully offline. Modes:
-- **Scheduled** — ARIA-selected due cards, ~15% new words per session
-- **Custom** — filter by frequency source, rank range, or status
-- **Endless** — no session limit, run until you stop
-- **Hardcore** — one wrong answer ends the session (💀)
-
-Stats dashboard: accuracy ring, interval histogram, activity heatmap, session history with per-mode charts.
-
-### Inline annotations
-Select text → **✏ Inline** in the popup → type a note. Injected right at the word in the reading flow, in the correct writing direction. Hover to dismiss, click to edit. Persists per book, survives navigation.
-
----
-
-## Dictionaries
+### Prerequisites
+**Set up your dictionaries first!**
 
 Yomitori uses **Yomichan-format dictionaries** — the same ones you'd use in Yomitan.
 
@@ -125,6 +45,99 @@ Drop dictionary zips into your dictionary folder — click **Open dictionary fol
 
 Dictionaries import on startup; files dropped while running auto-import with no restart needed.
 
+### Now, time to get started:
+
+1. **Launch yomitori** — a small native splash window appears
+2. **Pick your books folder** — the root directory of your collection (first run only)
+<center>
+  <img width="703" height="336" alt="image" src="https://github.com/user-attachments/assets/6aff3c37-b2ad-44cb-91cf-acc565173616" />
+</center>
+4. The splash reports progress while services start in the background
+5. **Open Yomitori** — click the button on the ready pane; your default browser opens the app at `http://localhost:3000`
+<center>
+  <img width="703" height="336" alt="image" src="https://github.com/user-attachments/assets/33d13d3a-aa3c-4523-8923-59af5ba343c6" />
+</center>
+6. **Wait for indexing** — first crawl takes a few minutes depending on collection size; covers and metadata are extracted automatically
+
+---
+
+The Tauri window is only a launcher/splash. The actual app runs in your browser tab — use it like any other web app (bookmark it, open multiple tabs, use DevTools). The launcher keeps running in your **system tray**. Click the tray icon → **Show** to bring the splash back; **Quit** kills the services and exits.
+
+## Features
+
+### Library
+- Covers extracted from every EPUB
+- Smart indexing: title, type, author relationships extracted from metadata and filenames
+- Search by title, author, genre, or type
+- Tabs: All Books, In Progress, Favorites, Hidden
+- Author view with autocomplete and author favorites
+- Hover preview, pie chart reading progress
+
+### Reader
+- EPUB reader with vertical (縦書き) and horizontal (横書き) modes
+- Swipe navigation — proportional: swipe harder, scroll further
+- Bookmark save and restore with progress tracking
+- Custom CSS editor — live preview, scoped to the reader
+
+<center>
+  <img width="1553" height="83" alt="image" src="https://github.com/user-attachments/assets/bedadd49-f5b8-401d-b55a-0d09f3b64cc3" />  
+</center>
+
+### Dictionary popup ♡
+Select any text while reading → an instant popup appears with:
+- Deinflected definitions (conjugation-aware: 食べている → 食べる)
+- All matched forms with kanji drill-down (click any kanji for an inline sub-lookup)
+- Alternate / "see also" forms, each independently expandable
+- **+Anki** — add directly to Anki from the popup
+- **+Dict** — save to your personal dictionary
+- **✏ Inline** — attach a note right at that word in the text
+
+<center>
+  <img width="407" height="502" alt="image" src="https://github.com/user-attachments/assets/f0f36b05-fea3-4beb-af59-383d9765c9e2" />
+</center>
+
+Uses your local Yomichan dictionaries — no internet required.
+
+### Word mining
+1. Open a book in the reader
+2. (Optional) Settings → Mining Filter → pick frequency source + rank range
+<center>
+  <img width="787" height="547" alt="image" src="https://github.com/user-attachments/assets/5d088806-c457-4083-a3a8-f7deb67fd9fc" />
+</center>
+4. Hit the **Mine** button — Kuromoji tokenizes the entire book
+5. Matched words auto-export to Anki in the background
+6. Every word also lands in your **Personal Dictionary**
+
+Mining runs in the middleware process and survives page reloads. Hit Mine again to stop and clear the queue.
+
+### Personal dictionary
+Every word you mine or look up is saved locally in your browser (IndexedDB). Browse by kana row, filter by frequency source, see SRS status alongside each entry.
+<center>
+  <img width="1489" height="659" alt="image" src="https://github.com/user-attachments/assets/2a21d6a5-257e-4acf-b8cd-fe2468f2dc9f" />
+</center>
+
+### Quiz!!!
+Spaced repetition for your mined vocabulary, fully offline. Modes:
+- **Scheduled** — due cards, ~15% new words per session
+- **Custom** — filter by frequency source, rank range, or status
+- **Endless** — no session limit, run until you stop
+- **Hardcore** — one wrong answer ends the session (💀)
+<center>
+  <img width="575" height="583" alt="image" src="https://github.com/user-attachments/assets/afb1664d-4b84-434d-a0c7-320adbf38911" />
+</center>
+
+Stats dashboard: UOOOOH NUMBERS
+<center>
+  <img width="669" height="792" alt="image" src="https://github.com/user-attachments/assets/4529f9b4-bcf3-42d1-bdf6-b97923b2d088" />
+</center>
+
+### Inline annotations
+Select text → **✏ Inline** in the popup → type a note. Injected right at the word in the reading flow, in the correct writing direction. Hover to dismiss, click to edit. Persists per book, survives navigation.
+<center>
+  <img width="1240" height="1008" alt="image" src="https://github.com/user-attachments/assets/1eb36b82-cd96-4881-b5ee-a0e373bdf959" />
+  <img width="345" height="355" alt="image" src="https://github.com/user-attachments/assets/ddb51583-b860-4f18-8fe6-f06908c4c5e6" />
+</center>
+
 ---
 
 ## AnkiConnect setup
@@ -138,6 +151,15 @@ Mining and popup +Anki require [AnkiConnect](https://ankiweb.net/shared/info/205
 Works with the [Lapis](https://github.com/donkuri/Lapis) card template.
 
 ---
+
+## Ports
+
+| Port | Service | Purpose |
+|------|---------|---------|
+| 3000 | Middleware (loopback) | Serves SPA, proxies `/api`, hosts `/tokenize` + `/deinflect` + mining |
+| 8080 | Backend (loopback) | Spring REST + SQLite; internal only |
+
+For server/self-host (Docker) usage see the [Docker section](#alternative-docker--server-mode) below.
 
 ## Troubleshooting
 
