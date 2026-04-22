@@ -6,7 +6,7 @@ import { deinflect, extractBaseForms } from './utils/deinflect.js';
 import { mineWords } from './utils/miner.js';
 import { canAddNotesForExpressions } from './utils/ankiClient.js';
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
 const STATIC_DIR = process.env.YOMITORI_STATIC_DIR;
 
@@ -280,8 +280,9 @@ async function start() {
       res.end(JSON.stringify({ error: 'Not found' }));
     });
 
-    server.listen(PORT, () => {
-      console.log(`🚀 Middleware listening on port ${PORT}`);
+    const HOST = process.env.HOST || '127.0.0.1';
+    server.listen(PORT, HOST, () => {
+      console.log(`🚀 Middleware listening on ${HOST}:${PORT}`);
     });
   } catch (err) {
     console.error('Failed to start middleware:', err);
