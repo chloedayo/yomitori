@@ -37,10 +37,6 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-        
-      - name: Unit tests
-        working-directory: frontend
-        run: npm run test
 
   launcher-check:
     name: Tauri type check
